@@ -41,7 +41,7 @@ struct HomeView: View {
             .navigationDestination(for: LessonItem.self) { lesson in
                 LessonDetailView(lesson: lesson)
             }
-            .navigationTitle("HOME")
+            .navigationTitle("Lessons")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
