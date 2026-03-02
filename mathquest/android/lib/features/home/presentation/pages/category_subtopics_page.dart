@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/dio_client.dart';
+
 class CategorySubtopicsPage extends StatefulWidget {
   const CategorySubtopicsPage({super.key, required this.categoryId});
 
@@ -14,7 +15,7 @@ class CategorySubtopicsPage extends StatefulWidget {
 class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
   final DioClient _dio = DioClient();
   String? _categoryTitle;
-  List<Map<String, dynamic>> _subtopics = [];
+  List<Map<String, dynamic>> _sections = [];
   bool _loading = true;
   String? _error;
 
@@ -51,10 +52,10 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
         });
         return;
       }
-      final subtopics = cat['subtopics'] as List<dynamic>? ?? [];
+      final sections = cat['sections'] as List<dynamic>? ?? [];
       setState(() {
         _categoryTitle = cat['title'] as String? ?? widget.categoryId;
-        _subtopics = subtopics.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _sections = sections.map((e) => Map<String, dynamic>.from(e as Map)).toList();
         _loading = false;
       });
     } catch (e) {
@@ -67,6 +68,10 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sectionHeaderColor = isDark ? Colors.grey.shade600 : Colors.grey.shade700;
+    final buttonBg = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(_categoryTitle ?? widget.categoryId),
@@ -89,21 +94,57 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
                   ),
                 )
               : ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  itemCount: _subtopics.length,
-                  itemBuilder: (context, i) {
-                    final sub = _subtopics[i];
-                    final id = sub['id'] as String? ?? '';
-                    final title = sub['title'] as String? ?? '';
-                    final desc = sub['description'] as String? ?? '';
-                    final coinCost = (sub['coin_cost'] as num?)?.toInt() ?? 10;
-                    return Card(
-                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                      child: ListTile(
-                        title: Text(title),
-                        subtitle: desc.isEmpty ? null : Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis),
-                        trailing: Text('$coinCost coins', style: Theme.of(context).textTheme.bodySmall),
-                        onTap: () => context.push('/lesson/$id'),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  itemCount: _sections.length,
+                  itemBuilder: (context, sectionIndex) {
+                    final section = _sections[sectionIndex];
+                    final sectionTitle = section['title'] as String? ?? '';
+                    final lessonId = section['lesson_id'] as String? ?? '';
+                    final items = section['items'] as List<dynamic>? ?? [];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 4, bottom: 8),
+                            child: Text(
+                              sectionTitle,
+                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    color: sectionHeaderColor,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                            ),
+                          ),
+                          ...items.map((it) {
+                            final itemMap = Map<String, dynamic>.from(it as Map);
+                            final itemTitle = itemMap['title'] as String? ?? '';
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () => context.push('/lesson/$lessonId'),
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    decoration: BoxDecoration(
+                                      color: buttonBg,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      itemTitle,
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }),
+                        ],
                       ),
                     );
                   },

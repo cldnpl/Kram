@@ -8,31 +8,54 @@ struct LessonItem: Identifiable, Hashable {
     let coinCost: Int
 }
 
+struct CategorySectionItem: Identifiable {
+    let id: String
+    let title: String
+    let lessonId: String
+    let items: [SubcategoryItem]
+}
+
+struct SubcategoryItem: Identifiable {
+    let id: String
+    let title: String
+}
+
 struct CategoryItem: Identifiable {
     let id: String
     let title: String
-    let subtopics: [LessonItem]
+    let sections: [CategorySectionItem]
 }
 
-private struct SubtopicDTO: Decodable {
-    let id: String
+private struct ItemDTO: Decodable {
     let title: String
-    let description: String?
-    let difficulty: Int
-    let coin_cost: Int
+}
 
-    var toItem: LessonItem {
-        LessonItem(id: id, title: title, description: description ?? "", difficulty: difficulty, coinCost: coin_cost)
-    }
+private struct SectionDTO: Decodable {
+    let title: String
+    let lesson_id: String
+    let items: [ItemDTO]
 }
 
 private struct CategoryDTO: Decodable {
     let id: String
     let title: String
-    let subtopics: [SubtopicDTO]
+    let sections: [SectionDTO]
 
     var toItem: CategoryItem {
-        CategoryItem(id: id, title: title, subtopics: subtopics.map(\.toItem))
+        CategoryItem(
+            id: id,
+            title: title,
+            sections: sections.enumerated().map { idx, s in
+                CategorySectionItem(
+                    id: "\(id)-\(idx)",
+                    title: s.title,
+                    lessonId: s.lesson_id,
+                    items: s.items.enumerated().map { i, it in
+                        SubcategoryItem(id: "\(s.lesson_id)-\(i)", title: it.title)
+                    }
+                )
+            }
+        )
     }
 }
 
@@ -74,5 +97,10 @@ final class HomeViewModel: ObservableObject {
             print("[Home] ERROR: \(error)")
             errorMessage = error.localizedDescription
         }
+    }
+
+    /// Total subcategory count for a category (for progress display).
+    func totalItems(for category: CategoryItem) -> Int {
+        category.sections.reduce(0) { $0 + $1.items.count }
     }
 }

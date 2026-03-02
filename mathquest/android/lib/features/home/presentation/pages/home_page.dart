@@ -106,8 +106,12 @@ class _HomePageState extends State<HomePage> {
                     final cat = _categories[i];
                     final id = cat['id'] as String? ?? '';
                     final title = cat['title'] as String? ?? '';
-                    final subtopics = cat['subtopics'] as List<dynamic>? ?? [];
-                    final total = subtopics.length;
+                    final sections = cat['sections'] as List<dynamic>? ?? [];
+                    int total = 0;
+                    for (final s in sections) {
+                      final items = (s as Map)['items'] as List<dynamic>? ?? [];
+                      total += items.length;
+                    }
                     final completed = _completedCount(cat);
 
                     return Material(

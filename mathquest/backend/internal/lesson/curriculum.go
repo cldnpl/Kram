@@ -2,95 +2,310 @@ package lesson
 
 import "github.com/gofiber/fiber/v2"
 
-// curriculum returns the full math curriculum: 6 categories and their subtopics.
+// curriculum returns the full math curriculum: 6 categories, each with sections and items (subcategories).
 func curriculum() []fiber.Map {
 	return []fiber.Map{
 		{
-			"id":        "arithmetic",
-			"title":     "Arithmetic & Number Systems",
-			"subtopics": arithmeticSubtopics(),
+			"id":       "arithmetic",
+			"title":    "Arithmetic & Number Systems",
+			"sections": arithmeticSections(),
 		},
 		{
-			"id":        "algebra",
-			"title":     "Algebra",
-			"subtopics": algebraSubtopics(),
+			"id":       "algebra",
+			"title":    "Algebra",
+			"sections": algebraSections(),
 		},
 		{
-			"id":        "geometry",
-			"title":     "Geometry & Trigonometry",
-			"subtopics": geometrySubtopics(),
+			"id":       "geometry",
+			"title":    "Geometry & Trigonometry",
+			"sections": geometrySections(),
 		},
 		{
-			"id":        "precalc",
-			"title":     "Pre-Calculus & Analysis",
-			"subtopics": precalcSubtopics(),
+			"id":       "precalc",
+			"title":    "Pre-Calculus & Analysis",
+			"sections": precalcSections(),
 		},
 		{
-			"id":        "differential",
-			"title":     "Differential Calculus",
-			"subtopics": differentialSubtopics(),
+			"id":       "differential",
+			"title":    "Differential Calculus",
+			"sections": differentialSections(),
 		},
 		{
-			"id":        "integral",
-			"title":     "Integral Calculus",
-			"subtopics": integralSubtopics(),
+			"id":       "integral",
+			"title":    "Integral Calculus",
+			"sections": integralSections(),
 		},
 	}
 }
 
-func arithmeticSubtopics() []fiber.Map {
+// section: title, lesson_id (for navigation), items ([]{ title })
+func arithmeticSections() []fiber.Map {
 	return []fiber.Map{
-		{"id": "1", "title": "Sets of Numbers", "description": "Natural numbers (ℕ), Integers (ℤ), and Rational numbers (ℚ).", "coin_cost": 10, "coin_reward": 15, "difficulty": 1},
-		{"id": "2", "title": "Fundamental Operations", "description": "The four operations, Powers and their properties, Roots.", "coin_cost": 10, "coin_reward": 15, "difficulty": 1},
-		{"id": "3", "title": "Expressions & Order of Operations", "description": "Use of parentheses and PEMDAS/BODMAS.", "coin_cost": 10, "coin_reward": 15, "difficulty": 1},
-		{"id": "4", "title": "Divisibility & Prime Numbers", "description": "Multiples, Divisors, GCD (MCD), and LCM (mcm).", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
-		{"id": "5", "title": "Fractions & Ratios", "description": "Equivalent fractions, Operations with fractions, Percentages, and Proportions.", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
+		{
+			"title":     "Sets of Numbers",
+			"lesson_id": "1",
+			"items": []fiber.Map{
+				{"title": "Natural numbers ℕ"},
+				{"title": "Integers ℤ"},
+				{"title": "Rational numbers ℚ"},
+			},
+		},
+		{
+			"title":     "Fundamental Operations",
+			"lesson_id": "2",
+			"items": []fiber.Map{
+				{"title": "The four operations"},
+				{"title": "Powers and their properties"},
+				{"title": "Roots"},
+			},
+		},
+		{
+			"title":     "Expressions & Order of Operations",
+			"lesson_id": "3",
+			"items": []fiber.Map{
+				{"title": "Use of parentheses and PEMDAS/BODMAS"},
+			},
+		},
+		{
+			"title":     "Divisibility & Prime Numbers",
+			"lesson_id": "4",
+			"items": []fiber.Map{
+				{"title": "Multiples"},
+				{"title": "Divisors"},
+				{"title": "GCD (Greatest Common Divisor)"},
+				{"title": "LCM (Least Common Multiple)"},
+			},
+		},
+		{
+			"title":     "Fractions & Ratios",
+			"lesson_id": "5",
+			"items": []fiber.Map{
+				{"title": "Equivalent fractions"},
+				{"title": "Operations with fractions"},
+				{"title": "Percentages"},
+				{"title": "Proportions"},
+			},
+		},
 	}
 }
 
-func algebraSubtopics() []fiber.Map {
+func algebraSections() []fiber.Map {
 	return []fiber.Map{
-		{"id": "6", "title": "Monomials & Polynomials", "description": "Operations, Degree of a polynomial, and Prodotti Notevoli (Special Products like Square of a Binomial).", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
-		{"id": "7", "title": "Factoring Polynomials", "description": "Common factoring (Raccoglimento), Ruffini's Rule, and Difference of Squares.", "coin_cost": 15, "coin_reward": 25, "difficulty": 2},
-		{"id": "8", "title": "Linear Equations & Inequalities", "description": "First-degree equations and literal equations.", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
-		{"id": "9", "title": "Quadratic Equations", "description": "Complete and incomplete quadratics, the Discriminant (Δ), and factoring quadratic trinomials.", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
-		{"id": "10", "title": "Systems of Equations", "description": "Substitution, Comparison, and Cramer's method.", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
+		{
+			"title":     "Monomials & Polynomials",
+			"lesson_id": "6",
+			"items": []fiber.Map{
+				{"title": "Operations"},
+				{"title": "Degree of a polynomial"},
+				{"title": "Special products (e.g. square of a binomial)"},
+			},
+		},
+		{
+			"title":     "Factoring Polynomials",
+			"lesson_id": "7",
+			"items": []fiber.Map{
+				{"title": "Common factoring"},
+				{"title": "Ruffini's Rule"},
+				{"title": "Difference of Squares"},
+			},
+		},
+		{
+			"title":     "Linear Equations & Inequalities",
+			"lesson_id": "8",
+			"items": []fiber.Map{
+				{"title": "First-degree equations"},
+				{"title": "Literal equations"},
+			},
+		},
+		{
+			"title":     "Quadratic Equations",
+			"lesson_id": "9",
+			"items": []fiber.Map{
+				{"title": "Complete and incomplete quadratics"},
+				{"title": "The Discriminant (Δ)"},
+				{"title": "Factoring quadratic trinomials"},
+			},
+		},
+		{
+			"title":     "Systems of Equations",
+			"lesson_id": "10",
+			"items": []fiber.Map{
+				{"title": "Substitution"},
+				{"title": "Comparison"},
+				{"title": "Cramer's method"},
+			},
+		},
 	}
 }
 
-func geometrySubtopics() []fiber.Map {
+func geometrySections() []fiber.Map {
 	return []fiber.Map{
-		{"id": "11", "title": "Plane Geometry", "description": "Segments, Angles, Triangles, Quadrilaterals, and Polygons.", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
-		{"id": "12", "title": "Congruence & Similarity", "description": "Criteria for triangles, Pythagoras' and Euclid's theorems.", "coin_cost": 15, "coin_reward": 25, "difficulty": 2},
-		{"id": "13", "title": "Circle & Pi", "description": "Circumference, Area, Tangents, and Secants.", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
-		{"id": "14", "title": "Solid Geometry", "description": "Prisms, Pyramids, Cylinders, Cones, and Spheres (Volume & Surface Area).", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
-		{"id": "15", "title": "Goniometry & Trigonometry", "description": "The Unit Circle, Sine, Cosine, Tangent, and the Law of Sines/Cosines.", "coin_cost": 18, "coin_reward": 28, "difficulty": 3},
+		{
+			"title":     "Plane Geometry",
+			"lesson_id": "11",
+			"items": []fiber.Map{
+				{"title": "Segments"},
+				{"title": "Angles"},
+				{"title": "Triangles"},
+				{"title": "Quadrilaterals"},
+				{"title": "Polygons"},
+			},
+		},
+		{
+			"title":     "Congruence & Similarity",
+			"lesson_id": "12",
+			"items": []fiber.Map{
+				{"title": "Criteria for triangles"},
+				{"title": "Pythagoras' and Euclid's theorems"},
+			},
+		},
+		{
+			"title":     "Circle & Pi",
+			"lesson_id": "13",
+			"items": []fiber.Map{
+				{"title": "Circumference"},
+				{"title": "Area"},
+				{"title": "Tangents"},
+				{"title": "Secants"},
+			},
+		},
+		{
+			"title":     "Solid Geometry",
+			"lesson_id": "14",
+			"items": []fiber.Map{
+				{"title": "Prisms"},
+				{"title": "Pyramids"},
+				{"title": "Cylinders"},
+				{"title": "Cones"},
+				{"title": "Spheres (Volume & Surface Area)"},
+			},
+		},
+		{
+			"title":     "Goniometry & Trigonometry",
+			"lesson_id": "15",
+			"items": []fiber.Map{
+				{"title": "The Unit Circle"},
+				{"title": "Sine, Cosine, Tangent"},
+				{"title": "Law of Sines/Cosines"},
+			},
+		},
 	}
 }
 
-func precalcSubtopics() []fiber.Map {
+func precalcSections() []fiber.Map {
 	return []fiber.Map{
-		{"id": "16", "title": "Functions & Domain", "description": "Real functions of a real variable, Classification, and finding the Domain (Insieme di Definizione).", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
-		{"id": "17", "title": "Properties of Functions", "description": "Symmetries (Even/Odd), Intercepts, and Sign study (Positività).", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
-		{"id": "18", "title": "Exponential & Logarithms", "description": "Equations and inequalities with eˣ and log(x).", "coin_cost": 18, "coin_reward": 28, "difficulty": 3},
-		{"id": "19", "title": "Analytic Geometry", "description": "The line, the circle, the parabola, the ellipse, and the hyperbola in the Cartesian plane.", "coin_cost": 20, "coin_reward": 32, "difficulty": 4},
+		{
+			"title":     "Functions & Domain",
+			"lesson_id": "16",
+			"items": []fiber.Map{
+				{"title": "Real functions of a real variable"},
+				{"title": "Classification"},
+				{"title": "Finding the domain"},
+			},
+		},
+		{
+			"title":     "Properties of Functions",
+			"lesson_id": "17",
+			"items": []fiber.Map{
+				{"title": "Symmetries (Even/Odd)"},
+				{"title": "Intercepts"},
+				{"title": "Sign study"},
+			},
+		},
+		{
+			"title":     "Exponential & Logarithms",
+			"lesson_id": "18",
+			"items": []fiber.Map{
+				{"title": "Equations and inequalities with eˣ and log(x)"},
+			},
+		},
+		{
+			"title":     "Analytic Geometry",
+			"lesson_id": "19",
+			"items": []fiber.Map{
+				{"title": "The line"},
+				{"title": "The circle"},
+				{"title": "The parabola"},
+				{"title": "The ellipse"},
+				{"title": "The hyperbola in the Cartesian plane"},
+			},
+		},
 	}
 }
 
-func differentialSubtopics() []fiber.Map {
+func differentialSections() []fiber.Map {
 	return []fiber.Map{
-		{"id": "20", "title": "Limits & Continuity", "description": "Finite and infinite limits, Indeterminate forms, and Asymptotes.", "coin_cost": 18, "coin_reward": 28, "difficulty": 4},
-		{"id": "21", "title": "The Derivative Concept", "description": "Difference quotient (Rapporto incrementale) and geometric meaning.", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
-		{"id": "22", "title": "Differentiation Rules", "description": "Power rule, Product, Quotient, and Chain rule.", "coin_cost": 18, "coin_reward": 28, "difficulty": 4},
-		{"id": "23", "title": "Function Study", "description": "Using derivatives to find Maxima, Minima, and Points of Inflection (Flessi).", "coin_cost": 20, "coin_reward": 32, "difficulty": 4},
+		{
+			"title":     "Limits & Continuity",
+			"lesson_id": "20",
+			"items": []fiber.Map{
+				{"title": "Finite and infinite limits"},
+				{"title": "Indeterminate forms"},
+				{"title": "Asymptotes"},
+			},
+		},
+		{
+			"title":     "The Derivative Concept",
+			"lesson_id": "21",
+			"items": []fiber.Map{
+				{"title": "Difference quotient"},
+				{"title": "Geometric meaning"},
+			},
+		},
+		{
+			"title":     "Differentiation Rules",
+			"lesson_id": "22",
+			"items": []fiber.Map{
+				{"title": "Power rule"},
+				{"title": "Product rule"},
+				{"title": "Quotient rule"},
+				{"title": "Chain rule"},
+			},
+		},
+		{
+			"title":     "Function Study",
+			"lesson_id": "23",
+			"items": []fiber.Map{
+				{"title": "Maxima and Minima"},
+				{"title": "Points of inflection"},
+			},
+		},
 	}
 }
 
-func integralSubtopics() []fiber.Map {
+func integralSections() []fiber.Map {
 	return []fiber.Map{
-		{"id": "24", "title": "Indefinite Integrals", "description": "Primitive functions and immediate integration rules.", "coin_cost": 18, "coin_reward": 28, "difficulty": 4},
-		{"id": "25", "title": "Integration Methods", "description": "Integration by substitution and Integration by parts.", "coin_cost": 20, "coin_reward": 32, "difficulty": 4},
-		{"id": "26", "title": "Definite Integrals", "description": "Calculating the area under a curve (The Fundamental Theorem of Calculus).", "coin_cost": 20, "coin_reward": 32, "difficulty": 4},
-		{"id": "27", "title": "Applications", "description": "Calculation of volumes and areas of plane figures.", "coin_cost": 22, "coin_reward": 35, "difficulty": 4},
+		{
+			"title":     "Indefinite Integrals",
+			"lesson_id": "24",
+			"items": []fiber.Map{
+				{"title": "Primitive functions"},
+				{"title": "Immediate integration rules"},
+			},
+		},
+		{
+			"title":     "Integration Methods",
+			"lesson_id": "25",
+			"items": []fiber.Map{
+				{"title": "Integration by substitution"},
+				{"title": "Integration by parts"},
+			},
+		},
+		{
+			"title":     "Definite Integrals",
+			"lesson_id": "26",
+			"items": []fiber.Map{
+				{"title": "Calculating the area under a curve"},
+				{"title": "The Fundamental Theorem of Calculus"},
+			},
+		},
+		{
+			"title":     "Applications",
+			"lesson_id": "27",
+			"items": []fiber.Map{
+				{"title": "Calculation of volumes"},
+				{"title": "Areas of plane figures"},
+			},
+		},
 	}
 }

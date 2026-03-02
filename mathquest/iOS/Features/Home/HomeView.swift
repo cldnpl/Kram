@@ -28,7 +28,7 @@ struct HomeView: View {
                                     CategoryCardView(
                                         title: category.title,
                                         completed: 0,
-                                        total: category.subtopics.count
+                                        total: viewModel.totalItems(for: category)
                                     )
                                 }
                                 .buttonStyle(.plain)
@@ -88,45 +88,29 @@ struct CategorySubtopicsView: View {
 
     var body: some View {
         List {
-            ForEach(category.subtopics) { lesson in
-                NavigationLink(destination: LessonDetailView(lesson: lesson)) {
-                    LessonRowView(lesson: lesson)
+            ForEach(category.sections) { section in
+                Section(header: Text(section.title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)) {
+                    ForEach(section.items) { item in
+                        NavigationLink(destination: LessonDetailView(lesson: LessonItem(
+                            id: section.lessonId,
+                            title: item.title,
+                            description: "",
+                            difficulty: 0,
+                            coinCost: 0
+                        ))) {
+                            Text(item.title)
+                                .font(.body)
+                        }
+                    }
                 }
             }
         }
         .listStyle(.insetGrouped)
         .navigationTitle(category.title)
         .navigationBarTitleDisplayMode(.inline)
-    }
-}
-
-struct LessonRowView: View {
-    let lesson: LessonItem
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(lesson.title)
-                .font(.subheadline)
-                .fontWeight(.medium)
-            if !lesson.description.isEmpty {
-                Text(lesson.description)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(2)
-            }
-            HStack {
-                ForEach(0..<lesson.difficulty, id: \.self) { _ in
-                    Image(systemName: "star.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.yellow)
-                }
-                Spacer()
-                Text("\(lesson.coinCost) coins")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .padding(.vertical, 4)
     }
 }
 
