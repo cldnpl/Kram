@@ -116,15 +116,18 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
                                   ),
                             ),
                           ),
-                          ...items.map((it) {
+                          ...items.asMap().entries.map((entry) {
+                            final itemIndex = entry.key;
+                            final it = entry.value;
                             final itemMap = Map<String, dynamic>.from(it as Map);
                             final itemTitle = itemMap['title'] as String? ?? '';
+                            final itemLessonId = '$lessonId-$itemIndex';
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 8),
                               child: Material(
                                 color: Colors.transparent,
                                 child: InkWell(
-                                  onTap: () => context.push('/lesson/$lessonId'),
+                                  onTap: () => context.push('/lesson/$itemLessonId'),
                                   borderRadius: BorderRadius.circular(12),
                                   child: Container(
                                     width: double.infinity,

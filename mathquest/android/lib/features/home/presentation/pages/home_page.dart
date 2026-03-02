@@ -78,7 +78,12 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text('HOME', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
         centerTitle: true,
-        actions: [CoinBadge(coins: _coinBalance)],
+        actions: [
+          CoinBadge(
+            coins: _coinBalance,
+            onTap: () => context.push('/shop'),
+          ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())

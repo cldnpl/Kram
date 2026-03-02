@@ -43,7 +43,20 @@ struct LessonDetailView: View {
             } else if let error = viewModel.errorMessage {
                 VStack(spacing: 8) {
                     Text("Error: \(error)")
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
                     Button("Retry") { Task { await viewModel.load(lessonId: lesson.id) } }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                VStack(spacing: 12) {
+                    Text("Contenuto non disponibile")
+                        .font(.headline)
+                    Text("Assicurati che il server sia avviato e riprova.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button("Riprova") { Task { await viewModel.load(lessonId: lesson.id) } }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -77,11 +90,11 @@ final class LessonDetailViewModel: ObservableObject {
         do {
             await client.setToken("mock-dev-token")
             let response: LessonDetailResponse = try await client.request("lessons/\(lessonId)")
-            let exercises = response.exercises.map { ex in
+            let exercises = (response.exercises ?? []).map { ex in
                 LessonDetailExercise(
-                    id: ex.id,
-                    question: ex.question,
-                    options: ex.options
+                    id: ex.id ?? "",
+                    question: ex.question ?? "",
+                    options: ex.options ?? []
                 )
             }
             lessonDetail = (intro: response.contentIntro, exercises: exercises)
@@ -92,10 +105,10 @@ final class LessonDetailViewModel: ObservableObject {
 }
 
 private struct LessonDetailResponse: Decodable {
-    let id: String
-    let title: String
+    let id: String?
+    let title: String?
     let content_json: ContentJSON?
-    let exercises: [ExerciseDTO]
+    let exercises: [ExerciseDTO]?
 
     var contentIntro: String {
         content_json?.intro ?? "Learn and practice."
@@ -107,9 +120,9 @@ private struct LessonDetailResponse: Decodable {
 }
 
 private struct ExerciseDTO: Decodable {
-    let id: String
-    let question: String
-    let options: [String]
+    let id: String?
+    let question: String?
+    let options: [String]?
 }
 
 private func paragraphs(from text: String) -> [String] {

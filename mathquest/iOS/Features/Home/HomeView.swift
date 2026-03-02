@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
+    @State private var showShop = false
 
     var body: some View {
         NavigationStack {
@@ -45,8 +46,16 @@ struct HomeView: View {
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    CoinBadgeView(coins: viewModel.coinBalance)
+                    Button {
+                        showShop = true
+                    } label: {
+                        CoinBadgeView(coins: viewModel.coinBalance)
+                    }
+                    .buttonStyle(.plain)
                 }
+            }
+            .sheet(isPresented: $showShop) {
+                StoreView()
             }
             .task {
                 print("[Home] view appeared, loading data")
@@ -95,7 +104,7 @@ struct CategorySubtopicsView: View {
                     .foregroundStyle(.secondary)) {
                     ForEach(section.items) { item in
                         NavigationLink(destination: LessonDetailView(lesson: LessonItem(
-                            id: section.lessonId,
+                            id: item.id,
                             title: item.title,
                             description: "",
                             difficulty: 0,
