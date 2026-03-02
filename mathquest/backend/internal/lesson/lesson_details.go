@@ -26,14 +26,14 @@ func lessonMeta(id string) (title, category string) {
 		"17": {"Properties of Functions", "Pre-Calculus & Analysis"},
 		"18": {"Exponential & Logarithms", "Pre-Calculus & Analysis"},
 		"19": {"Analytic Geometry", "Pre-Calculus & Analysis"},
-		"20": {"Limits & Continuity", "Differential Calculus (Derivatives)"},
-		"21": {"The Derivative Concept", "Differential Calculus (Derivatives)"},
-		"22": {"Differentiation Rules", "Differential Calculus (Derivatives)"},
-		"23": {"Function Study", "Differential Calculus (Derivatives)"},
-		"24": {"Indefinite Integrals", "Integral Calculus (Accumulation)"},
-		"25": {"Integration Methods", "Integral Calculus (Accumulation)"},
-		"26": {"Definite Integrals", "Integral Calculus (Accumulation)"},
-		"27": {"Applications", "Integral Calculus (Accumulation)"},
+		"20": {"Limits & Continuity", "Differential Calculus"},
+		"21": {"The Derivative Concept", "Differential Calculus"},
+		"22": {"Differentiation Rules", "Differential Calculus"},
+		"23": {"Function Study", "Differential Calculus"},
+		"24": {"Indefinite Integrals", "Integral Calculus"},
+		"25": {"Integration Methods", "Integral Calculus"},
+		"26": {"Definite Integrals", "Integral Calculus"},
+		"27": {"Applications", "Integral Calculus"},
 	}
 	if p, ok := m[id]; ok && len(p) == 2 {
 		return p[0], p[1]

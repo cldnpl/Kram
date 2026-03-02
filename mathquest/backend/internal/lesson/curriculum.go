@@ -27,12 +27,12 @@ func curriculum() []fiber.Map {
 		},
 		{
 			"id":        "differential",
-			"title":     "Differential Calculus (Derivatives)",
+			"title":     "Differential Calculus",
 			"subtopics": differentialSubtopics(),
 		},
 		{
 			"id":        "integral",
-			"title":     "Integral Calculus (Accumulation)",
+			"title":     "Integral Calculus",
 			"subtopics": integralSubtopics(),
 		},
 	}
