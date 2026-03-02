@@ -6,18 +6,14 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             HomeView()
-                .tabItem { Label("Home", systemImage: "house.fill") }
+                .tabItem { Label("Lessons", systemImage: "house.fill") }
                 .tag(0)
-            NavigationStack {
-                CameraView()
-            }
-            .tabItem { Label("Camera", systemImage: "camera.fill") }
-            .tag(1)
-            NavigationStack {
-                ProfileView()
-            }
-            .tabItem { Label("Profile", systemImage: "person.fill") }
-            .tag(2)
+            CameraView()
+                .tabItem { Label("Camera", systemImage: "camera.fill") }
+                .tag(1)
+            ProfileView()
+                .tabItem { Label("Profile", systemImage: "person.fill") }
+                .tag(2)
         }
     }
 }

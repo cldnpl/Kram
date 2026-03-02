@@ -22,10 +22,14 @@ struct HomeView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 160))], spacing: 16) {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 175))], spacing: 14) {
                             ForEach(viewModel.categories) { category in
                                 NavigationLink(destination: CategorySubtopicsView(category: category)) {
-                                    CategoryCardView(title: category.title)
+                                    CategoryCardView(
+                                        title: category.title,
+                                        completed: 0,
+                                        total: category.subtopics.count
+                                    )
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -37,7 +41,8 @@ struct HomeView: View {
             .navigationDestination(for: LessonItem.self) { lesson in
                 LessonDetailView(lesson: lesson)
             }
-            .navigationTitle("Lessons")
+            .navigationTitle("HOME")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     CoinBadgeView(coins: viewModel.coinBalance)
@@ -53,16 +58,26 @@ struct HomeView: View {
 
 struct CategoryCardView: View {
     let title: String
+    var completed: Int = 0
+    var total: Int = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.subheadline)
+                .font(.title3)
                 .fontWeight(.semibold)
                 .multilineTextAlignment(.leading)
+                .lineLimit(3)
+            Spacer(minLength: 6)
+            Text("\(completed)/\(total)")
+                .font(.subheadline)
+                .fontWeight(.semibold)
+            ProgressView(value: total > 0 ? Double(completed) / Double(total) : 0)
+                .tint(.red)
+                .scaleEffect(x: 1, y: 1.8, anchor: .center)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding()
+        .padding(18)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }

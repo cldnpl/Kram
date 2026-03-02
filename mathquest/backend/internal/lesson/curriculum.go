@@ -2,7 +2,7 @@ package lesson
 
 import "github.com/gofiber/fiber/v2"
 
-// curriculum returns the full math curriculum: categories and subtopics.
+// curriculum returns the full math curriculum: 6 categories and their subtopics.
 func curriculum() []fiber.Map {
 	return []fiber.Map{
 		{
@@ -12,7 +12,7 @@ func curriculum() []fiber.Map {
 		},
 		{
 			"id":        "algebra",
-			"title":     "Algebra (The Core)",
+			"title":     "Algebra",
 			"subtopics": algebraSubtopics(),
 		},
 		{
@@ -40,52 +40,57 @@ func curriculum() []fiber.Map {
 
 func arithmeticSubtopics() []fiber.Map {
 	return []fiber.Map{
-		{"id": "1", "title": "The Basics", "description": "PEMDAS/BODMAS, Long Division, Multi-digit Multiplication", "coin_cost": 10, "coin_reward": 15, "difficulty": 1},
-		{"id": "2", "title": "Fractions & Decimals", "description": "Converting between them, Simplification, Repeating Decimals", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
-		{"id": "3", "title": "Number Theory", "description": "Prime Factorization, Sieve of Eratosthenes, Euclidean Algorithm (for GCF), Modular Arithmetic", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
-		{"id": "4", "title": "Scientific Notation", "description": "Powers of 10, Significant Figures", "coin_cost": 10, "coin_reward": 15, "difficulty": 1},
+		{"id": "1", "title": "Sets of Numbers", "description": "Natural numbers (ℕ), Integers (ℤ), and Rational numbers (ℚ).", "coin_cost": 10, "coin_reward": 15, "difficulty": 1},
+		{"id": "2", "title": "Fundamental Operations", "description": "The four operations, Powers and their properties, Roots.", "coin_cost": 10, "coin_reward": 15, "difficulty": 1},
+		{"id": "3", "title": "Expressions & Order of Operations", "description": "Use of parentheses and PEMDAS/BODMAS.", "coin_cost": 10, "coin_reward": 15, "difficulty": 1},
+		{"id": "4", "title": "Divisibility & Prime Numbers", "description": "Multiples, Divisors, GCD (MCD), and LCM (mcm).", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
+		{"id": "5", "title": "Fractions & Ratios", "description": "Equivalent fractions, Operations with fractions, Percentages, and Proportions.", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
 	}
 }
 
 func algebraSubtopics() []fiber.Map {
 	return []fiber.Map{
-		{"id": "5", "title": "Linear Algebra", "description": "Slope-Intercept Form (y=mx+b), Point-Slope Form, Solving Systems (Substitution vs. Elimination)", "coin_cost": 15, "coin_reward": 25, "difficulty": 2},
-		{"id": "6", "title": "Polynomials", "description": "FOIL Method, Difference of Squares, Synthetic Division, Binomial Theorem", "coin_cost": 18, "coin_reward": 28, "difficulty": 3},
-		{"id": "7", "title": "Quadratic Equations", "description": "Completing the Square, The Discriminant, Vertex Form", "coin_cost": 15, "coin_reward": 25, "difficulty": 2},
-		{"id": "8", "title": "Inequalities", "description": "Graphing Linear Inequalities, Shading Regions", "coin_cost": 12, "coin_reward": 20, "difficulty": 2},
-		{"id": "9", "title": "Advanced Algebra", "description": "Logarithmic Laws, Inverse Functions, Matrix Multiplication, Cramer's Rule", "coin_cost": 25, "coin_reward": 40, "difficulty": 4},
+		{"id": "6", "title": "Monomials & Polynomials", "description": "Operations, Degree of a polynomial, and Prodotti Notevoli (Special Products like Square of a Binomial).", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
+		{"id": "7", "title": "Factoring Polynomials", "description": "Common factoring (Raccoglimento), Ruffini's Rule, and Difference of Squares.", "coin_cost": 15, "coin_reward": 25, "difficulty": 2},
+		{"id": "8", "title": "Linear Equations & Inequalities", "description": "First-degree equations and literal equations.", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
+		{"id": "9", "title": "Quadratic Equations", "description": "Complete and incomplete quadratics, the Discriminant (Δ), and factoring quadratic trinomials.", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
+		{"id": "10", "title": "Systems of Equations", "description": "Substitution, Comparison, and Cramer's method.", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
 	}
 }
 
 func geometrySubtopics() []fiber.Map {
 	return []fiber.Map{
-		{"id": "10", "title": "Euclidean Laws", "description": "Parallel Lines & Transversals, Congruent Triangles (SSS, SAS, ASA), Pythagorean Theorem", "coin_cost": 15, "coin_reward": 25, "difficulty": 2},
-		{"id": "11", "title": "Circles", "description": "Chord Properties, Tangents, Sector Area, Arc Length", "coin_cost": 15, "coin_reward": 25, "difficulty": 2},
-		{"id": "12", "title": "Solid Geometry", "description": "Euler's Formula for Polyhedra (V−E+F=2), Volume of Pyramids and Cones", "coin_cost": 18, "coin_reward": 28, "difficulty": 3},
-		{"id": "13", "title": "Trigonometry", "description": "Law of Sines/Cosines, Double Angle Identities, Inverse Trig (Arcsin, Arccos)", "coin_cost": 20, "coin_reward": 32, "difficulty": 3},
+		{"id": "11", "title": "Plane Geometry", "description": "Segments, Angles, Triangles, Quadrilaterals, and Polygons.", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
+		{"id": "12", "title": "Congruence & Similarity", "description": "Criteria for triangles, Pythagoras' and Euclid's theorems.", "coin_cost": 15, "coin_reward": 25, "difficulty": 2},
+		{"id": "13", "title": "Circle & Pi", "description": "Circumference, Area, Tangents, and Secants.", "coin_cost": 12, "coin_reward": 18, "difficulty": 2},
+		{"id": "14", "title": "Solid Geometry", "description": "Prisms, Pyramids, Cylinders, Cones, and Spheres (Volume & Surface Area).", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
+		{"id": "15", "title": "Goniometry & Trigonometry", "description": "The Unit Circle, Sine, Cosine, Tangent, and the Law of Sines/Cosines.", "coin_cost": 18, "coin_reward": 28, "difficulty": 3},
 	}
 }
 
 func precalcSubtopics() []fiber.Map {
 	return []fiber.Map{
-		{"id": "14", "title": "Functions", "description": "Even vs. Odd functions, Vertical/Horizontal Asymptotes, Piecewise Functions", "coin_cost": 18, "coin_reward": 28, "difficulty": 3},
-		{"id": "15", "title": "Sequences", "description": "Arithmetic vs. Geometric Progressions, Sum to Infinity", "coin_cost": 15, "coin_reward": 25, "difficulty": 2},
-		{"id": "16", "title": "Limits", "description": "Squeeze Theorem, L'Hôpital's Rule (conceptual intro), Limits at Infinity", "coin_cost": 22, "coin_reward": 35, "difficulty": 4},
+		{"id": "16", "title": "Functions & Domain", "description": "Real functions of a real variable, Classification, and finding the Domain (Insieme di Definizione).", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
+		{"id": "17", "title": "Properties of Functions", "description": "Symmetries (Even/Odd), Intercepts, and Sign study (Positività).", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
+		{"id": "18", "title": "Exponential & Logarithms", "description": "Equations and inequalities with eˣ and log(x).", "coin_cost": 18, "coin_reward": 28, "difficulty": 3},
+		{"id": "19", "title": "Analytic Geometry", "description": "The line, the circle, the parabola, the ellipse, and the hyperbola in the Cartesian plane.", "coin_cost": 20, "coin_reward": 32, "difficulty": 4},
 	}
 }
 
 func differentialSubtopics() []fiber.Map {
 	return []fiber.Map{
-		{"id": "17", "title": "Fundamental Rules", "description": "Power, Product, Quotient, and Chain Rule", "coin_cost": 20, "coin_reward": 32, "difficulty": 3},
-		{"id": "18", "title": "Transcendental Derivatives", "description": "Derivatives of e^x, ln(x), and sin(x)", "coin_cost": 18, "coin_reward": 28, "difficulty": 3},
-		{"id": "19", "title": "Applications", "description": "Implicit Differentiation, Mean Value Theorem, First/Second Derivative Tests (for concavity)", "coin_cost": 25, "coin_reward": 40, "difficulty": 4},
+		{"id": "20", "title": "Limits & Continuity", "description": "Finite and infinite limits, Indeterminate forms, and Asymptotes.", "coin_cost": 18, "coin_reward": 28, "difficulty": 4},
+		{"id": "21", "title": "The Derivative Concept", "description": "Difference quotient (Rapporto incrementale) and geometric meaning.", "coin_cost": 15, "coin_reward": 25, "difficulty": 3},
+		{"id": "22", "title": "Differentiation Rules", "description": "Power rule, Product, Quotient, and Chain rule.", "coin_cost": 18, "coin_reward": 28, "difficulty": 4},
+		{"id": "23", "title": "Function Study", "description": "Using derivatives to find Maxima, Minima, and Points of Inflection (Flessi).", "coin_cost": 20, "coin_reward": 32, "difficulty": 4},
 	}
 }
 
 func integralSubtopics() []fiber.Map {
 	return []fiber.Map{
-		{"id": "20", "title": "Integration Basics", "description": "Fundamental Theorem of Calculus (Parts I & II), Riemann Sums", "coin_cost": 22, "coin_reward": 35, "difficulty": 4},
-		{"id": "21", "title": "Techniques", "description": "U-Substitution, Integration by Parts, Partial Fractions, Trig Substitution", "coin_cost": 25, "coin_reward": 40, "difficulty": 4},
-		{"id": "22", "title": "Applications", "description": "Area between two curves, Solids of Revolution (Disk/Washer method)", "coin_cost": 22, "coin_reward": 35, "difficulty": 4},
+		{"id": "24", "title": "Indefinite Integrals", "description": "Primitive functions and immediate integration rules.", "coin_cost": 18, "coin_reward": 28, "difficulty": 4},
+		{"id": "25", "title": "Integration Methods", "description": "Integration by substitution and Integration by parts.", "coin_cost": 20, "coin_reward": 32, "difficulty": 4},
+		{"id": "26", "title": "Definite Integrals", "description": "Calculating the area under a curve (The Fundamental Theorem of Calculus).", "coin_cost": 20, "coin_reward": 32, "difficulty": 4},
+		{"id": "27", "title": "Applications", "description": "Calculation of volumes and areas of plane figures.", "coin_cost": 22, "coin_reward": 35, "difficulty": 4},
 	}
 }

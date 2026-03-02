@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/coin_badge.dart';
 
 class HomePage extends StatefulWidget {
@@ -26,7 +27,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _load() async {
-    debugPrint('[Home] load() called');
     setState(() {
       _loading = true;
       _error = null;
@@ -62,11 +62,22 @@ class _HomePageState extends State<HomePage> {
     return Options(headers: {'Authorization': 'Bearer mock-dev-token'});
   }
 
+  int _completedCount(Map<String, dynamic> category) {
+    return 0;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA);
+    final progressDone = AppColors.errorLight;
+    final progressRemaining = isDark ? Colors.black54 : Colors.black26;
+
     return Scaffold(
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('Lessons'),
+        title: const Text('HOME', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+        centerTitle: true,
         actions: [CoinBadge(coins: _coinBalance)],
       ),
       body: _loading
@@ -86,26 +97,63 @@ class _HomePageState extends State<HomePage> {
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 1.2,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 0.88,
                   ),
                   itemCount: _categories.length,
                   itemBuilder: (context, i) {
                     final cat = _categories[i];
                     final id = cat['id'] as String? ?? '';
                     final title = cat['title'] as String? ?? '';
-                    return Card(
+                    final subtopics = cat['subtopics'] as List<dynamic>? ?? [];
+                    final total = subtopics.length;
+                    final completed = _completedCount(cat);
+
+                    return Material(
+                      color: Colors.transparent,
                       child: InkWell(
                         onTap: () => context.go('/category/$id'),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Center(
-                            child: Text(
-                              title,
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                title,
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      height: 1.25,
+                                      fontSize: 17,
+                                    ),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                '$completed/$total',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 16,
+                                    ),
+                              ),
+                              const SizedBox(height: 4),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(2),
+                                child: LinearProgressIndicator(
+                                  value: total > 0 ? completed / total : 0,
+                                  backgroundColor: progressRemaining,
+                                  valueColor: const AlwaysStoppedAnimation<Color>(progressDone),
+                                  minHeight: 8,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -115,7 +163,7 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: 0,
         destinations: [
-          const NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
+          const NavigationDestination(icon: Icon(Icons.home), label: 'Lessons'),
           NavigationDestination(
             icon: const Icon(Icons.camera_alt),
             label: 'Camera',
@@ -131,4 +179,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
