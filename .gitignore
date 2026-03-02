@@ -14,7 +14,11 @@ build/
 **/android/local.properties
 **/android/**/GeneratedPluginRegistrant.*
 
-# iOS
+# iOS / Xcode
+**/xcuserdata/
+**/*.xcuserstate
+
+# iOS (Flutter)
 **/ios/Pods/
 **/ios/.symlinks/
 **/ios/Flutter/Flutter.framework
