@@ -20,7 +20,7 @@ class LoginPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('MathQuest', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+              const Text('Kram', style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
               const SizedBox(height: 48),
               FilledButton.icon(
                 onPressed: () => _signIn(context),

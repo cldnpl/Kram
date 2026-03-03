@@ -5,7 +5,7 @@ struct LoginView: View {
 
     var body: some View {
         VStack(spacing: 24) {
-            Text("MathQuest")
+            Text("Kram")
                 .font(.largeTitle)
                 .fontWeight(.bold)
             Spacer()

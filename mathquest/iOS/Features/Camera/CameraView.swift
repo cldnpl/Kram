@@ -322,7 +322,7 @@ struct CameraView: View {
             Text("Use Camera for Math Scanning")
                 .font(.title3.bold())
 
-            Text("Allow camera access so MathQuest can scan problems and also detect text live while you point the camera.")
+            Text("Allow camera access so Kram can scan problems and also detect text live while you point the camera.")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
