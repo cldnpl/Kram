@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" role="img" aria-label="Angle at vertex">
+  <defs>
+    <style>.ray{stroke:#333;stroke-width:2}.arc{fill:none;stroke:#1976d2;stroke-width:1.5}.label{font:14px sans-serif;fill:#111}</style>
+  </defs>
+  <line x1="100" y1="160" x2="100" y2="20" class="ray"/>
+  <line x1="100" y1="160" x2="180" y2="80" class="ray"/>
+  <path d="M 130 140 A 45 45 0 0 1 155 115" class="arc"/>
+  <text x="100" y="175" class="label" text-anchor="middle">O (vertex)</text>
+  <text x="145" y="132" class="label">alpha</text>
+</svg>

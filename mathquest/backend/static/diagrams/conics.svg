@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 260" role="img" aria-label="Conic sections: parabola circle ellipse hyperbola with standard equations">
+  <defs>
+    <style>.axes{stroke:#999;stroke-width:1}.curve{fill:none;stroke:#1976d2;stroke-width:2}.eq{font:11px sans-serif;fill:#0d47a1}</style>
+  </defs>
+  <!-- Parabola y = x^2 -->
+  <text x="60" y="18" class="eq" font-weight="bold">Parabola</text>
+  <line x1="20" y1="70" x2="120" y2="70" class="axes"/>
+  <line x1="70" y1="20" x2="70" y2="120" class="axes"/>
+  <path d="M 70 70 Q 95 45 115 70 Q 70 95 25 70" class="curve"/>
+  <text x="55" y="128" class="eq">y = ax&#xB2; + bx + c</text>
+  <!-- Circonferenza -->
+  <text x="195" y="18" class="eq" font-weight="bold">Circle</text>
+  <line x1="155" y1="70" x2="255" y2="70" class="axes"/>
+  <line x1="205" y1="20" x2="205" y2="120" class="axes"/>
+  <circle cx="205" cy="70" r="35" class="curve"/>
+  <text x="195" y="128" class="eq">x&#xB2; + y&#xB2; = r&#xB2;</text>
+  <!-- Ellisse -->
+  <text x="320" y="18" class="eq" font-weight="bold">Ellipse</text>
+  <line x1="280" y1="70" x2="380" y2="70" class="axes"/>
+  <line x1="330" y1="20" x2="330" y2="120" class="axes"/>
+  <ellipse cx="330" cy="70" rx="45" ry="25" class="curve"/>
+  <text x="295" y="128" class="eq">x&#xB2;/a&#xB2; + y&#xB2;/b&#xB2; = 1</text>
+  <!-- Iperbole -->
+  <text x="435" y="18" class="eq" font-weight="bold">Hyperbola</text>
+  <line x1="395" y1="70" x2="495" y2="70" class="axes"/>
+  <line x1="445" y1="20" x2="445" y2="120" class="axes"/>
+  <path d="M 395 25 Q 445 70 495 25" class="curve"/>
+  <path d="M 395 115 Q 445 70 495 115" class="curve"/>
+  <text x="410" y="128" class="eq">x&#xB2;/a&#xB2; &#x2212; y&#xB2;/b&#xB2; = 1</text>
+</svg>

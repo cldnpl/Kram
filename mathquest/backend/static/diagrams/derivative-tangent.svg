@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Geometric meaning of derivative: tangent line at a point">
+  <defs>
+    <style>.axes{stroke:#666;stroke-width:1}.curve{fill:none;stroke:#1976d2;stroke-width:2}.tangent{fill:none;stroke:#c62828;stroke-width:2}.point{fill:#c62828}.label{font:12px sans-serif;fill:#111}</style>
+  </defs>
+  <!-- Axes -->
+  <line x1="40" y1="160" x2="300" y2="160" class="axes"/>
+  <line x1="40" y1="160" x2="40" y2="20" class="axes"/>
+  <!-- Curve y ~ (x-3)^2/8 + 40 in our coords: scale. Let x 40->300, y 160->20. So xp = 40+ (x*260/8), yp = 160 - y*140/80. -->
+  <!-- Parabola-like curve: points (40,120) (80,100) (120,85) (160,75) (200,70) (240,80) (280,100) -->
+  <path d="M 40 120 Q 120 70 200 70 Q 260 85 280 110" class="curve"/>
+  <!-- Tangent at point (200,70): slope ~ -0.25, so line goes through (200,70) with slope down. -->
+  <line x1="120" y1="95" x2="280" y2="55" class="tangent"/>
+  <!-- Point of tangency -->
+  <circle cx="200" cy="70" r="5" class="point"/>
+  <!-- Labels -->
+  <text x="305" y="164" class="label">x</text>
+  <text x="36" y="18" class="label">y</text>
+  <text x="198" y="78" class="label" font-size="10">(x0, f(x0))</text>
+  <text x="250" y="50" class="label" font-size="10" fill="#c62828">tangent: m = f'(x0)</text>
+</svg>

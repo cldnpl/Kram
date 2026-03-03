@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" role="img" aria-label="Transformations: f(x), f(x)+k, -f(x)">
+  <defs>
+    <style>.axes{stroke:#666;stroke-width:1}.f{fill:none;stroke:#1976d2;stroke-width:2}.fk{stroke:#2e7d32}.neg{stroke:#c62828}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <!-- f(x) -->
+  <text x="55" y="18" class="label">y = f(x)</text>
+  <line x1="20" y1="55" x2="100" y2="55" class="axes"/>
+  <line x1="60" y1="20" x2="60" y2="90" class="axes"/>
+  <path d="M 30 75 Q 60 35 90 55" class="f"/>
+  <!-- f(x) + k (k>0: traslazione verso l'alto) -->
+  <text x="165" y="18" class="label">y = f(x) + k</text>
+  <line x1="130" y1="55" x2="210" y2="55" class="axes"/>
+  <line x1="170" y1="20" x2="170" y2="90" class="axes"/>
+  <path d="M 140 60 Q 170 20 200 40" class="fk"/>
+  <text x="172" y="95" class="label">+k &#x2191;</text>
+  <!-- -f(x) (simmetria asse x) -->
+  <text x="295" y="18" class="label">y = &#x2212;f(x)</text>
+  <line x1="260" y1="55" x2="340" y2="55" class="axes"/>
+  <line x1="300" y1="20" x2="300" y2="90" class="axes"/>
+  <path d="M 270 35 Q 300 75 330 55" class="neg"/>
+  <text x="302" y="95" class="label">flipped</text>
+</svg>

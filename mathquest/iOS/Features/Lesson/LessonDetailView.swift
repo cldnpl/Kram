@@ -1,4 +1,5 @@
 import SwiftUI
+import WebKit
 
 struct LessonDetailView: View {
     let lesson: LessonItem
@@ -43,6 +44,9 @@ struct LessonDetailView: View {
                                         .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
                                 )
                                 .padding(.vertical, 4)
+                            case .diagram(let diagramID):
+                                LessonDiagramView(diagramID: diagramID)
+                                    .padding(.vertical, 8)
                             }
                         }
                         Button(action: {}) {
@@ -66,7 +70,7 @@ struct LessonDetailView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 VStack(spacing: 12) {
-                    Text("Contenuto non disponibile")
+                    Text("Content not available")
                         .font(.headline)
                     Text("Assicurati che il server sia avviato e riprova.")
                         .font(.subheadline)
@@ -144,12 +148,26 @@ private struct ExerciseDTO: Decodable {
 private enum ContentBlock {
     case text(String)
     case box(String)
+    case diagram(String)
 }
 
 private func parseContentBlocks(_ intro: String) -> [ContentBlock] {
     var result: [ContentBlock] = []
     var remaining = intro
     while true {
+        let diagramPrefix = "[DIAGRAM:"
+        if let ds = remaining.range(of: diagramPrefix) {
+            let afterPrefix = remaining[ds.upperBound...]
+            if let bracket = afterPrefix.firstIndex(of: "]") {
+                let id = String(afterPrefix[..<bracket]).trimmingCharacters(in: .whitespaces)
+                let textBefore = String(remaining[..<ds.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !textBefore.isEmpty { result.append(.text(textBefore)) }
+                if !id.isEmpty { result.append(.diagram(id)) }
+                remaining = String(afterPrefix[afterPrefix.index(after: bracket)...])
+                continue
+            }
+        }
+
         guard let range = remaining.range(of: "[BOX]") else {
             let trimmed = remaining.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty { result.append(.text(trimmed)) }
@@ -212,6 +230,75 @@ private func isFormulaLine(_ line: String) -> Bool {
     if lower.contains("ln") || lower.contains("log") || lower.contains("e^") { return true }
 
     return false
+}
+
+// MARK: - Diagram view (SVG: fetch then load as data to avoid encoding/load errors and red box)
+struct LessonDiagramView: View {
+    let diagramID: String
+    @State private var svgData: Data?
+    @State private var loadFailed = false
+
+    private var diagramURL: URL? {
+        let base = APIConfig.serverBaseURLString
+        let path = base.hasSuffix("/") ? base + "diagrams/" + diagramID : base + "/diagrams/" + diagramID
+        return URL(string: path)
+    }
+
+    var body: some View {
+        Group {
+            if loadFailed {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color.red.opacity(0.5), lineWidth: 1)
+                    .frame(minHeight: 80, maxHeight: 120)
+                    .overlay(Text("Diagram not available").font(.caption).foregroundColor(.secondary))
+            } else if let data = svgData {
+                DiagramWebView(svgData: data)
+                    .frame(minHeight: 120, maxHeight: 280)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
+                    )
+            } else {
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
+                    .frame(minHeight: 120, maxHeight: 280)
+                    .overlay(ProgressView())
+            }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Diagram: \(diagramID)")
+        .task {
+            guard let url = diagramURL else { loadFailed = true; return }
+            do {
+                let (data, resp) = try await URLSession.shared.data(from: url)
+                if (resp as? HTTPURLResponse)?.statusCode == 200 {
+                    svgData = data
+                } else {
+                    loadFailed = true
+                }
+            } catch {
+                loadFailed = true
+            }
+        }
+    }
+}
+
+private struct DiagramWebView: UIViewRepresentable {
+    let svgData: Data
+
+    func makeUIView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        config.dataDetectorTypes = []
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.isScrollEnabled = false
+        webView.load(svgData, mimeType: "image/svg+xml", characterEncodingName: "UTF-8", baseURL: URL(string: "about:blank")!)
+        return webView
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
 }
 
 #Preview {

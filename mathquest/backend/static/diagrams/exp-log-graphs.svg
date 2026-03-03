@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 180" role="img" aria-label="Graphs of e^x and ln x">
+  <defs>
+    <style>.axes{stroke:#666;stroke-width:1}.exp{stroke:#1976d2;stroke-width:2;fill:none}.log{stroke:#c62828;stroke-width:2;fill:none}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <text x="80" y="18" class="label" font-weight="bold">y = e^x</text>
+  <line x1="20" y1="70" x2="150" y2="70" class="axes"/>
+  <line x1="85" y1="20" x2="85" y2="120" class="axes"/>
+  <path d="M 30 105 Q 70 85 85 70 Q 100 50 120 35" class="exp"/>
+  <text x="150" y="73" class="label">x</text>
+  <text x="95" y="18" class="label">y = ln x</text>
+  <line x1="170" y1="70" x2="300" y2="70" class="axes"/>
+  <line x1="235" y1="20" x2="235" y2="120" class="axes"/>
+  <path d="M 240 35 Q 260 55 270 70 Q 285 95 295 105" class="log"/>
+  <text x="300" y="73" class="label">x</text>
+</svg>

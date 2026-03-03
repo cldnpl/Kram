@@ -1,6 +1,10 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:webview_flutter/webview_flutter.dart';
+import '../../../../core/network/api_config.dart';
 import '../../../../core/network/dio_client.dart';
 
 class LessonDetailPage extends StatefulWidget {
@@ -111,11 +115,42 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
   List<Widget> _buildIntroBlocks(String intro) {
     const boxStart = '[BOX]';
     const boxEnd = '[/BOX]';
+    const diagramPrefix = '[DIAGRAM:';
     final blocks = <Widget>[];
     var remaining = intro;
 
     while (true) {
+      final diagramIdx = remaining.indexOf(diagramPrefix);
       final boxStartIdx = remaining.indexOf(boxStart);
+
+      if (diagramIdx != -1 && (boxStartIdx == -1 || diagramIdx < boxStartIdx)) {
+        final textBefore = remaining.substring(0, diagramIdx).trim();
+        if (textBefore.isNotEmpty) {
+          for (final p in textBefore.split('\n\n')) {
+            final t = p.trim();
+            if (t.isNotEmpty) {
+              blocks.add(Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _buildTextWithBold(context, t, Theme.of(context).textTheme.bodyLarge!),
+              ));
+            }
+          }
+        }
+        final afterPrefix = remaining.substring(diagramIdx + diagramPrefix.length);
+        final bracketIdx = afterPrefix.indexOf(']');
+        if (bracketIdx != -1) {
+          final diagramId = afterPrefix.substring(0, bracketIdx).trim();
+          if (diagramId.isNotEmpty) {
+            blocks.add(Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _LessonDiagramWidget(diagramId: diagramId),
+            ));
+          }
+          remaining = afterPrefix.substring(bracketIdx + 1);
+          continue;
+        }
+      }
+
       if (boxStartIdx == -1) {
         final text = remaining.trim();
         if (text.isNotEmpty) {
@@ -232,6 +267,75 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     final color = Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface;
     return RichText(
       text: TextSpan(style: baseStyle.copyWith(color: color), children: spans),
+    );
+  }
+}
+
+/// Fetches SVG from public URL then displays it in WebView as data to avoid encoding/load errors (red box).
+class _LessonDiagramWidget extends StatefulWidget {
+  const _LessonDiagramWidget({required this.diagramId});
+
+  final String diagramId;
+
+  @override
+  State<_LessonDiagramWidget> createState() => _LessonDiagramWidgetState();
+}
+
+class _LessonDiagramWidgetState extends State<_LessonDiagramWidget> {
+  WebViewController? _controller;
+  bool _failed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAndLoad();
+  }
+
+  Future<void> _fetchAndLoad() async {
+    final base = kServerBaseUrl.endsWith('/') ? kServerBaseUrl.substring(0, kServerBaseUrl.length - 1) : kServerBaseUrl;
+    try {
+      final dio = Dio(BaseOptions(baseUrl: base, connectTimeout: const Duration(seconds: 10)));
+      final res = await dio.get<List<int>>(
+        'diagrams/${widget.diagramId}',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      if (res.statusCode == 200 && res.data != null) {
+        final bytes = res.data!;
+        final base64 = base64Encode(bytes);
+        final dataUrl = 'data:image/svg+xml;charset=utf-8;base64,$base64';
+        if (!mounted) return;
+        setState(() {
+          _controller = WebViewController()
+            ..setJavaScriptMode(JavaScriptMode.unloaded)
+            ..loadRequest(Uri.parse(dataUrl));
+          _failed = false;
+        });
+      } else {
+        if (mounted) setState(() => _failed = true);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _failed = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 120, maxHeight: 280),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+          ),
+          child: _failed
+              ? const Center(child: Text('Diagram not available', style: TextStyle(fontSize: 12, color: Colors.grey)))
+              : _controller == null
+                  ? const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+                  : WebViewWidget(controller: _controller!),
+        ),
+      ),
     );
   }
 }

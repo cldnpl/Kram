@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-label="Sfera">
+  <defs>
+    <style>.sph{fill:none;stroke:#333;stroke-width:2}.label{font:12px sans-serif;fill:#111}</style>
+  </defs>
+  <circle cx="80" cy="80" r="55" class="sph"/>
+  <ellipse cx="80" cy="80" rx="55" ry="22" class="sph"/>
+  <text x="80" y="155" class="label" text-anchor="middle">V = (4/3)*pi*r^3</text>
+  <text x="140" y="85" class="label">r</text>
+</svg>

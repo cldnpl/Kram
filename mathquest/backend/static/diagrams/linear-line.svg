@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" role="img" aria-label="Line y = mx + q">
+  <defs>
+    <style>.axes{stroke:#666;stroke-width:1}.line{stroke:#1976d2;stroke-width:2}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <line x1="20" y1="80" x2="180" y2="80" class="axes"/>
+  <line x1="100" y1="20" x2="100" y2="140" class="axes"/>
+  <line x1="30" y1="130" x2="170" y2="30" class="line"/>
+  <text x="175" y="85" class="label">x</text>
+  <text x="105" y="25" class="label">y</text>
+  <text x="100" y="155" class="label" text-anchor="middle">y = mx + q</text>
+</svg>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 200" role="img" aria-label="Grafici sin cos tan">
+  <defs>
+    <style>.axes{stroke:#666;stroke-width:1}.curve{fill:none;stroke:#1976d2;stroke-width:2}.cos{stroke:#c62828}.tan{stroke:#2e7d32}.asympt{stroke:#999;stroke-dasharray:3 2}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <text x="80" y="18" class="label" font-weight="bold">y = sin x</text>
+  <line x1="20" y1="55" x2="155" y2="55" class="axes"/>
+  <line x1="87" y1="20" x2="87" y2="90" class="axes"/>
+  <path d="M 25 55 Q 45 25 87 55 Q 130 85 150 55" class="curve"/>
+  <text x="155" y="58" class="label">x</text>
+  <text x="195" y="18" class="label" font-weight="bold">y = cos x</text>
+  <line x1="175" y1="55" x2="310" y2="55" class="axes"/>
+  <line x1="242" y1="20" x2="242" y2="90" class="axes"/>
+  <path d="M 175 35 Q 210 20 242 55 Q 275 90 310 55" class="curve cos"/>
+  <text x="310" y="58" class="label">x</text>
+  <text x="350" y="18" class="label" font-weight="bold">y = tan x</text>
+  <line x1="330" y1="55" x2="505" y2="55" class="axes"/>
+  <line x1="417" y1="20" x2="417" y2="90" class="axes"/>
+  <line x1="370" y1="55" x2="417" y2="55" class="asympt"/>
+  <line x1="417" y1="55" x2="464" y2="55" class="asympt"/>
+  <path d="M 330 70 Q 370 40 405 25" class="tan" fill="none" stroke-width="1.5"/>
+  <path d="M 429 85 Q 464 70 505 55" class="tan" fill="none" stroke-width="1.5"/>
+  <text x="505" y="58" class="label">x</text>
+</svg>

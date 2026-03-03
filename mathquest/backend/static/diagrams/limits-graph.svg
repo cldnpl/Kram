@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-label="Limit as x tends to c">
+  <defs>
+    <style>.axes{stroke:#666;stroke-width:1}.curve{fill:none;stroke:#1976d2;stroke-width:2}.point{fill:#c62828}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <line x1="20" y1="80" x2="220" y2="80" class="axes"/>
+  <line x1="120" y1="20" x2="120" y2="140" class="axes"/>
+  <path d="M 30 40 L 105 75 L 135 85 L 210 120" class="curve"/>
+  <circle cx="120" cy="80" r="4" class="point"/>
+  <text x="120" y="95" class="label" text-anchor="middle">c</text>
+  <text x="120" y="155" class="label" text-anchor="middle">lim f(x) as x -&gt; c</text>
+</svg>

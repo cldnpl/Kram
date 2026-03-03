@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 220" role="img" aria-label="Solid of revolution: curve y=f(x) rotated about x-axis">
+  <defs>
+    <style>.axis{stroke:#333;stroke-width:1.5}.curve{fill:none;stroke:#1976d2;stroke-width:2}.solid{fill:#bbdefb;stroke:#1976d2;stroke-width:1}.label{font:12px sans-serif;fill:#111}</style>
+  </defs>
+  <!-- Asse x orizzontale -->
+  <line x1="30" y1="120" x2="350" y2="120" class="axis"/>
+  <text x="355" y="125" class="label">x</text>
+  <!-- Profilo curva y=f(x) (es. da (50,100) a (300,40)) -->
+  <path d="M 50 100 L 180 70 L 300 40" class="curve"/>
+  <!-- Proiezione "3D" del solido: ellissi che suggeriscono la rotazione -->
+  <ellipse cx="50" cy="120" rx="0" ry="20" class="solid"/>
+  <ellipse cx="115" cy="120" rx="15" ry="25" class="solid"/>
+  <ellipse cx="240" cy="120" rx="35" ry="40" class="solid"/>
+  <ellipse cx="300" cy="120" rx="25" ry="80" class="solid"/>
+  <!-- Contorno "tromba" -->
+  <path d="M 50 100 Q 120 85 240 80 Q 300 75 300 40" stroke="#1976d2" stroke-width="1" fill="none" opacity="0.8"/>
+  <path d="M 50 140 Q 120 155 240 160 Q 300 165 300 200" stroke="#1976d2" stroke-width="1" fill="none" opacity="0.8"/>
+  <text x="170" y="30" class="label">y = f(x)</text>
+  <text x="310" y="210" class="label">V = &#x3C0; &#x222B; f(x)&#xB2; dx</text>
+</svg>

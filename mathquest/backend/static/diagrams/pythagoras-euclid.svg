@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 260" role="img" aria-label="Pythagoras: squares on legs and hypotenuse; Euclid: projections p q and height h">
+  <defs>
+    <style>.tri{fill:none;stroke:#333;stroke-width:2}.square{fill:none;stroke:#333;stroke-width:1.5}.proj{stroke:#c62828;stroke-dasharray:4 2}.alt{stroke:#1565c0;stroke-width:2}.label{font:13px sans-serif;fill:#111}</style>
+  </defs>
+  <!-- Triangolo rettangolo: A in alto, B angolo retto in basso a sinistra, C in basso a destra -->
+  <!-- A=(60,40), B=(60,200), C=(300,200). Quadrati: su AB (lato b), su BC (lato a), su AC (lato c). -->
+  <polygon points="60,40 300,200 60,200" class="tri"/>
+  <rect x="38" y="18" width="14" height="14" fill="#e3f2fd" stroke="#333"/>
+  <!-- Quadrato su AB (verticale): lato b=160, da (60,40) a (60,200) -->
+  <polygon points="60,40 20,40 20,200 60,200" class="square"/>
+  <text x="38" y="125" class="label">b&#xB2;</text>
+  <!-- Quadrato su BC (orizzontale): da (60,200) a (300,200), lato a=240 -->
+  <polygon points="60,200 60,240 300,240 300,200" class="square"/>
+  <text x="175" y="225" class="label">a&#xB2;</text>
+  <!-- Quadrato su AC (ipotenusa): lato c, disegno semplificato -->
+  <polygon points="60,40 300,200 260,260 20,100" class="square"/>
+  <text x="195" y="115" class="label">c&#xB2;</text>
+  <!-- Altezza da B su AC: piede H, proiezioni p=AH, q=HC -->
+  <line x1="60" y1="200" x2="148" y2="112" class="alt"/>
+  <line x1="60" y1="40" x2="148" y2="112" class="proj" stroke-width="1.5"/>
+  <line x1="300" y1="200" x2="148" y2="112" class="proj" stroke-width="1.5"/>
+  <text x="95" y="75" class="label" font-size="11">p</text>
+  <text x="235" y="165" class="label" font-size="11">q</text>
+  <text x="95" y="162" class="label" font-size="11">h</text>
+  <text x="30" y="125" class="label">b</text>
+  <text x="175" y="218" class="label">a</text>
+  <text x="175" y="25" class="label">c</text>
+  <text x="190" y="255" class="label" font-size="10">a&#xB2;+b&#xB2;=c&#xB2; (Pythagoras); a&#xB2;=c&#x22C5;q, b&#xB2;=c&#x22C5;p, h&#xB2;=p&#x22C5;q (Euclid)</text>
+</svg>

@@ -54,7 +54,9 @@ Key idea: we enlarge the set when an operation would “leave” the previous on
 
 [BOX]
 **Summary:** ℕ ⊆ ℤ ⊆ ℚ. In ℕ, 3 − 5 is not in ℕ so we need ℤ; in ℤ, 7 ÷ 2 is not in ℤ so we need ℚ.
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:euler-venn-sets]`,
 	},
 	"1-0": {
 		Title:    "Natural numbers ℕ",
@@ -62,6 +64,8 @@ Key idea: we enlarge the set when an operation would “leave” the previous on
 		Intro: `**Natural numbers** are the first numbers we learn: they are used to **count** objects (one, two, three, …) and to **order** them (first, second, third, …). In mathematics they form a set called **ℕ**, which is the foundation of arithmetic and of all larger number systems.
 
 **Definition.** The set of natural numbers is ℕ = {0, 1, 2, 3, 4, 5, …}. In some textbooks the symbol **ℕ** excludes zero and only positive integers are considered; in that case the set is often written **ℕ*** = {1, 2, 3, …}. In this course we include zero in ℕ.
+
+[DIAGRAM:number-line]
 
 **Why zero?** Including zero allows us to say “how many elements are in the empty set?” — the answer is 0. It also makes the link with integers and algebra cleaner (zero is the **neutral element** for addition).
 
@@ -102,6 +106,8 @@ Key idea: we enlarge the set when an operation would “leave” the previous on
 • **Sign rules for multiplication:** (−)·(−) = (+), (−)·(+) = (−), (+)·(+) = (+). Same rules apply to division when the result is an integer.
 • **Absolute value:** |a| is the distance of a from 0 on the number line. So |−7| = 7 and |5| = 5. We have |a·b| = |a|·|b| and |a + b| ≤ |a| + |b| (triangle inequality).
 
+[DIAGRAM:number-line]
+
 [BOX]
 **Formulas**
 (−a)·(−b) = a·b
@@ -125,6 +131,8 @@ Key idea: we enlarge the set when an operation would “leave” the previous on
 		Intro: `**Rational numbers** are numbers that can be written as **fractions** of two integers: a **numerator** and a **denominator** (nonzero). They include all integers (e.g. 5 = 5/1) and all **terminating** or **repeating** decimals. We need ℚ so that **division** is always possible (except division by zero).
 
 **Definition.** ℚ = { p/q : p, q ∈ ℤ, q ≠ 0 }. Two fractions p/q and r/s represent the **same** rational number when p·s = q·r (cross-multiplication).
+
+[DIAGRAM:number-line]
 
 **Key facts:**
 • **Decimals:** Every rational number has a decimal expansion that either **terminates** (e.g. 1/4 = 0.25) or **repeats** (e.g. 1/3 = 0.333… = 0.3̅). Conversely, every terminating or repeating decimal is rational.
@@ -166,7 +174,9 @@ Reduction: divide numerator and denominator by GCD(p, q)
 2) Exponents and roots
 3) Multiplication and division (left to right)
 4) Addition and subtraction (left to right)
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:number-line]`,
 	},
 	"2-0": {
 		Title:    "The four operations",
@@ -195,7 +205,9 @@ a·(b + c) = a·b + a·c  (distributive)
 12 − 5 = 7
 12 ÷ 5 = 2 remainder 2   because  12 = 5·2 + 2
 3·(2 + 4) = 3·2 + 3·4 = 6 + 12 = 18
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:number-line]`,
 	},
 	"2-1": {
 		Title:    "Powers and their properties",
@@ -208,6 +220,8 @@ a·(b + c) = a·b + a·c  (distributive)
 • **Product:** aⁿ·aᵐ = aⁿ⁺ᵐ  (add exponents when multiplying).
 • **Quotient:** aⁿ/aᵐ = aⁿ⁻ᵐ  (subtract exponents when dividing), with a ≠ 0.
 • **Power of a power:** (aⁿ)ᵐ = aⁿᵐ  (multiply exponents).
+
+[DIAGRAM:powers-properties-table]
 
 **Properties (product and quotient inside the power):**
 • (a·b)ⁿ = aⁿ·bⁿ
@@ -264,7 +278,9 @@ a⁰ = 1  (a ≠ 0)   and   a⁻ⁿ = 1/aⁿ
 √18 = √(9·2) = 3√2
 [/BOX]
 
-**Common mistakes:** Do not write √(a²) = a for negative a: we have √(a²) = |a|. Do not split the root over a sum: √(a + b) ≠ √a + √b.`,
+**Common mistakes:** Do not write √(a²) = a for negative a: we have √(a²) = |a|. Do not split the root over a sum: √(a + b) ≠ √a + √b.
+
+[DIAGRAM:number-line]`,
 	},
 	"3": {
 		Title:    "Expressions & Order of Operations",
@@ -279,7 +295,9 @@ a⁰ = 1  (a ≠ 0)   and   a⁻ⁿ = 1/aⁿ
 2) Exponents and roots (Orders)
 3) Multiplication and Division (left to right)
 4) Addition and Subtraction (left to right)
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:number-line]`,
 	},
 	"3-0": {
 		Title:    "Use of parentheses and PEMDAS/BODMAS",
@@ -306,14 +324,18 @@ At same level, go **left to right**.
 10 − 6 ÷ 2 + 1 = 10 − 3 + 1 = 8
 −3² = −9   and   (−3)² = 9
 (1/2 + 1/3)·6 = (5/6)·6 = 5
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:number-line]`,
 	},
 	"4": {
 		Title:    "Divisibility & Prime Numbers",
 		Category: "Arithmetic & Number Systems",
 		Intro: `**Divisibility** studies when one integer **divides** another with no remainder. This is the foundation for **prime factorization**, **GCD** (Greatest Common Divisor), and **LCM** (Least Common Multiple), which you need for simplifying fractions, finding common denominators, and solving many number problems.
 
-**What you will see:** **Multiples** and the notation b | a (“b divides a”); **divisors** of a number; **GCD** (how to find it by prime factorization or the **Euclidean algorithm**); **LCM** and the relation GCD·LCM = a·b for two positive integers.`,
+**What you will see:** **Multiples** and the notation b | a (“b divides a”); **divisors** of a number; **GCD** (how to find it by prime factorization or the **Euclidean algorithm**); **LCM** and the relation GCD·LCM = a·b for two positive integers.
+
+[DIAGRAM:prime-factorization-tree]`,
 	},
 	"4-0": {
 		Title:    "Multiples",
@@ -334,7 +356,9 @@ b | a  ⇔  there exists integer k such that  a = b·k
 12 is a multiple of 3 because 12 = 3·4  ⇒  3 | 12
 −15 is a multiple of 5 because −15 = 5·(−3)  ⇒  5 | (−15)
 7 ∤ 20 because no integer k gives 7k = 20
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:prime-factorization-tree]`,
 	},
 	"4-1": {
 		Title:    "Divisors",
@@ -356,7 +380,9 @@ Number of positive divisors = (a+1)(b+1)…
 18 = 2·3²
 Positive divisors: 1, 2, 3, 6, 9, 18
 (Exponents 0,1 for 2 and 0,1,2 for 3 → (1+1)(2+1) = 6 divisors.)
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:prime-factorization-tree]`,
 	},
 	"4-2": {
 		Title:    "GCD (Greatest Common Divisor)",
@@ -406,14 +432,18 @@ gcd(a, b) · lcm(a, b) = a · b   ⇒   lcm(a, b) = (a·b) / gcd(a, b)
 36 = 2²·3²
 LCM(24, 36) = 2³·3² = 72
 Check: GCD·LCM = 12·72 = 864 = 24·36
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:prime-factorization-tree]`,
 	},
 	"5": {
 		Title:    "Fractions & Ratios",
 		Category: "Arithmetic & Number Systems",
 		Intro: `Fractions represent parts of a whole and ratios compare quantities.
 
-You’ll use equivalent fractions, operations, percentages, and proportions.`,
+You’ll use equivalent fractions, operations, percentages, and proportions.
+
+[DIAGRAM:fraction]`,
 	},
 	"5-0": {
 		Title:    "Equivalent fractions",
@@ -435,7 +465,9 @@ Simplify: divide numerator and denominator by gcd(a, b)
 6/8 = 3/4  (gcd(6,8)=2)
 10/15 = 2/3  (gcd(10,15)=5)
 Check: 6·4 = 24 = 8·3; 10·3 = 30 = 15·2
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:fraction]`,
 	},
 	"5-1": {
 		Title:    "Operations with fractions",
@@ -461,7 +493,9 @@ a/b − c/d = (ad − bc)/bd
 1/3 + 1/2 = 2/6 + 3/6 = 5/6
 (2/5)·(3/4) = 6/20 = 3/10
 (2/3) ÷ (4/5) = (2/3)·(5/4) = 10/12 = 5/6
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:fraction]`,
 	},
 	"5-2": {
 		Title:    "Percentages",
@@ -485,7 +519,9 @@ x% of N = (x/100)·N
 15 out of 60 = (15/60)·100% = 25%
 Increase 50 by 10%: 50·1.10 = 55
 Decrease 200 by 15%: 200·0.85 = 170
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:fraction]`,
 	},
 	"5-3": {
 		Title:    "Proportions",
@@ -508,7 +544,9 @@ Unknown in a : b = c : x  ⇒  x = (b·c)/a
 3 : 4 = x : 12
 Cross-multiply: 3·12 = 4·x  ⇒  36 = 4x  ⇒  x = 9
 Check: 3/4 = 9/12  ✓
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:fraction]`,
 	},
 
 	// -------
@@ -517,7 +555,9 @@ Check: 3/4 = 9/12  ✓
 	"6": {
 		Title:    "Monomials & Polynomials",
 		Category: "Algebra",
-		Intro: `This section introduces **monomials** (products of a coefficient and powers of variables) and **polynomials** (sums of monomials). You will learn **operations** (add, subtract, multiply), the **degree** of a polynomial, and **special products** such as the square of a binomial and the difference of two squares. These are the basis for factoring and solving equations.`,
+		Intro: `This section introduces **monomials** (products of a coefficient and powers of variables) and **polynomials** (sums of monomials). You will learn **operations** (add, subtract, multiply), the **degree** of a polynomial, and **special products** such as the square of a binomial and the difference of two squares. These are the basis for factoring and solving equations.
+
+[DIAGRAM:square-binomial]`,
 	},
 	"6-0": {
 		Title:    "Operations",
@@ -540,7 +580,9 @@ a^m · a^n = a^(m+n)
 2x² + 5x² = 7x²
 3xy · 2x² = 6x³y
 (x + 2)(x − 3) = x² − 3x + 2x − 6 = x² − x − 6
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:square-binomial]`,
 	},
 	"6-1": {
 		Title:    "Degree of a polynomial",
@@ -555,7 +597,9 @@ a^m · a^n = a^(m+n)
 Examples
 P(x) = 2x³ − x + 5 has degree 3
 Q(x, y) = 3x²y + 7y⁴ has degree 4 (because of y⁴)
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:square-binomial]`,
 	},
 	"6-2": {
 		Title:    "Special products (e.g. square of a binomial)",
@@ -567,6 +611,8 @@ Q(x, y) = 3x²y + 7y⁴ has degree 4 (because of y⁴)
 **Square of a difference:** (a − b)² = **a² − 2ab + b²**. Same structure but the cross term is **minus** twice the product.
 
 **Difference of two squares:** (a + b)(a − b) = **a² − b²**. The cross terms cancel, so you get only the difference of the squares. This is extremely useful for factoring expressions like x² − 9 or 4a² − 25b².
+
+[DIAGRAM:square-binomial]
 
 **Other useful ones:** (a + b)³ = a³ + 3a²b + 3ab² + b³; (a − b)³ = a³ − 3a²b + 3ab² − b³; (a + b + c)² = a² + b² + c² + 2ab + 2ac + 2bc.
 
@@ -587,7 +633,9 @@ Q(x, y) = 3x²y + 7y⁴ has degree 4 (because of y⁴)
 	"7": {
 		Title:    "Factoring Polynomials",
 		Category: "Algebra",
-		Intro: `**Factoring** is writing a polynomial as a **product** of simpler factors. It is the reverse of expanding and is essential for **solving equations** (setting each factor to zero), simplifying rational expressions, and finding roots. You will see **common factoring** (GCF), **Ruffini's rule** (synthetic division) to find linear factors, and **difference of squares** (and other special forms).`,
+		Intro: `**Factoring** is writing a polynomial as a **product** of simpler factors. It is the reverse of expanding and is essential for **solving equations** (setting each factor to zero), simplifying rational expressions, and finding roots. You will see **common factoring** (GCF), **Ruffini's rule** (synthetic division) to find linear factors, and **difference of squares** (and other special forms).
+
+[DIAGRAM:ruffini-flow]`,
 	},
 	"7-0": {
 		Title:    "Common factoring",
@@ -608,12 +656,16 @@ Polynomial = GCF · (remaining sum)
 **Examples**
 6x²y + 9xy² = 3xy(2x + 3y)
 4a³ − 8a² + 2a = 2a(2a² − 4a + 1)
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:ruffini-flow]`,
 	},
 	"7-1": {
 		Title:    "Ruffini's Rule",
 		Category: "Algebra",
 		Intro: `Ruffini’s rule (synthetic division) divides P(x) by **(x − c)**. If **remainder = 0**, then (x − c) is a **factor** and c is a **root**. Choose c using the **rational root theorem** (candidates: ± divisors of constant / divisors of leading coefficient). Then P(x) = (x − c)·Q(x).
+
+[DIAGRAM:ruffini-flow]
 
 **How to choose candidates:**
 - Rational root theorem: candidates are ±(divisors of constant term)/(divisors of leading coefficient)
@@ -644,12 +696,16 @@ A² − B² = (A − B)(A + B)
 x² − 9 = (x − 3)(x + 3)
 4a² − 25b² = (2a − 5b)(2a + 5b)
 x⁴ − 16 = (x²)² − 4² = (x² − 4)(x² + 4) = (x−2)(x+2)(x²+4)
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:square-binomial]`,
 	},
 	"8": {
 		Title:    "Linear Equations & Inequalities",
 		Category: "Algebra",
-		Intro: `**Linear equations** (first-degree equations) have the form ax + b = 0 with a ≠ 0; their solution is **x = −b/a**. **Literal equations** contain letters as parameters; you solve for one variable in terms of the others. These are the foundation for all algebraic problem solving and for systems of equations.`,
+		Intro: `**Linear equations** (first-degree equations) have the form ax + b = 0 with a ≠ 0; their solution is **x = −b/a**. **Literal equations** contain letters as parameters; you solve for one variable in terms of the others. These are the foundation for all algebraic problem solving and for systems of equations.
+
+[DIAGRAM:linear-line]`,
 	},
 	"8-0": {
 		Title:    "First-degree equations",
@@ -671,7 +727,9 @@ ax + b = 0, a ≠ 0  ⇒  x = −b/a
 3x − 2x = 1 + 5
 x = 6
 Check: 3·6 − 5 = 13, 2·6 + 1 = 13  ✓
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:linear-line]`,
 	},
 	"8-1": {
 		Title:    "Literal equations",
@@ -691,12 +749,16 @@ Solve for x: 2x + a = 4
 2x = 4 − a
 x = (4 − a)/2
 (No restriction: solution valid for all a.)
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:linear-line]`,
 	},
 	"9": {
 		Title:    "Quadratic Equations",
 		Category: "Algebra",
-		Intro: `**Quadratic equations** have the form **ax² + bx + c = 0** with **a ≠ 0**. They have at most **two** real solutions. You will learn **complete** and **incomplete** quadratics (missing b or c), the **discriminant** Δ = b² − 4ac (which tells how many real roots there are), the **quadratic formula**, and **factoring** trinomials to solve quickly when possible.`,
+		Intro: `**Quadratic equations** have the form **ax² + bx + c = 0** with **a ≠ 0**. They have at most **two** real solutions. You will learn **complete** and **incomplete** quadratics (missing b or c), the **discriminant** Δ = b² − 4ac (which tells how many real roots there are), the **quadratic formula**, and **factoring** trinomials to solve quickly when possible.
+
+[DIAGRAM:parabola]`,
 	},
 	"9-0": {
 		Title:    "Complete and incomplete quadratics",
@@ -717,7 +779,9 @@ ax² + bx = 0  ⇒  x(ax + b) = 0  ⇒  x = 0  or  x = −b/a
 **Examples**
 2x² − 8 = 0  ⇒  x² = 4  ⇒  x = ±2
 3x² + 6x = 0  ⇒  3x(x+2) = 0  ⇒  x = 0 or x = −2
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:parabola]`,
 	},
 	"9-1": {
 		Title:    "The Discriminant (Δ)",
@@ -725,6 +789,8 @@ ax² + bx = 0  ⇒  x(ax + b) = 0  ⇒  x = 0  or  x = −b/a
 		Intro: `For the quadratic **ax² + bx + c = 0** (a ≠ 0), the **discriminant** is **Δ = b² − 4ac**. It tells you **how many real solutions** the equation has and appears under the square root in the **quadratic formula**: **x = (−b ± √Δ)/(2a)**.
 
 **Interpretation.** **Δ > 0:** two **distinct** real roots (the parabola crosses the x-axis twice). **Δ = 0:** one real root (a **double** root; the parabola is tangent to the x-axis). **Δ < 0:** **no** real roots (the parabola does not cross the x-axis; the two complex roots are conjugate). So before solving, compute Δ to know what to expect. The roots are **rational** only when Δ is a perfect square (and a, b, c are rational).
+
+[DIAGRAM:discriminant-table]
 
 **Quadratic formula.** Always works for any quadratic: **x = (−b ± √(b² − 4ac))/(2a)**. Write the equation in the form ax² + bx + c = 0, identify a, b, c, then substitute. Simplify √Δ when possible.
 
@@ -760,12 +826,16 @@ Find α, β with α + β = s and α·β = p. Then x² + sx + p = (x + α)(x + β
 **Example**
 x² + 5x + 6 = 0. Need α+β = 5, αβ = 6 → α=2, β=3.
 (x + 2)(x + 3) = 0  ⇒  x = −2 or x = −3
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:parabola]`,
 	},
 	"10": {
 		Title:    "Systems of Equations",
 		Category: "Algebra",
-		Intro: `A **system of equations** is a set of equations that must be satisfied **at the same time**. You look for values of the unknowns (e.g. x and y) that satisfy **every** equation. For **linear** systems of two equations in two unknowns there are three main methods: **substitution**, **comparison**, and **Cramer's rule** (determinants). The solution (if unique) is the intersection of two lines in the plane.`,
+		Intro: `A **system of equations** is a set of equations that must be satisfied **at the same time**. You look for values of the unknowns (e.g. x and y) that satisfy **every** equation. For **linear** systems of two equations in two unknowns there are three main methods: **substitution**, **comparison**, and **Cramer's rule** (determinants). The solution (if unique) is the intersection of two lines in the plane.
+
+[DIAGRAM:two-lines]`,
 	},
 	"10-0": {
 		Title:    "Substitution",
@@ -787,7 +857,9 @@ x² + 5x + 6 = 0. Need α+β = 5, αβ = 6 → α=2, β=3.
 **Example**
 { 2x + y = 8,  x − y = 1 }
 From second: x = 1 + y. Substitute: 2(1 + y) + y = 8 ⇒ 2 + 3y = 8 ⇒ y = 2. Then x = 1 + 2 = 3. Solution: (3, 2).
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:two-lines]`,
 	},
 	"10-1": {
 		Title:    "Comparison",
@@ -804,6 +876,8 @@ From second: x = 1 + y. Substitute: 2(1 + y) + y = 8 ⇒ 2 + 3y = 8 ⇒ y = 2. T
 2) Set the two expressions equal.
 3) Solve for the remaining variable; then find the other.
 [/BOX]
+
+[DIAGRAM:two-lines]
 
 [BOX]
 **Example**
@@ -827,7 +901,9 @@ y = (a₁c₂ − a₂c₁) / Det   (Det ≠ 0)
 **Example**
 { 2x + y = 8,  x − y = 1 }  ⇒  Det = 2·(−1)−1·1 = −3
 x = (8·(−1)−1·1)/(−3) = 3,  y = (2·1−1·8)/(−3) = 2
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:two-lines]`,
 	},
 
 	// -------------------------
@@ -836,12 +912,16 @@ x = (8·(−1)−1·1)/(−3) = 3,  y = (2·1−1·8)/(−3) = 2
 	"11": {
 		Title:    "Plane Geometry",
 		Category: "Geometry & Trigonometry",
-		Intro: `**Plane geometry** studies figures in **two dimensions**: **segments** (length, midpoint), **angles** (complementary, supplementary, vertical, bisector), **triangles** (angle sum 180°, inequality, area), **quadrilaterals** (trapezoid, parallelogram, rectangle, rhombus, square), and **polygons** (sum of interior angles, regular polygons). These are the basis for congruence, similarity, and trigonometry.`,
+		Intro: `**Plane geometry** studies figures in **two dimensions**: **segments** (length, midpoint), **angles** (complementary, supplementary, vertical, bisector), **triangles** (angle sum 180°, inequality, area), **quadrilaterals** (trapezoid, parallelogram, rectangle, rhombus, square), and **polygons** (sum of interior angles, regular polygons). These are the basis for congruence, similarity, and trigonometry.
+
+[DIAGRAM:geometry-formulary]`,
 	},
 	"11-0": {
 		Title:    "Segments",
 		Category: "Geometry & Trigonometry",
 		Intro: `A **segment** is the set of points on a line **between** two given points **A** and **B**, including A and B. We write **AB** (or **BA**) for the segment; **AB** also often denotes its **length** (the distance from A to B). In coordinate geometry, if A = (x₁,y₁) and B = (x₂,y₂), then **AB = √[(x₂−x₁)² + (y₂−y₁)²]**.
+
+[DIAGRAM:segment]
 
 **Midpoint.** The **midpoint M** of segment AB is the point that is **equidistant** from A and B: **AM = MB**. So M lies halfway between A and B. In coordinates: **M = ((x₁+x₂)/2, (y₁+y₂)/2)**.
 
@@ -864,6 +944,8 @@ If AB = 10 and M is the midpoint, then AM = MB = 5.
 		Category: "Geometry & Trigonometry",
 		Intro: `An **angle** is formed by two **rays** (half-lines) that share the same **vertex** (origin). Angles are measured in **degrees** (°) or **radians**. **Complementary** angles add up to **90°**; **supplementary** angles add up to **180°**. So the complement of 35° is 55°; the supplement of 100° is 80°.
 
+[DIAGRAM:angle]
+
 **Vertical angles.** When two lines intersect, the pairs of **opposite** (vertical) angles are **equal**. So if one angle is 40°, the angle opposite to it is also 40°; the other two (supplementary to 40°) are 140° each.
 
 **Angle bisector.** A ray that splits an angle into **two equal** angles is called an **angle bisector**. So the bisector of a 60° angle creates two 30° angles. In triangles, the **incenter** is where the three angle bisectors meet.
@@ -884,6 +966,8 @@ Angle 35° → complement 55° (35° + 55° = 90°). Supplement of 35° is 145°
 		Title:    "Triangles",
 		Category: "Geometry & Trigonometry",
 		Intro: `A **triangle** is a polygon with **three sides** and **three angles**. The **sum of the interior angles** of any triangle is **180°**. So if two angles are known, the third is 180° minus their sum. The **triangle inequality** says: each side is **less than** the sum of the other two (e.g. a < b + c). So three positive numbers are sides of a triangle if and only if the sum of any two is greater than the third.
+
+[DIAGRAM:triangle]
 
 **Area.** The area of a triangle is **A = (1/2)·base·height**, where the **height** is the perpendicular distance from the vertex opposite the base to the line containing the base. So if base = 10 and height = 6, then A = 30. **Heron’s formula** gives the area from the three sides: A = √[s(s−a)(s−b)(s−c)] where s = (a+b+c)/2 is the semiperimeter.
 
@@ -906,6 +990,8 @@ Base = 10, height = 6  ⇒  A = (10·6)/2 = 30
 		Category: "Geometry & Trigonometry",
 		Intro: `A **quadrilateral** is a polygon with **four sides**. The **sum of the interior angles** of any quadrilateral is **360°**. Special types (each with extra properties): **Trapezoid** — at least one pair of parallel sides; **parallelogram** — both pairs of opposite sides parallel (and then opposite sides are equal, opposite angles equal, consecutive angles supplementary, diagonals bisect each other); **rectangle** — parallelogram with all angles 90° (diagonals equal); **rhombus** — parallelogram with all four sides equal (diagonals perpendicular); **square** — rectangle and rhombus (all sides equal, all angles 90°).
 
+[DIAGRAM:quadrilateral]
+
 **Hierarchy.** Every rectangle is a parallelogram; every rhombus is a parallelogram; every square is both a rectangle and a rhombus. **Area:** parallelogram = base·height; rectangle = length·width; trapezoid = (1/2)·(sum of parallel sides)·height.
 
 [BOX]
@@ -925,6 +1011,8 @@ In a parallelogram, consecutive angles are supplementary (sum 180°).
 		Category: "Geometry & Trigonometry",
 		Intro: `A **polygon** is a closed figure formed by a finite chain of **line segments** (sides); the segments meet at **vertices**. A polygon is **convex** if no line through a side enters the interior. For a convex **n-gon** (n sides), the **sum of the interior angles** is **(n − 2)·180°**. So triangle: 180°; quadrilateral: 360°; pentagon: 540°; hexagon: 720°.
 
+[DIAGRAM:polygon]
+
 **Regular polygon.** All sides and all angles are equal. Each interior angle of a regular n-gon is **((n − 2)·180°)/n**. So regular hexagon: each angle = 720°/6 = **120°**. The **exterior angle** (one at each vertex, if you extend one side) of a regular n-gon is **360°/n**; interior + exterior = 180° at each vertex.
 
 [BOX]
@@ -938,11 +1026,15 @@ Each interior angle (regular) = (n − 2)·180° / n
 Hexagon (n=6): sum = 4·180° = 720°. Regular hexagon: each angle = 120°.
 [/BOX]`,
 	},
-	"12": { Title: "Congruence & Similarity", Category: "Geometry & Trigonometry", Intro: `Congruence is “same shape and same size”. Similarity is “same shape, scaled”.` },
+	"12": { Title: "Congruence & Similarity", Category: "Geometry & Trigonometry", Intro: `Congruence is “same shape and same size”. Similarity is “same shape, scaled”.
+
+[DIAGRAM:triangle-criteria]` },
 	"12-0": {
 		Title:    "Criteria for triangles",
 		Category: "Geometry & Trigonometry",
 		Intro: `**Congruence** of triangles: two triangles are **congruent** if there is a one-to-one correspondence between their vertices such that all three sides and all three angles match. You do **not** need to check all six: **SSS** (three sides equal), **SAS** (two sides and the **included** angle equal), or **ASA/AAS** (two angles and a side equal) guarantee congruence. **Warning:** SSA (two sides and a non-included angle) does **not** always determine a unique triangle.
+
+[DIAGRAM:triangle-criteria]
 
 **Similarity** of triangles: two triangles are **similar** if corresponding angles are equal (and then corresponding sides are automatically in proportion), or if the three sides are in proportion (**SSS proportional**), or two sides are in proportion and the **included** angle is equal (**SAS proportional**). The **AA** criterion (two angles equal) is enough because the third angle is then determined. So if two triangles have angles (30°, 60°, 90°) they are similar.
 
@@ -959,6 +1051,8 @@ Triangles with angles (30°, 60°, 90°) are similar by AA (and thus sides propo
 		Title:    "Pythagoras' and Euclid's theorems",
 		Category: "Geometry & Trigonometry",
 		Intro: `For right triangles, Pythagoras connects the side lengths.
+
+[DIAGRAM:pythagoras-euclid]
 
 [BOX]
 Pythagoras
@@ -977,7 +1071,9 @@ If a = 3 and b = 4, then c = 5 because 3² + 4² = 25.
 	"13": {
 		Title:    "Circle & Pi",
 		Category: "Geometry & Trigonometry",
-		Intro: `The **circle** is the set of points at a fixed distance **r** (the **radius**) from a point **O** (the **center**). You will use **circumference** C = 2πr, **area** A = πr², **tangents** (line touching the circle at one point, perpendicular to radius), and **secants** (line cutting the circle in two points) with the **power of a point**.`,
+		Intro: `The **circle** is the set of points at a fixed distance **r** (the **radius**) from a point **O** (the **center**). You will use **circumference** C = 2πr, **area** A = πr², **tangents** (line touching the circle at one point, perpendicular to radius), and **secants** (line cutting the circle in two points) with the **power of a point**.
+
+[DIAGRAM:circle]`,
 	},
 	"13-0": {
 		Title:    "Circumference",
@@ -992,7 +1088,9 @@ C = 2πr
 [BOX]
 Example
 r = 5 ⇒ C = 10π ≈ 31.42
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:circle]`,
 	},
 	"13-1": {
 		Title:    "Area",
@@ -1010,12 +1108,16 @@ Sector area (θ in radians): A = (1/2)r²θ = (θ/(2π))·πr²
 [BOX]
 **Example**
 r = 5  ⇒  A = 25π ≈ 78.54
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:circle]`,
 	},
 	"13-2": {
 		Title:    "Tangents",
 		Category: "Geometry & Trigonometry",
 		Intro: `A **tangent** to a circle is a line that touches the circle at **exactly one point** (the **point of tangency**). The **radius** drawn to the point of tangency is **perpendicular** to the tangent. So if you know the radius to the point of contact, the tangent line is the line through that point that is perpendicular to the radius.
+
+[DIAGRAM:tangent-secant]
 
 **Tangent segments from an external point.** If **P** is outside the circle and **PT** and **PS** are the two segments from P to the points of tangency on the circle, then **PT = PS** (the two tangent segments from an external point are **equal**). This is useful for solving problems where a point is connected to a circle by two tangents.
 
@@ -1045,17 +1147,23 @@ PA · PB = constant for any secant through P. For tangent PT: PA·PB = PT²
 [BOX]
 **Example**
 Secant through P: PA = 3, PB = 12  ⇒  PA·PB = 36. Any other secant through P gives the same product.
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:tangent-secant]`,
 	},
 	"14": {
 		Title:    "Solid Geometry",
 		Category: "Geometry & Trigonometry",
-		Intro: `**Solid geometry** studies **three-dimensional** figures: **prisms** (two parallel congruent bases, volume = base area × height), **pyramids** (one base, vertex, volume = (1/3)×base×height), **cylinders** (circular bases, V = πr²h), **cones** (circular base, V = (1/3)πr²h), and **spheres** (V = (4/3)πr³, surface area = 4πr²). You will use these formulas for volume and lateral/total surface area.`,
+		Intro: `**Solid geometry** studies **three-dimensional** figures: **prisms** (two parallel congruent bases, volume = base area × height), **pyramids** (one base, vertex, volume = (1/3)×base×height), **cylinders** (circular bases, V = πr²h), **cones** (circular base, V = (1/3)πr²h), and **spheres** (V = (4/3)πr³, surface area = 4πr²). You will use these formulas for volume and lateral/total surface area.
+
+[DIAGRAM:geometry-formulary]`,
 	},
 	"14-0": {
 		Title:    "Prisms",
 		Category: "Geometry & Trigonometry",
 		Intro: `A **prism** is a solid with **two parallel**, **congruent** faces (the **bases**) and **lateral faces** that are parallelograms. If the lateral edges are perpendicular to the bases, the prism is **right**; then the lateral faces are rectangles. The **volume** is **V = (base area)·h**, where **h** is the height (perpendicular distance between the bases). So the volume is the same as for a cylinder with the same base area and height.
+
+[DIAGRAM:geometry-formulary]
 
 **Lateral surface area** (right prism): the sum of the areas of the lateral faces equals **(perimeter of base)·h**. **Total surface area** = 2·(base area) + lateral area. So for a rectangular prism (box) with dimensions ℓ, w, h: V = ℓwh and surface area = 2(ℓw + ℓh + wh).
 
@@ -1085,7 +1193,9 @@ V = (1/3)·(base area)·h
 [BOX]
 **Example**
 Base area = 30, height = 9  ⇒  V = (1/3)·30·9 = 90
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:geometry-formulary]`,
 	},
 	"14-2": {
 		Title:    "Cylinders",
@@ -1103,12 +1213,16 @@ Lateral area = 2πrh. Total surface area = 2πr² + 2πrh
 [BOX]
 **Example**
 r = 2, h = 5  ⇒  V = π·4·5 = 20π
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:geometry-formulary]`,
 	},
 	"14-3": {
 		Title:    "Cones",
 		Category: "Geometry & Trigonometry",
 		Intro: `A **right circular cone** has a **circular base** of radius **r** and a **vertex** (apex) on the line through the center of the base, perpendicular to the base. The **height** **h** is the distance from the vertex to the base. The **slant height** **a** (or ℓ) is the distance from the vertex to a point on the base circle; by Pythagoras, **a² = r² + h²**. The **volume** is **V = (1/3)πr²h** — one third of the volume of the cylinder with the same base and height.
+
+[DIAGRAM:geometry-formulary]
 
 **Lateral surface area** (the curved part) = **πr·a** (if you “unroll” the cone you get a sector of a circle of radius a and arc length 2πr). **Total surface area** = πr² + πra = πr(r + a).
 
@@ -1139,17 +1253,23 @@ Volume: V = (4/3)πr³
 [BOX]
 **Example**
 r = 3  ⇒  S = 4π·9 = 36π,  V = (4/3)π·27 = 36π
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:solid-sphere]`,
 	},
 	"15": {
 		Title:    "Goniometry & Trigonometry",
 		Category: "Geometry & Trigonometry",
-		Intro: `**Trigonometry** studies the link between **angles** and **ratios** of sides in right triangles, and the **unit circle** (radius 1) where each angle corresponds to a point (cos θ, sin θ). You will use the **unit circle**, **radians** (180° = π rad), **sine**, **cosine**, **tangent**, the identity sin²θ + cos²θ = 1, and the **law of sines** and **law of cosines** for non-right triangles.`,
+		Intro: `**Trigonometry** studies the link between **angles** and **ratios** of sides in right triangles, and the **unit circle** (radius 1) where each angle corresponds to a point (cos θ, sin θ). You will use the **unit circle**, **radians** (180° = π rad), **sine**, **cosine**, **tangent**, the identity sin²θ + cos²θ = 1, and the **law of sines** and **law of cosines** for non-right triangles.
+
+[DIAGRAM:unit-circle]`,
 	},
 	"15-0": {
 		Title:    "The Unit Circle",
 		Category: "Geometry & Trigonometry",
 		Intro: `The **unit circle** is the circle of **radius 1** with center at the **origin** (0, 0). Each **angle** θ (measured from the positive x-axis, counterclockwise) corresponds to a **unique point** on the circle: the point at distance 1 from the origin in that direction. The **coordinates** of that point are **(cos θ, sin θ)**. So **cos θ** is the x-coordinate and **sin θ** is the y-coordinate. This defines sine and cosine for **any** angle (not only acute).
+
+[DIAGRAM:unit-circle]
 
 **Radians.** Angles can be measured in **radians**: the angle (in rad) is the **arc length** on the unit circle. So **360° = 2π rad**, **180° = π rad**, **90° = π/2 rad**. To convert: **degrees → radians** multiply by π/180; **radians → degrees** multiply by 180/π.
 
@@ -1165,6 +1285,8 @@ Point on unit circle: (cos θ, sin θ)
 		Intro: `On the **unit circle**, for angle θ: **cos θ** = x-coordinate, **sin θ** = y-coordinate. So the point is (cos θ, sin θ). **Tangent** is **tan θ = sin θ / cos θ** (when cos θ ≠ 0). In a **right triangle** with angle θ, opposite side a, adjacent b, hypotenuse c: sin θ = a/c, cos θ = b/c, tan θ = a/b.
 
 **Fundamental identity:** **sin²θ + cos²θ = 1** (from x² + y² = 1 on the unit circle). So sin θ = ±√(1 − cos²θ) and cos θ = ±√(1 − sin²θ); the sign depends on the quadrant. **Special angles** (memorize): 0, π/6 (30°), π/4 (45°), π/3 (60°), π/2 (90°) — use the unit circle or the 30-60-90 and 45-45-90 triangles to get exact values.
+
+[DIAGRAM:trig-graphs]
 
 [BOX]
 **Identity**
@@ -1193,7 +1315,9 @@ sin(π/4)=cos(π/4)=√2/2; sin(π/2)=1, cos(π/2)=0
 [BOX]
 **Example (cosine)**
 b=5, c=7, A=60°: a² = 25+49−2·5·7·(1/2) = 74−35 = 39  ⇒  a = √39
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:triangle]`,
 	},
 
 	// -------------------------
@@ -1202,7 +1326,9 @@ b=5, c=7, A=60°: a² = 25+49−2·5·7·(1/2) = 74−35 = 39  ⇒  a = √39
 	"16": {
 		Title:    "Functions & Domain",
 		Category: "Pre-Calculus & Analysis",
-		Intro: `**Functions** assign to each input (e.g. x) exactly one output (e.g. y = f(x)). The **domain** is the set of allowed inputs; the **range** is the set of possible outputs. You will study **real functions of a real variable**, **classification** (injective, surjective, even/odd), and **how to find the domain** (denominators ≠ 0, even roots ≥ 0, log argument > 0).`,
+		Intro: `**Functions** assign to each input (e.g. x) exactly one output (e.g. y = f(x)). The **domain** is the set of allowed inputs; the **range** is the set of possible outputs. You will study **real functions of a real variable**, **classification** (injective, surjective, even/odd), and **how to find the domain** (denominators ≠ 0, even roots ≥ 0, log argument > 0).
+
+[DIAGRAM:graph-transformations]`,
 	},
 	"16-0": {
 		Title:    "Real functions of a real variable",
@@ -1219,7 +1345,9 @@ y = f(x),  x ∈ Domain(f) ⊆ ℝ.  Graph = {(x, f(x))}
 [BOX]
 **Examples**
 f(x)=x²: domain ℝ, range [0, +∞).  g(x)=1/x: domain ℝ\\{0}
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:domain-graph]`,
 	},
 	"16-1": {
 		Title:    "Classification",
@@ -1237,12 +1365,16 @@ Even: f(−x)=f(x). Odd: f(−x)=−f(x).
 [BOX]
 **Examples**
 f(x)=x³: injective on ℝ, odd.  f(x)=x²: not injective on ℝ, even.
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:graph-transformations]`,
 	},
 	"16-2": {
 		Title:    "Finding the domain",
 		Category: "Pre-Calculus & Analysis",
 		Intro: `The **domain** of a function given by a formula is the set of **x** for which the expression is **defined** (and real, if we work in ℝ). **Checklist:** (1) **Denominators** must be **≠ 0**. So 1/(x−2) has domain x ≠ 2. (2) **Even roots** (√, ⁴√, …): the **radicand** must be **≥ 0**. So √(x+1) requires x+1 ≥ 0, i.e. x ≥ −1. (3) **Logarithms:** the **argument** must be **> 0**. So ln(x−3) requires x−3 > 0, i.e. x > 3. (4) **Fractional exponents** (e.g. x^(1/2)): if the exponent has an even denominator in lowest terms, we usually take **base ≥ 0** for real output.
+
+[DIAGRAM:domain-graph]
 
 If the function is a **sum**, **difference**, or **product** of several parts, the domain is the **intersection** of the domains of each part (and then exclude where denominators are zero). For a **composition** f(g(x)), x must be in the domain of g and g(x) must be in the domain of f.
 
@@ -1259,7 +1391,9 @@ f(x)=1/(x−2) ⇒ domain x ≠ 2.  f(x)=√(x+1) ⇒ x ≥ −1.  f(x)=ln(x−3
 	"17": {
 		Title:    "Properties of Functions",
 		Category: "Pre-Calculus & Analysis",
-		Intro: `Beyond domain and range, we study **symmetries** (even/odd), **intercepts** (where the graph crosses the axes), and **sign** (where f(x) > 0, < 0, or = 0). These help sketch the graph and solve inequalities.`,
+		Intro: `Beyond domain and range, we study **symmetries** (even/odd), **intercepts** (where the graph crosses the axes), and **sign** (where f(x) > 0, < 0, or = 0). These help sketch the graph and solve inequalities.
+
+[DIAGRAM:graph-transformations]`,
 	},
 	"17-0": {
 		Title:    "Symmetries (Even/Odd)",
@@ -1277,7 +1411,9 @@ Odd:  f(−x) = −f(x)  (origin symmetry)
 [BOX]
 **Examples**
 f(x)=x²−1: f(−x)=x²−1=f(x) → even.  g(x)=x³+x: g(−x)=−x³−x=−g(x) → odd.  h(x)=x+1: neither.
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:graph-transformations]`,
 	},
 	"17-1": {
 		Title:    "Intercepts",
@@ -1295,7 +1431,9 @@ x-intercepts: solve f(x) = 0  →  points (x, 0)
 [BOX]
 **Example**
 f(x)=x²−4.  y-intercept: f(0)=−4 → (0,−4).  Zeros: x²−4=0 → x=±2 → (−2,0), (2,0).
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:graph-transformations]`,
 	},
 	"17-2": {
 		Title:    "Sign study",
@@ -1312,17 +1450,23 @@ f(x)=x²−4.  y-intercept: f(0)=−4 → (0,−4).  Zeros: x²−4=0 → x=±2 
 [BOX]
 **Example**
 f(x)=x²−4=(x−2)(x+2). Zeros: x=±2.  f>0 for x<−2 or x>2;  f<0 for −2<x<2.
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:graph-transformations]`,
 	},
 	"18": {
 		Title:    "Exponential & Logarithms",
 		Category: "Pre-Calculus & Analysis",
-		Intro: `**Exponential** (eˣ, aˣ) and **logarithmic** (ln x, log x) functions are **inverses**: ln(eˣ)=x and e^(ln x)=x for x>0. Both are **strictly monotone**, so you can solve equations and inequalities by “taking ln” or “taking exp” on both sides. You will solve **equations and inequalities** involving eˣ and ln x.`,
+		Intro: `**Exponential** (eˣ, aˣ) and **logarithmic** (ln x, log x) functions are **inverses**: ln(eˣ)=x and e^(ln x)=x for x>0. Both are **strictly monotone**, so you can solve equations and inequalities by “taking ln” or “taking exp” on both sides. You will solve **equations and inequalities** involving eˣ and ln x.
+
+[DIAGRAM:exp-log-graphs]`,
 	},
 	"18-0": {
 		Title:    "Equations and inequalities with eˣ and log(x)",
 		Category: "Pre-Calculus & Analysis",
 		Intro: `**eˣ** is **strictly increasing** on ℝ; **ln x** is **strictly increasing** on (0, +∞). So **e^a = e^b ⇔ a = b** and **ln u = ln v ⇔ u = v** (for u, v > 0). **Inverses:** ln(eˣ)=x for all x; e^(ln x)=x for x>0. So to solve **e^(f(x)) = e^(g(x))**, equate **f(x)=g(x)**. To solve **ln(f(x))=c**, write **f(x)=e^c** (and require f(x)>0). For **inequalities**, use the same monotonicity: eˣ > e^a ⇔ x > a; ln x < ln a ⇔ 0 < x < a (for a>0).
+
+[DIAGRAM:exp-log-graphs]
 
 **Domain:** For ln(f(x)), need **f(x) > 0**. When solving, always check that solutions lie in the domain.
 
@@ -1340,7 +1484,9 @@ eˣ>e² ⇒ x>2.  ln(x)≤0 ⇒ 0<x≤1.
 	"19": {
 		Title:    "Analytic Geometry",
 		Category: "Pre-Calculus & Analysis",
-		Intro: `**Analytic geometry** describes geometric figures using **coordinates** and **equations**. You will work with the **line** (slope-intercept, point-slope, general form), the **circle** (center-radius equation), the **parabola** (vertex, axis), the **ellipse** (semi-axes), and the **hyperbola** (equations and asymptotes) in the Cartesian plane.`,
+		Intro: `**Analytic geometry** describes geometric figures using **coordinates** and **equations**. You will work with the **line** (slope-intercept, point-slope, general form), the **circle** (center-radius equation), the **parabola** (vertex, axis), the **ellipse** (semi-axes), and the **hyperbola** (equations and asymptotes) in the Cartesian plane.
+
+[DIAGRAM:conics]`,
 	},
 	"19-0": {
 		Title:    "The line",
@@ -1428,7 +1574,9 @@ Asymptotes: y = ±(b/a)x.  c² = a² + b².
 [BOX]
 **Example**
 x²/4 − y²/9 = 1  ⇒  a=2, b=3.  Asymptotes: y = ±(3/2)x.
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:conics]`,
 	},
 
 	// ----------------------
@@ -1437,7 +1585,9 @@ x²/4 − y²/9 = 1  ⇒  a=2, b=3.  Asymptotes: y = ±(3/2)x.
 	"20": {
 		Title:    "Limits & Continuity",
 		Category: "Differential Calculus",
-		Intro: `**Limits** describe the value a function **approaches** as the variable approaches a point (or ±∞). **Finite** limits (lim_{x→a} f(x) = L) and **infinite** limits (vertical asymptotes), **indeterminate forms** (0/0, ∞/∞, etc.) and how to resolve them, and **asymptotes** (vertical, horizontal, oblique) are the main topics.`,
+		Intro: `**Limits** describe the value a function **approaches** as the variable approaches a point (or ±∞). **Finite** limits (lim_{x→a} f(x) = L) and **infinite** limits (vertical asymptotes), **indeterminate forms** (0/0, ∞/∞, etc.) and how to resolve them, and **asymptotes** (vertical, horizontal, oblique) are the main topics.
+
+[DIAGRAM:limits-graph]`,
 	},
 	"20-0": {
 		Title:    "Finite and infinite limits",
@@ -1455,7 +1605,9 @@ At infinity: lim_{x→±∞} f(x) = L (horizontal asymptote y = L).
 [BOX]
 **Examples**
 lim_{x→+∞} 1/x = 0.  lim_{x→0⁺} 1/x = +∞,  lim_{x→0⁻} 1/x = −∞.
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:limits-graph]`,
 	},
 	"20-1": {
 		Title:    "Indeterminate forms",
@@ -1471,7 +1623,9 @@ lim_{x→+∞} 1/x = 0.  lim_{x→0⁺} 1/x = +∞,  lim_{x→0⁻} 1/x = −∞
 [BOX]
 **Example**
 lim_{x→0} (sin x)/x = 1
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:limits-graph]`,
 	},
 	"20-2": {
 		Title:    "Asymptotes",
@@ -1490,12 +1644,16 @@ Oblique: y = mx + q with m = lim f(x)/x, q = lim (f(x)−mx)
 [BOX]
 **Example**
 f(x) = (2x+1)/x = 2 + 1/x.  Horizontal: y = 2.  Vertical: x = 0.
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:limits-graph]`,
 	},
 	"21": {
 		Title:    "The Derivative Concept",
 		Category: "Differential Calculus",
-		Intro: `The **derivative** of f at x is the **instantaneous rate of change** of f and the **slope of the tangent line** to the graph at (x, f(x)). It is defined as the limit of the **difference quotient** [f(x+h)−f(x)]/h as h→0. You will see the **difference quotient** and the **geometric meaning** (tangent slope).`,
+		Intro: `The **derivative** of f at x is the **instantaneous rate of change** of f and the **slope of the tangent line** to the graph at (x, f(x)). It is defined as the limit of the **difference quotient** [f(x+h)−f(x)]/h as h→0. You will see the **difference quotient** and the **geometric meaning** (tangent slope).
+
+[DIAGRAM:derivative-tangent]`,
 	},
 	"21-0": {
 		Title:    "Difference quotient",
@@ -1513,12 +1671,16 @@ Derivative: f'(x) = lim_{h→0} [f(x+h) − f(x)]/h
 [BOX]
 **Example**
 f(x)=x²: [(x+h)²−x²]/h = 2x+h  →  f'(x)=2x
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:derivative-tangent]`,
 	},
 	"21-1": {
 		Title:    "Geometric meaning",
 		Category: "Differential Calculus",
 		Intro: `**Geometrically**, **f'(x₀)** is the **slope of the tangent line** to the graph of y = f(x) at the point **(x₀, f(x₀))**. The tangent line is the limit of secant lines through (x₀, f(x₀)) and (x₀+h, f(x₀+h)) as h→0; its slope is exactly f'(x₀). So the **equation of the tangent line** at x₀ is **y − f(x₀) = f'(x₀)(x − x₀)**, or **y = f(x₀) + f'(x₀)(x − x₀)**.
+
+[DIAGRAM:derivative-tangent]
 
 **Interpretation:** f'(x) > 0 means the function is **increasing** (locally); f'(x) < 0 means **decreasing**; f'(x) = 0 often indicates a **critical point** (max, min, or saddle). The derivative also gives **instantaneous velocity** when f is position.
 
@@ -1535,7 +1697,9 @@ f(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y 
 	"22": {
 		Title:    "Differentiation Rules",
 		Category: "Differential Calculus",
-		Intro: `**Differentiation rules** let you compute derivatives without using the limit definition every time: **power rule** (xⁿ)' = n·xⁿ⁻¹, **product rule** (fg)' = f'g + fg', **quotient rule** (f/g)' = (f'g − fg')/g², and **chain rule** for compositions: (f(g(x)))' = f'(g(x))·g'(x).`,
+		Intro: `**Differentiation rules** let you compute derivatives without using the limit definition every time: **power rule** (xⁿ)' = n·xⁿ⁻¹, **product rule** (fg)' = f'g + fg', **quotient rule** (f/g)' = (f'g − fg')/g², and **chain rule** for compositions: (f(g(x)))' = f'(g(x))·g'(x).
+
+[DIAGRAM:derivatives-table]`,
 	},
 	"22-0": {
 		Title:    "Power rule",
@@ -1548,6 +1712,8 @@ f(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y 
 **Power rule**
 (xⁿ)' = n·xⁿ⁻¹   (n real, x > 0 if n not integer)
 [/BOX]
+
+[DIAGRAM:derivatives-table]
 
 [BOX]
 **Examples**
@@ -1569,7 +1735,9 @@ f(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y 
 [BOX]
 **Example**
 (x²eˣ)' = 2x·eˣ + x²·eˣ = eˣ(2x + x²)
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:derivatives-table]`,
 	},
 	"22-2": {
 		Title:    "Quotient rule",
@@ -1586,7 +1754,9 @@ f(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y 
 [BOX]
 **Example**
 (1/x)' = −1/x².  Or (x/(x²+1))' = (1·(x²+1) − x·2x)/(x²+1)² = (1−x²)/(x²+1)².
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:derivatives-table]`,
 	},
 	"22-3": {
 		Title:    "Chain rule",
@@ -1603,17 +1773,23 @@ f(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y 
 [BOX]
 **Examples**
 (e^(x²))' = e^(x²)·2x.  (sin(2x))' = cos(2x)·2.
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:derivatives-table]`,
 	},
 	"23": {
 		Title:    "Function Study",
 		Category: "Differential Calculus",
-		Intro: `Using the **first derivative** you find **critical points** (f'(x)=0 or f' undefined) and **intervals of increase/decrease**. **Local maxima and minima** occur at critical points (first derivative test: sign change of f'). Using the **second derivative** you study **concavity** and **points of inflection** (where concavity changes).`,
+		Intro: `Using the **first derivative** you find **critical points** (f'(x)=0 or f' undefined) and **intervals of increase/decrease**. **Local maxima and minima** occur at critical points (first derivative test: sign change of f'). Using the **second derivative** you study **concavity** and **points of inflection** (where concavity changes).
+
+[DIAGRAM:critical-points]`,
 	},
 	"23-0": {
 		Title:    "Maxima and Minima",
 		Category: "Differential Calculus",
 		Intro: `**Critical points** are where **f'(x) = 0** or **f'** is **undefined** (but f is defined). **Local maxima** and **minima** can only occur at critical points or at endpoints of the domain. **First derivative test:** On an interval, if **f'** changes from **positive to negative** at a critical point, that point is a **local maximum**; if **f'** changes from **negative to positive**, it is a **local minimum**. If f' does not change sign, the critical point is a **saddle** (neither max nor min).
+
+[DIAGRAM:critical-points]
 
 **Second derivative test:** If f'(c)=0 and **f''(c) < 0**, then c is a local **maximum**; if **f''(c) > 0**, c is a local **minimum**. If f''(c)=0 the test is inconclusive.
 
@@ -1642,7 +1818,9 @@ Inflection: concavity changes  ⇔  f'' changes sign (typically f''(c)=0).
 [BOX]
 **Example**
 f(x)=x³: f''(x)=6x.  At x=0, f'' changes from − to + ⇒ inflection at (0,0).
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:critical-points]`,
 	},
 
 	// ----------------
@@ -1651,7 +1829,9 @@ f(x)=x³: f''(x)=6x.  At x=0, f'' changes from − to + ⇒ inflection at (0,0).
 	"24": {
 		Title:    "Indefinite Integrals",
 		Category: "Integral Calculus",
-		Intro: `**Indefinite integrals** represent **antiderivatives** (primitive functions): **∫ f(x) dx = F(x) + C** where **F'(x) = f(x)** and **C** is an arbitrary constant. You will see **primitive functions** (F such that F' = f) and **immediate** integration rules (power rule, 1/x, eˣ, sin/cos).`,
+		Intro: `**Indefinite integrals** represent **antiderivatives** (primitive functions): **∫ f(x) dx = F(x) + C** where **F'(x) = f(x)** and **C** is an arbitrary constant. You will see **primitive functions** (F such that F' = f) and **immediate** integration rules (power rule, 1/x, eˣ, sin/cos).
+
+[DIAGRAM:primitive]`,
 	},
 	"24-0": {
 		Title:    "Primitive functions",
@@ -1668,7 +1848,9 @@ F is a primitive of f if F'(x) = f(x).  ∫ f(x) dx = F(x) + C.
 [BOX]
 **Example**
 f(x)=2x  ⇒  F(x)=x² (since (x²)'=2x).  So ∫ 2x dx = x² + C.
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:primitive]`,
 	},
 	"24-1": {
 		Title:    "Immediate integration rules",
@@ -1686,12 +1868,16 @@ f(x)=2x  ⇒  F(x)=x² (since (x²)'=2x).  So ∫ 2x dx = x² + C.
 [BOX]
 **Example**
 ∫ (3x² + 2x + 1) dx = x³ + x² + x + C
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:primitive]`,
 	},
 	"25": {
 		Title:    "Integration Methods",
 		Category: "Integral Calculus",
-		Intro: `When the integrand is not a simple combination of immediate rules, use **integration by substitution** (reverse of the chain rule: set u = g(x), du = g'(x)dx) or **integration by parts** (from (uv)' = u'v + uv': ∫ u dv = uv − ∫ v du). These are the two main techniques for non-immediate integrals.`,
+		Intro: `When the integrand is not a simple combination of immediate rules, use **integration by substitution** (reverse of the chain rule: set u = g(x), du = g'(x)dx) or **integration by parts** (from (uv)' = u'v + uv': ∫ u dv = uv − ∫ v du). These are the two main techniques for non-immediate integrals.
+
+[DIAGRAM:integral-area]`,
 	},
 	"25-0": {
 		Title:    "Integration by substitution",
@@ -1708,7 +1894,9 @@ u = g(x),  du = g'(x) dx  ⇒  ∫ f(g(x))·g'(x) dx = ∫ f(u) du
 [BOX]
 **Example**
 ∫ 2x·e^(x²) dx.  u = x², du = 2x dx  ⇒  ∫ e^u du = e^u + C = e^(x²) + C
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:substitution]`,
 	},
 	"25-1": {
 		Title:    "Integration by parts",
@@ -1725,17 +1913,23 @@ u = g(x),  du = g'(x) dx  ⇒  ∫ f(g(x))·g'(x) dx = ∫ f(u) du
 [BOX]
 **Example**
 ∫ x eˣ dx: u=x, dv=eˣ dx  ⇒  x eˣ − ∫ eˣ dx = eˣ(x−1) + C
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:parts]`,
 	},
 	"26": {
 		Title:    "Definite Integrals",
 		Category: "Integral Calculus",
-		Intro: `**Definite integrals** **∫_a^b f(x) dx** represent the **signed area** between the graph of f and the x-axis from x = a to x = b (positive where f ≥ 0, negative where f ≤ 0). The **Fundamental Theorem of Calculus** says: if F is any antiderivative of f (F' = f), then **∫_a^b f(x) dx = F(b) − F(a)**. So you find a primitive F and evaluate at the endpoints.`,
+		Intro: `**Definite integrals** **∫_a^b f(x) dx** represent the **signed area** between the graph of f and the x-axis from x = a to x = b (positive where f ≥ 0, negative where f ≤ 0). The **Fundamental Theorem of Calculus** says: if F is any antiderivative of f (F' = f), then **∫_a^b f(x) dx = F(b) − F(a)**. So you find a primitive F and evaluate at the endpoints.
+
+[DIAGRAM:integral-area]`,
 	},
 	"26-0": {
 		Title:    "Calculating the area under a curve",
 		Category: "Integral Calculus",
 		Intro: `The **definite integral** **∫_a^b f(x) dx** is the **signed** (net) area between the graph of **y = f(x)** and the **x-axis** over the interval [a, b]: area above the axis counts **positive**, below counts **negative**. If **f(x) ≥ 0** on [a, b], then ∫_a^b f(x) dx equals the **geometric** area of the region under the curve. If f takes both signs, the integral is the **difference** (area above minus area below).
+
+[DIAGRAM:integral-area]
 
 **Computation:** By the **FTC**, ∫_a^b f(x) dx = **F(b) − F(a)** where F is any antiderivative of f. So find F (indefinite integral), then plug in b and a and subtract. **Example:** ∫_0^1 x² dx = [x³/3]_0^1 = 1/3 − 0 = 1/3 (area under y = x² from 0 to 1).
 
@@ -1765,17 +1959,23 @@ So to compute a definite integral: (1) find **any** primitive F of f (indefinite
 [BOX]
 **Example**
 ∫_0^1 x² dx = [x³/3]_0^1 = 1/3 − 0 = 1/3
-[/BOX]`,
+[/BOX]
+
+[DIAGRAM:integral-area]`,
 	},
 	"27": {
 		Title:    "Applications",
 		Category: "Integral Calculus",
-		Intro: `**Applications** of integrals include **area** between curves, **volume** of solids of revolution (disk/washer method), arc length, work, and many physics/geometry problems. You will see **volumes** (e.g. rotation about the x-axis: V = π∫ (f(x))² dx) and **areas of plane figures** (area between y = f(x) and y = g(x) is ∫ (f − g) dx).`,
+		Intro: `**Applications** of integrals include **area** between curves, **volume** of solids of revolution (disk/washer method), arc length, work, and many physics/geometry problems. You will see **volumes** (e.g. rotation about the x-axis: V = π∫ (f(x))² dx) and **areas of plane figures** (area between y = f(x) and y = g(x) is ∫ (f − g) dx).
+
+[DIAGRAM:solids-of-revolution]`,
 	},
 	"27-0": {
 		Title:    "Calculation of volumes",
 		Category: "Integral Calculus",
 		Intro: `**Disk method** (solid of revolution): Rotate the region under **y = f(x)** (with f(x) ≥ 0) from x = a to x = b about the **x-axis**. Each vertical slice becomes a **disk** of radius f(x) and thickness dx; the volume is **V = π ∫_a^b (f(x))² dx**. **Washer method:** If the region is between **y = f(x)** and **y = g(x)** (with f ≥ g ≥ 0), rotation about the x-axis gives **V = π ∫_a^b [(f(x))² − (g(x))²] dx** (outer radius f, inner g).
+
+[DIAGRAM:solids-of-revolution]
 
 **Cone:** Rotating the line y = (r/h)x from 0 to h about the x-axis gives a cone of radius r and height h: V = π ∫_0^h (r²/h²)x² dx = (1/3)πr²h.
 
@@ -1795,6 +1995,8 @@ y = (r/h)x on [0,h]: V = π ∫ (r²/h²)x² dx = (1/3)πr²h
 		Intro: `The **area between two curves** **y = f(x)** and **y = g(x)** from x = a to x = b (where **f(x) ≥ g(x)** on [a,b]) is **A = ∫_a^b (f(x) − g(x)) dx**. So you integrate the **vertical** distance (top minus bottom) between the curves. If the curves cross, split the interval at the intersection points so that on each subinterval one function is always on top; then add the absolute areas (or use |f − g|).
 
 **Procedure:** (1) Find intersection points (solve f(x) = g(x)). (2) Determine which curve is on top on each interval. (3) Integrate (top − bottom) over each interval. (4) Add. **Example:** Between y = x and y = x² on [0,1]: x ≥ x², so A = ∫_0^1 (x − x²) dx = 1/2 − 1/3 = 1/6.
+
+[DIAGRAM:area-between-curves]
 
 [BOX]
 **Formula (f ≥ g on [a,b])**

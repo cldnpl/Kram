@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 160" role="img" aria-label="Critical points: local maximum, local minimum, horizontal inflection">
+  <defs>
+    <style>.axes{stroke:#666;stroke-width:1}.curve{fill:none;stroke:#333;stroke-width:2}.panel{fill:#fafafa;stroke:#ddd;stroke-width:1}.label{font:12px sans-serif;fill:#1a1a1a}</style>
+  </defs>
+  <rect x="18" y="12" width="108" height="92" class="panel" rx="4"/>
+  <text x="72" y="26" class="label" font-weight="bold" text-anchor="middle">Local maximum</text>
+  <line x1="20" y1="55" x2="120" y2="55" class="axes"/>
+  <line x1="70" y1="22" x2="70" y2="90" class="axes"/>
+  <path d="M 25 70 Q 70 25 115 70" class="curve"/>
+  <circle cx="70" cy="25" r="5" fill="#c62828"/>
+  <text x="72" y="98" class="label" text-anchor="middle">f'(x)=0</text>
+  <rect x="128" y="12" width="108" height="92" class="panel" rx="4"/>
+  <text x="182" y="26" class="label" font-weight="bold" text-anchor="middle">Local minimum</text>
+  <line x1="130" y1="55" x2="230" y2="55" class="axes"/>
+  <line x1="180" y1="22" x2="180" y2="90" class="axes"/>
+  <path d="M 135 25 Q 180 70 225 25" class="curve"/>
+  <circle cx="180" cy="70" r="5" fill="#2e7d32"/>
+  <text x="182" y="98" class="label" text-anchor="middle">f'(x)=0</text>
+  <rect x="258" y="12" width="108" height="92" class="panel" rx="4"/>
+  <text x="312" y="26" class="label" font-weight="bold" text-anchor="middle">Horizontal inflection</text>
+  <line x1="260" y1="55" x2="360" y2="55" class="axes"/>
+  <line x1="310" y1="22" x2="310" y2="90" class="axes"/>
+  <path d="M 265 45 Q 310 55 355 45" class="curve"/>
+  <circle cx="310" cy="55" r="5" fill="#1976d2"/>
+  <text x="312" y="98" class="label" text-anchor="middle">f'(x)=0</text>
+</svg>

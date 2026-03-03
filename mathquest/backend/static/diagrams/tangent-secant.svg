@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 200" role="img" aria-label="Tangente e secante">
+  <defs>
+    <style>.circle{fill:none;stroke:#333;stroke-width:2}.line{stroke:#1976d2;stroke-width:1.5}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <circle cx="120" cy="100" r="60" class="circle"/>
+  <line x1="120" y1="100" x2="180" y2="100" class="line"/>
+  <line x1="20" y1="160" x2="220" y2="40" class="line" stroke-dasharray="4 2"/>
+  <line x1="180" y1="100" x2="180" y2="20" class="line"/>
+  <text x="185" y="60" class="label">tangente</text>
+  <text x="80" y="110" class="label">secante</text>
+</svg>
