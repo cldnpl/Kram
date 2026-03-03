@@ -85,48 +85,114 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                               padding: const EdgeInsets.only(bottom: 16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: ((_detail!['content_json'] as Map)['intro'] as String? ?? '')
-                                    .split('\n\n')
-                                    .where((p) => p.trim().isNotEmpty)
-                                    .map((p) => Padding(
-                                          padding: const EdgeInsets.only(bottom: 12),
-                                          child: Text(
-                                            p.trim(),
-                                            style: Theme.of(context).textTheme.bodyLarge,
-                                          ),
-                                        ))
-                                    .toList(),
+                                children: _buildIntroBlocks((_detail!['content_json'] as Map)['intro'] as String? ?? ''),
                               ),
                             ),
                           ],
-                          if (_detail!['exercises'] != null) ...[
-                            Text('Exercises', style: Theme.of(context).textTheme.titleMedium),
-                            const SizedBox(height: 8),
-                            ...((_detail!['exercises'] as List<dynamic>).map((ex) {
-                              final e = ex as Map<String, dynamic>;
-                              final options = e['options'] as List<dynamic>? ?? [];
-                              return Card(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(e['question'] as String? ?? ''),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Options: ${options.join(', ')}',
-                                        style: Theme.of(context).textTheme.bodySmall,
-                                      ),
-                                    ],
-                                  ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 24),
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: FilledButton(
+                                onPressed: () {},
+                                style: FilledButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
                                 ),
-                              );
-                            })),
-                          ],
+                                child: const Text('Practice'),
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
     );
+  }
+
+  List<Widget> _buildIntroBlocks(String intro) {
+    const boxStart = '[BOX]';
+    const boxEnd = '[/BOX]';
+    final blocks = <Widget>[];
+    var remaining = intro;
+
+    while (true) {
+      final boxStartIdx = remaining.indexOf(boxStart);
+      if (boxStartIdx == -1) {
+        final text = remaining.trim();
+        if (text.isNotEmpty) {
+          for (final p in text.split('\n\n')) {
+            final t = p.trim();
+            if (t.isNotEmpty) {
+              blocks.add(Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Text(t, style: Theme.of(context).textTheme.bodyLarge),
+              ));
+            }
+          }
+        }
+        break;
+      }
+
+      final textBefore = remaining.substring(0, boxStartIdx).trim();
+      if (textBefore.isNotEmpty) {
+        for (final p in textBefore.split('\n\n')) {
+          final t = p.trim();
+          if (t.isNotEmpty) {
+            blocks.add(Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(t, style: Theme.of(context).textTheme.bodyLarge),
+            ));
+          }
+        }
+      }
+
+      remaining = remaining.substring(boxStartIdx + boxStart.length);
+      final boxEndIdx = remaining.indexOf(boxEnd);
+      if (boxEndIdx == -1) {
+        if (remaining.trim().isNotEmpty) {
+          blocks.add(Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(remaining.trim(), style: Theme.of(context).textTheme.bodyLarge),
+          ));
+        }
+        break;
+      }
+
+      final boxContent = remaining.substring(0, boxEndIdx).trim();
+      if (boxContent.isNotEmpty) {
+        blocks.add(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+              ),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: boxContent
+                      .split('\n')
+                      .map((line) => line.trim())
+                      .where((line) => line.isNotEmpty)
+                      .map((line) => Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: Text(line, style: Theme.of(context).textTheme.bodyLarge),
+                          ))
+                      .toList(),
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      remaining = remaining.substring(boxEndIdx + boxEnd.length);
+    }
+
+    return blocks;
   }
 }

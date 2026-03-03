@@ -14,29 +14,40 @@ struct LessonDetailView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Lesson")
                             .font(.headline)
-                        ForEach(paragraphs(from: detail.intro), id: \.self) { paragraph in
-                            Text(paragraph)
-                                .font(.body)
-                                .padding(.bottom, 8)
-                        }
-                        if !detail.exercises.isEmpty {
-                            Text("Exercises")
-                                .font(.headline)
-                                .padding(.top, 8)
-                            ForEach(Array(detail.exercises.enumerated()), id: \.offset) { i, ex in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(ex.question)
-                                        .font(.subheadline)
-                                    Text("Options: \(ex.options.joined(separator: ", "))")
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                        ForEach(Array(parseContentBlocks(detail.intro).enumerated()), id: \.offset) { _, block in
+                            switch block {
+                            case .text(let text):
+                                ForEach(paragraphs(from: text), id: \.self) { paragraph in
+                                    Text(paragraph)
+                                        .font(.body)
+                                        .padding(.bottom, 8)
                                 }
-                                .padding()
+                            case .box(let content):
+                                VStack(alignment: .leading, spacing: 8) {
+                                    ForEach(boxLines(from: content), id: \.self) { line in
+                                        Text(line)
+                                            .font(.body)
+                                    }
+                                }
                                 .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(14)
                                 .background(Color(.secondarySystemBackground))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
+                                )
+                                .padding(.vertical, 4)
                             }
                         }
+                        Button(action: {}) {
+                            Text("Practice")
+                                .font(.headline)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .padding(.top, 24)
                     }
                     .padding()
                 }
@@ -123,6 +134,42 @@ private struct ExerciseDTO: Decodable {
     let id: String?
     let question: String?
     let options: [String]?
+}
+
+private enum ContentBlock {
+    case text(String)
+    case box(String)
+}
+
+private func parseContentBlocks(_ intro: String) -> [ContentBlock] {
+    var result: [ContentBlock] = []
+    var remaining = intro
+    while true {
+        guard let range = remaining.range(of: "[BOX]") else {
+            let trimmed = remaining.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { result.append(.text(trimmed)) }
+            break
+        }
+        let textPart = String(remaining[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        if !textPart.isEmpty { result.append(.text(textPart)) }
+        remaining = String(remaining[range.upperBound...])
+        if let endRange = remaining.range(of: "[/BOX]") {
+            let boxContent = String(remaining[..<endRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !boxContent.isEmpty { result.append(.box(boxContent)) }
+            remaining = String(remaining[endRange.upperBound...])
+        } else {
+            let trimmed = remaining.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { result.append(.text(trimmed)) }
+            break
+        }
+    }
+    return result
+}
+
+private func boxLines(from content: String) -> [String] {
+    content.components(separatedBy: .newlines)
+        .map { $0.trimmingCharacters(in: .whitespaces) }
+        .filter { !$0.isEmpty }
 }
 
 private func paragraphs(from text: String) -> [String] {
