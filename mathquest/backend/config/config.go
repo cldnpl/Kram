@@ -26,8 +26,8 @@ func Load() (*Config, error) {
 
 	return &Config{
 		Port:             getEnv("PORT", "8080"),
-		DatabaseURL:      getEnv("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/mathquest?sslmode=disable"),
-		RedisURL:         getEnv("REDIS_URL", "redis://localhost:6379"),
+		DatabaseURL:      getEnv("DATABASE_URL", ""),
+		RedisURL:         getEnv("REDIS_URL", ""),
 		FirebaseCred:     getEnv("FIREBASE_CREDENTIALS_PATH", ""),
 		MathPixKey:       getEnv("MATHPIX_API_KEY", ""),
 		Env:              getEnv("ENV", "development"),

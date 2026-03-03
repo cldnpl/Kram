@@ -18,15 +18,20 @@ struct LessonDetailView: View {
                             switch block {
                             case .text(let text):
                                 ForEach(paragraphs(from: text), id: \.self) { paragraph in
-                                    Text(paragraph)
+                                    renderInlineBold(paragraph)
                                         .font(.body)
                                         .padding(.bottom, 8)
                                 }
                             case .box(let content):
                                 VStack(alignment: .leading, spacing: 8) {
                                     ForEach(boxLines(from: content), id: \.self) { line in
-                                        Text(line)
-                                            .font(.body)
+                                        if isFormulaLine(line) {
+                                            Text(line)
+                                                .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                                        } else {
+                                            renderInlineBold(line)
+                                                .font(.body)
+                                        }
                                     }
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -176,6 +181,37 @@ private func paragraphs(from text: String) -> [String] {
     text.components(separatedBy: "\n\n")
         .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
         .filter { !$0.isEmpty }
+}
+
+private func renderInlineBold(_ text: String) -> Text {
+    let parts = text.components(separatedBy: "**")
+    var out = Text("")
+    for (idx, part) in parts.enumerated() {
+        if part.isEmpty { continue }
+        if idx % 2 == 1 {
+            out = out + Text(part).bold()
+        } else {
+            out = out + Text(part)
+        }
+    }
+    return out
+}
+
+private func isFormulaLine(_ line: String) -> Bool {
+    let s = line.trimmingCharacters(in: .whitespacesAndNewlines)
+    if s.isEmpty { return false }
+
+    if s.contains("=") { return true }
+    if s.contains("→") || s.contains("±") { return true }
+    if s.contains("√") || s.contains("∫") || s.contains("Δ") { return true }
+    if s.contains("^") { return true }
+
+    let lower = s.lowercased()
+    if lower.contains("lim") { return true }
+    if lower.contains("sin") || lower.contains("cos") || lower.contains("tan") { return true }
+    if lower.contains("ln") || lower.contains("log") || lower.contains("e^") { return true }
+
+    return false
 }
 
 #Preview {

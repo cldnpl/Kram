@@ -7,12 +7,14 @@ import (
 	"mathquest/backend/internal/middleware"
 	"mathquest/backend/internal/router"
 	"mathquest/backend/pkg/database"
-	"mathquest/backend/pkg/redis"
+	redispkg "mathquest/backend/pkg/redis"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	redis "github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -21,18 +23,30 @@ func main() {
 		log.Fatalf("config load: %v", err)
 	}
 
-	// Initialize database
-	db, err := database.NewPostgres(cfg.DatabaseURL)
-	if err != nil {
-		log.Printf("warning: database connection failed: %v", err)
-		db = nil
+	// Initialize database (optional: only if DATABASE_URL is set)
+	var db *gorm.DB
+	if cfg.DatabaseURL != "" {
+		var err error
+		db, err = database.NewPostgres(cfg.DatabaseURL)
+		if err != nil {
+			log.Printf("warning: database connection failed: %v", err)
+			db = nil
+		}
+	} else {
+		log.Printf("database: skipped (no DATABASE_URL)")
 	}
 
-	// Initialize Redis
-	redisClient, err := redis.NewClient(cfg.RedisURL)
-	if err != nil {
-		log.Printf("warning: redis connection failed: %v", err)
-		redisClient = nil
+	// Initialize Redis (optional: only if REDIS_URL is set)
+	var redisClient *redis.Client
+	if cfg.RedisURL != "" {
+		var err error
+		redisClient, err = redispkg.NewClient(cfg.RedisURL)
+		if err != nil {
+			log.Printf("warning: redis connection failed: %v", err)
+			redisClient = nil
+		}
+	} else {
+		log.Printf("redis: skipped (no REDIS_URL)")
 	}
 
 	app := fiber.New(fiber.Config{

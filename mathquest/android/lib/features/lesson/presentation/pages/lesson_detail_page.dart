@@ -124,7 +124,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
             if (t.isNotEmpty) {
               blocks.add(Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Text(t, style: Theme.of(context).textTheme.bodyLarge),
+                child: _buildTextWithBold(context, t, Theme.of(context).textTheme.bodyLarge!),
               ));
             }
           }
@@ -139,7 +139,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
           if (t.isNotEmpty) {
             blocks.add(Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Text(t, style: Theme.of(context).textTheme.bodyLarge),
+              child: _buildTextWithBold(context, t, Theme.of(context).textTheme.bodyLarge!),
             ));
           }
         }
@@ -151,7 +151,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
         if (remaining.trim().isNotEmpty) {
           blocks.add(Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Text(remaining.trim(), style: Theme.of(context).textTheme.bodyLarge),
+            child: _buildTextWithBold(context, remaining.trim(), Theme.of(context).textTheme.bodyLarge!),
           ));
         }
         break;
@@ -178,10 +178,23 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                       .split('\n')
                       .map((line) => line.trim())
                       .where((line) => line.isNotEmpty)
-                      .map((line) => Padding(
-                            padding: const EdgeInsets.only(bottom: 4),
-                            child: Text(line, style: Theme.of(context).textTheme.bodyLarge),
-                          ))
+                      .map((line) {
+                        final baseStyle = Theme.of(context).textTheme.bodyLarge!;
+                        final isFormula = _isFormulaLine(line);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 4),
+                          child: isFormula
+                              ? Text(
+                                  line,
+                                  style: baseStyle.copyWith(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: 'monospace',
+                                  ),
+                                )
+                              : _buildTextWithBold(context, line, baseStyle),
+                        );
+                      })
                       .toList(),
                 ),
               ),
@@ -194,5 +207,31 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     }
 
     return blocks;
+  }
+
+  bool _isFormulaLine(String line) {
+    final s = line.trim();
+    if (s.isEmpty) return false;
+    if (s.contains('=')) return true;
+    if (s.contains('→') || s.contains('±') || s.contains('√') || s.contains('∫') || s.contains('Δ') || s.contains('^')) return true;
+    final lower = s.toLowerCase();
+    if (lower.contains('lim') || lower.contains('sin') || lower.contains('cos') || lower.contains('tan') || lower.contains('ln') || lower.contains('log')) return true;
+    return false;
+  }
+
+  Widget _buildTextWithBold(BuildContext context, String text, TextStyle baseStyle) {
+    final spans = <TextSpan>[];
+    final parts = text.split('**');
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].isEmpty) continue;
+      spans.add(TextSpan(
+        text: parts[i],
+        style: i.isOdd ? baseStyle.copyWith(fontWeight: FontWeight.bold) : baseStyle,
+      ));
+    }
+    final color = Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface;
+    return RichText(
+      text: TextSpan(style: baseStyle.copyWith(color: color), children: spans),
+    );
   }
 }
