@@ -6,6 +6,8 @@ import (
 	"mathquest/backend/config"
 	"mathquest/backend/internal/middleware"
 	"mathquest/backend/internal/router"
+	"mathquest/backend/pkg/database"
+	"mathquest/backend/pkg/redis"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -17,6 +19,20 @@ func main() {
 	cfg, err := config.Load()
 	if err != nil {
 		log.Fatalf("config load: %v", err)
+	}
+
+	// Initialize database
+	db, err := database.NewPostgres(cfg.DatabaseURL)
+	if err != nil {
+		log.Printf("warning: database connection failed: %v", err)
+		db = nil
+	}
+
+	// Initialize Redis
+	redisClient, err := redis.NewClient(cfg.RedisURL)
+	if err != nil {
+		log.Printf("warning: redis connection failed: %v", err)
+		redisClient = nil
 	}
 
 	app := fiber.New(fiber.Config{
@@ -34,7 +50,7 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 
-	router.Setup(app, cfg)
+	router.Setup(app, cfg, db, redisClient)
 
 	log.Printf("MathQuest API listening on :%s", cfg.Port)
 	if err := app.Listen(":" + cfg.Port); err != nil {

@@ -8,7 +8,9 @@ struct ContentView: View {
             HomeView()
                 .tabItem { Label("Lessons", systemImage: "house.fill") }
                 .tag(0)
-            CameraView()
+            NavigationStack {
+                CameraView()
+            }
                 .tabItem { Label("Camera", systemImage: "camera.fill") }
                 .tag(1)
             ProfileView()

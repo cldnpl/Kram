@@ -7,13 +7,13 @@ final class AuthViewModel: ObservableObject {
 
     func signInWithGoogle() async {
         isLoading = true
-        defer { isLoading = false }
+        do { isLoading = false }
         // TODO: integrate Firebase
     }
 
     func signInWithApple() async {
         isLoading = true
-        defer { isLoading = false }
+        do { isLoading = false }
         // TODO: integrate Firebase
     }
 }

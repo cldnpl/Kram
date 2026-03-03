@@ -14,9 +14,11 @@ import (
 	"mathquest/backend/internal/user"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
 )
 
-func Setup(app *fiber.App, cfg *config.Config) {
+func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.Client) {
 	api := app.Group("/api")
 
 	// Auth (public)
@@ -40,8 +42,12 @@ func Setup(app *fiber.App, cfg *config.Config) {
 	// Exercises
 	protected.Post("/exercises/:id/submit", exercise.Submit)
 
-	// Camera
-	protected.Post("/camera/solve", camera.Solve)
+	// Camera - with dependencies
+	cameraHandler := camera.NewHandler(db, redisClient, cfg)
+	protected.Post("/camera/solve", cameraHandler.Solve)
+	protected.Get("/camera/history", cameraHandler.History)
+	protected.Get("/camera/history/:id", cameraHandler.HistoryDetail)
+	protected.Get("/camera/status", cameraHandler.Status)
 
 	// Coins
 	protected.Get("/coins/balance", coins.Balance)

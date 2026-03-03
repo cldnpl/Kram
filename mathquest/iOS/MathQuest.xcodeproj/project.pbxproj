@@ -28,6 +28,12 @@
 		B10000000000000000000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000013 /* Assets.xcassets */; };
 		B10000000000000000000014 /* APIConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000014 /* APIConfig.swift */; };
 		B10000000000000000000015 /* LessonDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000015 /* LessonDetailView.swift */; };
+		B10000000000000000000016 /* CameraHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000016 /* CameraHistoryView.swift */; };
+		B10000000000000000000017 /* CameraModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000017 /* CameraModels.swift */; };
+		B10000000000000000000018 /* CameraPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000018 /* CameraPreviewView.swift */; };
+		B10000000000000000000019 /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000019 /* CameraService.swift */; };
+		B1000000000000000000001A /* ScanningLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001A /* ScanningLineView.swift */; };
+		B1000000000000000000001B /* StepCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001B /* StepCardView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +59,12 @@
 		F10000000000000000000013 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F10000000000000000000014 /* APIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfig.swift; sourceTree = "<group>"; };
 		F10000000000000000000015 /* LessonDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonDetailView.swift; sourceTree = "<group>"; };
+		F10000000000000000000016 /* CameraHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraHistoryView.swift; sourceTree = "<group>"; };
+		F10000000000000000000017 /* CameraModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModels.swift; sourceTree = "<group>"; };
+		F10000000000000000000018 /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
+		F10000000000000000000019 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
+		F1000000000000000000001A /* ScanningLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanningLineView.swift; sourceTree = "<group>"; };
+		F1000000000000000000001B /* StepCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepCardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -69,12 +81,12 @@
 		G10000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
-				G10000000000000000000002 /*  */,
+				G10000000000000000000002,
 				G10000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
 		};
-		G10000000000000000000002 /*  */ = {
+		G10000000000000000000002 = {
 			isa = PBXGroup;
 			children = (
 				F10000000000000000000001 /* MathQuestApp.swift */,
@@ -84,7 +96,6 @@
 				G10000000000000000000006 /* Components */,
 				G10000000000000000000007 /* Resources */,
 			);
-			name = "";
 			sourceTree = "<group>";
 		};
 		G10000000000000000000003 /* Products */ = {
@@ -117,14 +128,6 @@
 				G10000000000000000000010 /* Rewards */,
 			);
 			path = Features;
-			sourceTree = "<group>";
-		};
-		G10000000000000000000011 /* Lesson */ = {
-			isa = PBXGroup;
-			children = (
-				F10000000000000000000015 /* LessonDetailView.swift */,
-			);
-			path = Lesson;
 			sourceTree = "<group>";
 		};
 		G10000000000000000000006 /* Components */ = {
@@ -192,6 +195,12 @@
 			children = (
 				F1000000000000000000000B /* CameraView.swift */,
 				F1000000000000000000000C /* CameraViewModel.swift */,
+				F10000000000000000000016 /* CameraHistoryView.swift */,
+				F10000000000000000000017 /* CameraModels.swift */,
+				F10000000000000000000018 /* CameraPreviewView.swift */,
+				F10000000000000000000019 /* CameraService.swift */,
+				F1000000000000000000001A /* ScanningLineView.swift */,
+				F1000000000000000000001B /* StepCardView.swift */,
 			);
 			path = Camera;
 			sourceTree = "<group>";
@@ -220,6 +229,14 @@
 				F10000000000000000000011 /* RewardsView.swift */,
 			);
 			path = Rewards;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000011 /* Lesson */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000015 /* LessonDetailView.swift */,
+			);
+			path = Lesson;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -311,6 +328,12 @@
 				B10000000000000000000012 /* CoinBadgeView.swift in Sources */,
 				B10000000000000000000014 /* APIConfig.swift in Sources */,
 				B10000000000000000000015 /* LessonDetailView.swift in Sources */,
+				B10000000000000000000016 /* CameraHistoryView.swift in Sources */,
+				B10000000000000000000017 /* CameraModels.swift in Sources */,
+				B10000000000000000000018 /* CameraPreviewView.swift in Sources */,
+				B10000000000000000000019 /* CameraService.swift in Sources */,
+				B1000000000000000000001A /* ScanningLineView.swift in Sources */,
+				B1000000000000000000001B /* StepCardView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -444,14 +467,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = H4M7KJL5DT;
+				DEVELOPMENT_TEAM = 988N3YY62P;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -475,14 +494,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = H4M7KJL5DT;
+				DEVELOPMENT_TEAM = 988N3YY62P;
 				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
-				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
-				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
