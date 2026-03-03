@@ -34,10 +34,18 @@
 		B10000000000000000000019 /* CameraService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000019 /* CameraService.swift */; };
 		B1000000000000000000001A /* ScanningLineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001A /* ScanningLineView.swift */; };
 		B1000000000000000000001B /* StepCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001B /* StepCardView.swift */; };
+		B1000000000000000000001C /* CarouselOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001C /* CarouselOnboardingView.swift */; };
+		B1000000000000000000001D /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001D /* ProfileSetupView.swift */; };
+		B1000000000000000000001E /* ProfileSetupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001E /* ProfileSetupViewModel.swift */; };
+		B20000000000000000000001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000001 /* FirebaseAuth */; };
+		B20000000000000000000002 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000002 /* GoogleSignIn */; };
+		E37D5ED92F572CAB0024821A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E37D5ED82F572CAB0024821A /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		E10000000000000000000001 /* MathQuest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MathQuest.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E37D5ED72F572BF40024821A /* MathQuest.entitlements */ = {isa = PBXFileReference; lastKnownFileType = file; path = MathQuest.entitlements; sourceTree = "<group>"; };
+		E37D5ED82F572CAB0024821A /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		F10000000000000000000001 /* MathQuestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathQuestApp.swift; sourceTree = "<group>"; };
 		F10000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F10000000000000000000003 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -65,6 +73,9 @@
 		F10000000000000000000019 /* CameraService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraService.swift; sourceTree = "<group>"; };
 		F1000000000000000000001A /* ScanningLineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanningLineView.swift; sourceTree = "<group>"; };
 		F1000000000000000000001B /* StepCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepCardView.swift; sourceTree = "<group>"; };
+		F1000000000000000000001C /* CarouselOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselOnboardingView.swift; sourceTree = "<group>"; };
+		F1000000000000000000001D /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
+		F1000000000000000000001E /* ProfileSetupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,6 +83,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B20000000000000000000001 /* FirebaseAuth in Frameworks */,
+				B20000000000000000000002 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -81,6 +94,7 @@
 		G10000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				E37D5ED72F572BF40024821A /* MathQuest.entitlements */,
 				G10000000000000000000002,
 				G10000000000000000000003 /* Products */,
 			);
@@ -89,6 +103,7 @@
 		G10000000000000000000002 = {
 			isa = PBXGroup;
 			children = (
+				E37D5ED82F572CAB0024821A /* GoogleService-Info.plist */,
 				F10000000000000000000001 /* MathQuestApp.swift */,
 				F10000000000000000000002 /* ContentView.swift */,
 				G10000000000000000000004 /* Core */,
@@ -177,6 +192,7 @@
 			children = (
 				F10000000000000000000007 /* OnboardingView.swift */,
 				F10000000000000000000008 /* OnboardingViewModel.swift */,
+				F1000000000000000000001C /* CarouselOnboardingView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -211,6 +227,8 @@
 				F1000000000000000000000D /* ProfileView.swift */,
 				F1000000000000000000000E /* ProfileViewModel.swift */,
 				F1000000000000000000000F /* SettingsView.swift */,
+				F1000000000000000000001D /* ProfileSetupView.swift */,
+				F1000000000000000000001E /* ProfileSetupViewModel.swift */,
 			);
 			path = Profile;
 			sourceTree = "<group>";
@@ -255,6 +273,10 @@
 			dependencies = (
 			);
 			name = MathQuest;
+			packageProductDependencies = (
+				S20000000000000000000001 /* FirebaseAuth */,
+				S20000000000000000000002 /* GoogleSignIn */,
+			);
 			productName = MathQuest;
 			productReference = E10000000000000000000001 /* MathQuest.app */;
 			productType = "com.apple.product-type.application";
@@ -284,6 +306,10 @@
 			);
 			mainGroup = G10000000000000000000001;
 			productRefGroup = G10000000000000000000003 /* Products */;
+			packageReferences = (
+				R20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				R20000000000000000000002 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -298,6 +324,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B10000000000000000000013 /* Assets.xcassets in Resources */,
+				E37D5ED92F572CAB0024821A /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -334,10 +361,45 @@
 				B10000000000000000000019 /* CameraService.swift in Sources */,
 				B1000000000000000000001A /* ScanningLineView.swift in Sources */,
 				B1000000000000000000001B /* StepCardView.swift in Sources */,
+				B1000000000000000000001C /* CarouselOnboardingView.swift in Sources */,
+				B1000000000000000000001D /* ProfileSetupView.swift in Sources */,
+				B1000000000000000000001E /* ProfileSetupViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		R20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+		R20000000000000000000002 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		S20000000000000000000001 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = R20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		S20000000000000000000002 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = R20000000000000000000002 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		X10000000000000000000001 /* Debug */ = {
@@ -464,6 +526,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MathQuest.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
@@ -476,7 +539,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.mathquest.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kram.math;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -491,6 +554,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = MathQuest.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
@@ -503,7 +567,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.mathquest.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kram.math;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;

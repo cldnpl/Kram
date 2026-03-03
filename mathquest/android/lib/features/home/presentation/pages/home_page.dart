@@ -36,11 +36,13 @@ class _HomePageState extends State<HomePage> {
       final res = await _dio.dio.get('lessons', options: _authOptions());
       final data = res.data as Map<String, dynamic>;
       final list = data['categories'] as List<dynamic>? ?? [];
-      _categories = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      _categories =
+          list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       debugPrint('[Home] got ${_categories.length} categories');
 
       debugPrint('[Home] fetching balance...');
-      final balanceRes = await _dio.dio.get('coins/balance', options: _authOptions());
+      final balanceRes =
+          await _dio.dio.get('coins/balance', options: _authOptions());
       final balanceData = balanceRes.data as Map<String, dynamic>;
       _coinBalance = (balanceData['balance'] as num?)?.toInt() ?? 0;
       debugPrint('[Home] balance = $_coinBalance');
@@ -74,9 +76,11 @@ class _HomePageState extends State<HomePage> {
     final progressRemaining = isDark ? Colors.black54 : Colors.black26;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      backgroundColor:
+          isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
       appBar: AppBar(
-        title: const Text('HOME', style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
+        title: const Text('HOME',
+            style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
         centerTitle: true,
         actions: [
           CoinBadge(
@@ -94,7 +98,8 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Text('Error: $_error', textAlign: TextAlign.center),
                       const SizedBox(height: 16),
-                      FilledButton(onPressed: _load, child: const Text('Retry')),
+                      FilledButton(
+                          onPressed: _load, child: const Text('Retry')),
                     ],
                   ),
                 )
@@ -136,7 +141,10 @@ class _HomePageState extends State<HomePage> {
                             children: [
                               Text(
                                 title,
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
                                       fontWeight: FontWeight.w600,
                                       height: 1.25,
                                       fontSize: 17,
@@ -147,7 +155,10 @@ class _HomePageState extends State<HomePage> {
                               const SizedBox(height: 10),
                               Text(
                                 '$completed/$total',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 16,
                                     ),
@@ -158,7 +169,9 @@ class _HomePageState extends State<HomePage> {
                                 child: LinearProgressIndicator(
                                   value: total > 0 ? completed / total : 0,
                                   backgroundColor: progressRemaining,
-                                  valueColor: const AlwaysStoppedAnimation<Color>(progressDone),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    progressDone,
+                                  ),
                                   minHeight: 8,
                                 ),
                               ),
@@ -171,18 +184,27 @@ class _HomePageState extends State<HomePage> {
                 ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: 0,
+        onDestinationSelected: (index) {
+          switch (index) {
+            case 0:
+              context.go('/');
+              break;
+            case 1:
+              context.go('/camera');
+              break;
+            case 2:
+              context.go('/profile');
+              break;
+          }
+        },
         destinations: [
           const NavigationDestination(icon: Icon(Icons.home), label: 'Lessons'),
-          NavigationDestination(
-            icon: const Icon(Icons.camera_alt),
+          const NavigationDestination(
+            icon: Icon(Icons.camera_alt),
             label: 'Camera',
-            onTap: () => context.go('/camera'),
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.person),
-            label: 'Profile',
-            onTap: () => context.go('/profile'),
-          ),
+          const NavigationDestination(
+              icon: Icon(Icons.person), label: 'Profile'),
         ],
       ),
     );

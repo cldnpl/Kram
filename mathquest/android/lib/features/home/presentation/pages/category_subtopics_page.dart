@@ -37,7 +37,8 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
       );
       final data = res.data as Map<String, dynamic>;
       final list = data['categories'] as List<dynamic>? ?? [];
-      final categories = list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      final categories =
+          list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       Map<String, dynamic>? cat;
       for (final c in categories) {
         if ((c['id'] as String?) == widget.categoryId) {
@@ -52,10 +53,12 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
         });
         return;
       }
-      final sections = cat['sections'] as List<dynamic>? ?? [];
+      final category = cat;
+      final sections = category['sections'] as List<dynamic>? ?? [];
       setState(() {
-        _categoryTitle = cat['title'] as String? ?? widget.categoryId;
-        _sections = sections.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _categoryTitle = category['title'] as String? ?? widget.categoryId;
+        _sections =
+            sections.map((e) => Map<String, dynamic>.from(e as Map)).toList();
         _loading = false;
       });
     } catch (e) {
@@ -69,7 +72,8 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final sectionHeaderColor = isDark ? Colors.grey.shade600 : Colors.grey.shade700;
+    final sectionHeaderColor =
+        isDark ? Colors.grey.shade600 : Colors.grey.shade700;
     final buttonBg = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA);
 
     return Scaffold(
@@ -89,12 +93,14 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
                     children: [
                       Text('Error: $_error', textAlign: TextAlign.center),
                       const SizedBox(height: 16),
-                      FilledButton(onPressed: _load, child: const Text('Retry')),
+                      FilledButton(
+                          onPressed: _load, child: const Text('Retry')),
                     ],
                   ),
                 )
               : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   itemCount: _sections.length,
                   itemBuilder: (context, sectionIndex) {
                     final section = _sections[sectionIndex];
@@ -110,7 +116,10 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
                             padding: const EdgeInsets.only(left: 4, bottom: 8),
                             child: Text(
                               sectionTitle,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleSmall
+                                  ?.copyWith(
                                     color: sectionHeaderColor,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -119,7 +128,8 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
                           ...items.asMap().entries.map((entry) {
                             final itemIndex = entry.key;
                             final it = entry.value;
-                            final itemMap = Map<String, dynamic>.from(it as Map);
+                            final itemMap =
+                                Map<String, dynamic>.from(it as Map);
                             final itemTitle = itemMap['title'] as String? ?? '';
                             final itemLessonId = '$lessonId-$itemIndex';
                             return Padding(
@@ -127,18 +137,23 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
                               child: Material(
                                 color: Colors.transparent,
                                 child: InkWell(
-                                  onTap: () => context.push('/lesson/$itemLessonId'),
+                                  onTap: () =>
+                                      context.push('/lesson/$itemLessonId'),
                                   borderRadius: BorderRadius.circular(12),
                                   child: Container(
                                     width: double.infinity,
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 14),
                                     decoration: BoxDecoration(
                                       color: buttonBg,
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
                                       itemTitle,
-                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
                                             fontWeight: FontWeight.w500,
                                           ),
                                     ),

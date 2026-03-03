@@ -2,16 +2,16 @@ import SwiftUI
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
-    @AppStorage("isLoggedIn") private var isLoggedIn = false
+    @EnvironmentObject private var authManager: AuthManager
 
     var body: some View {
         List {
             Section {
-                Button(isLoggedIn ? "Sign Out" : "Sign In") {
-                    isLoggedIn.toggle()
-                    if !isLoggedIn { viewModel.signOut() }
+                Button("Sign Out") {
+                    authManager.signOut()
+                    viewModel.signOut()
                 }
-                .foregroundStyle(isLoggedIn ? .red : .accentColor)
+                .foregroundStyle(.red)
             }
             Section("Stats") {
                 Label("Streak: \(viewModel.streakDays) days", systemImage: "flame.fill")
@@ -28,5 +28,8 @@ struct ProfileView: View {
 }
 
 #Preview {
-    NavigationStack { ProfileView() }
+    NavigationStack {
+        ProfileView()
+            .environmentObject(AuthManager())
+    }
 }

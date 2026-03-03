@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "663402131003",
+    "project_id": "the-big-5-15035",
+    "storage_bucket": "the-big-5-15035.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:663402131003:android:739b2f309cd48e9a67b61e",
+        "android_client_info": {
+          "package_name": "com.mathquest.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "663402131003-djrq44oieslhsuc7dq58h9vuk634ejtb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCu9GypnmcirlV1cgaMDc3FpIJawQpJib8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "663402131003-djrq44oieslhsuc7dq58h9vuk634ejtb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "663402131003-9mm4m1tmkmi34j7tv4ru8u03ldmumm96.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.kram.math"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

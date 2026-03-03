@@ -1,26 +1,57 @@
 import SwiftUI
+import AuthenticationServices
 
 struct LoginView: View {
-    @StateObject private var viewModel = AuthViewModel()
+    @EnvironmentObject private var authManager: AuthManager
+    @AppStorage("hasSeenCarousel") private var hasSeenCarousel = true
 
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 20) {
             Text("Kram")
-                .font(.largeTitle)
-                .fontWeight(.bold)
+                .font(.system(size: 40, weight: .heavy))
+                .padding(.top, 40)
+
+            Text("Sign in to continue")
+                .font(.headline)
+                .foregroundStyle(.secondary)
+
             Spacer()
-            Button(action: { Task { await viewModel.signInWithGoogle() } }) {
+
+            Button {
+                Task { await authManager.signInWithGoogle() }
+            } label: {
                 Label("Google Sign-In", systemImage: "person.circle.fill")
-                    .frame(maxWidth: .infinity)
-                    .padding()
+                    .frame(maxWidth: .infinity, minHeight: 50)
             }
             .buttonStyle(.borderedProminent)
-            Button(action: { Task { await viewModel.signInWithApple() } }) {
-                Label("Apple Sign-In", systemImage: "apple.logo")
-                    .frame(maxWidth: .infinity)
-                    .padding()
+            .disabled(authManager.isLoading)
+
+            SignInWithAppleButton(.signIn) { request in
+                authManager.prepareAppleSignInRequest(request)
+            } onCompletion: { result in
+                Task { await authManager.signInWithApple(result: result) }
             }
-            .buttonStyle(.bordered)
+            .signInWithAppleButtonStyle(.black)
+            .frame(height: 50)
+            .disabled(authManager.isLoading)
+
+            Button("View onboarding") {
+                hasSeenCarousel = false
+            }
+            .buttonStyle(.borderless)
+            .disabled(authManager.isLoading)
+
+            if authManager.isLoading {
+                ProgressView()
+            }
+
+            if let errorMessage = authManager.errorMessage {
+                Text(errorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+            }
+
             Spacer()
         }
         .padding()
@@ -29,4 +60,5 @@ struct LoginView: View {
 
 #Preview {
     LoginView()
+        .environmentObject(AuthManager())
 }
