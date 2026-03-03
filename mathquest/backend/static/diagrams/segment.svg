@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 80" role="img" aria-label="Segmento AB">
+  <defs>
+    <style>.seg{stroke:#333;stroke-width:2}.end{fill:#333}.label{font:14px sans-serif;fill:#111}</style>
+  </defs>
+  <line x1="40" y1="40" x2="240" y2="40" class="seg"/>
+  <circle cx="40" cy="40" r="5" class="end"/>
+  <circle cx="240" cy="40" r="5" class="end"/>
+  <text x="40" y="65" class="label" text-anchor="middle">A</text>
+  <text x="240" y="65" class="label" text-anchor="middle">B</text>
+  <text x="140" y="25" class="label" text-anchor="middle">segmento AB</text>
+</svg>

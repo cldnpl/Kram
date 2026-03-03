@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" role="img" aria-label="Criteri congruenza triangoli SSS SAS">
+  <defs>
+    <style>.tri{fill:none;stroke:#333;stroke-width:1.5}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <polygon points="30,90 30,30 80,90" class="tri"/>
+  <text x="55" y="15" class="label" text-anchor="middle">SSS</text>
+  <polygon points="120,90 120,30 170,90" class="tri"/>
+  <text x="145" y="15" class="label" text-anchor="middle">SAS</text>
+  <polygon points="210,90 210,30 260,90" class="tri"/>
+  <text x="235" y="15" class="label" text-anchor="middle">ASA</text>
+  <polygon points="300,90 300,30 350,90" class="tri"/>
+  <text x="325" y="15" class="label" text-anchor="middle">AAS</text>
+</svg>

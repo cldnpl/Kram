@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 180" role="img" aria-label="Ruffini's rule">
+  <defs>
+    <style>.cell{fill:#fafafa;stroke:#333;stroke-width:1}.arrow{fill:none;stroke:#1976d2;stroke-width:1.5}.label{font:12px sans-serif;fill:#111}</style>
+  </defs>
+  <text x="170" y="22" text-anchor="middle" font-weight="bold" class="label">Ruffini: P(x) : (x - c)</text>
+  <text x="30" y="52" class="label">Coeff.</text>
+  <rect x="85" y="38" width="36" height="24" class="cell"/>
+  <text x="103" y="55" text-anchor="middle" class="label">a3</text>
+  <rect x="125" y="38" width="36" height="24" class="cell"/>
+  <text x="143" y="55" text-anchor="middle" class="label">a2</text>
+  <rect x="165" y="38" width="36" height="24" class="cell"/>
+  <text x="183" y="55" text-anchor="middle" class="label">a1</text>
+  <rect x="205" y="38" width="36" height="24" class="cell"/>
+  <text x="223" y="55" text-anchor="middle" class="label">a0</text>
+  <rect x="265" y="38" width="36" height="24" class="cell"/>
+  <text x="283" y="55" text-anchor="middle" class="label">c</text>
+  <text x="30" y="102" class="label">Result</text>
+  <rect x="85" y="88" width="36" height="24" class="cell"/>
+  <rect x="125" y="88" width="36" height="24" class="cell"/>
+  <rect x="165" y="88" width="36" height="24" class="cell"/>
+  <rect x="205" y="88" width="36" height="24" class="cell"/>
+  <text x="223" y="105" text-anchor="middle" font-size="10" fill="#666">remainder</text>
+  <path d="M 103 62 L 103 75 L 283 75 L 283 62" class="arrow"/>
+  <path d="M 143 62 L 143 82 L 103 82 L 103 88" class="arrow"/>
+  <path d="M 183 62 L 183 82 L 143 82" class="arrow"/>
+  <path d="M 223 62 L 223 82 L 183 82" class="arrow"/>
+  <text x="170" y="135" text-anchor="middle" font-size="11" fill="#444">1. Coeff. 2. Multiply by c 3. Add 4. Repeat. Remainder=0 then (x-c) divides P(x)</text>
+</svg>

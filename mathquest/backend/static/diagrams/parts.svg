@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 120" role="img" aria-label="Integration by parts formula">
+  <defs>
+    <style>.box{fill:#fff8e1;stroke:#f9a825;stroke-width:1.5}.form{font:bold 16px sans-serif;fill:#1a1a1a}.label{font:12px sans-serif;fill:#444}</style>
+  </defs>
+  <rect x="20" y="25" width="300" height="50" class="box" rx="6"/>
+  <text x="170" y="58" class="form" text-anchor="middle">integral u dv = u v - integral v du</text>
+  <text x="170" y="85" class="label" text-anchor="middle">From (uv)' = u'v + uv'</text>
+  <text x="170" y="105" class="label" text-anchor="middle">Choose u and dv so that integral v du is simpler</text>
+</svg>

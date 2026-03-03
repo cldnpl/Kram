@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Esagono regolare">
+  <defs>
+    <style>.poly{fill:none;stroke:#333;stroke-width:2}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <polygon points="100,20 170,50 170,110 100,140 30,110 30,50" class="poly"/>
+  <text x="100" y="165" class="label" text-anchor="middle">Poligono (es. esagono)</text>
+</svg>

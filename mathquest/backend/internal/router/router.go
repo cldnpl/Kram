@@ -1,6 +1,9 @@
 package router
 
 import (
+	"io/fs"
+	"strings"
+
 	"mathquest/backend/config"
 	"mathquest/backend/internal/auth"
 	"mathquest/backend/internal/camera"
@@ -12,6 +15,7 @@ import (
 	"mathquest/backend/internal/rewards"
 	"mathquest/backend/internal/store"
 	"mathquest/backend/internal/user"
+	"mathquest/backend/static"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
@@ -19,6 +23,9 @@ import (
 )
 
 func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.Client) {
+	// Diagrammi SVG pubblici (senza auth, fuori da /api così non passano dal middleware)
+	app.Get("/diagrams/:id", serveDiagram)
+
 	api := app.Group("/api")
 
 	// Auth (public)
@@ -69,4 +76,25 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	protected.Get("/profile", user.Get)
 	protected.Put("/profile", user.Update)
 	protected.Get("/profile/stats", user.Stats)
+}
+
+// serveDiagram serves embedded SVG diagrams. id must be alphanumeric + hyphen (e.g. unit-circle).
+func serveDiagram(c *fiber.Ctx) error {
+	id := strings.TrimSpace(c.Params("id"))
+	if id == "" {
+		return c.Status(fiber.StatusBadRequest).SendString("missing id")
+	}
+	for _, r := range id {
+		if r != '-' && r != '_' && (r < 'a' || r > 'z') && (r < '0' || r > '9') {
+			return c.Status(fiber.StatusBadRequest).SendString("invalid id")
+		}
+	}
+	name := "diagrams/" + id + ".svg"
+	data, err := fs.ReadFile(static.Diagrams, name)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("not found")
+	}
+	c.Set("Content-Type", "image/svg+xml; charset=utf-8")
+	c.Set("Cache-Control", "public, max-age=86400")
+	return c.Send(data)
 }

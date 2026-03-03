@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 160" role="img" aria-label="Domain on number line">
+  <defs>
+    <style>.axis{stroke:#333;stroke-width:1}.domain{fill:#c8e6c9;stroke:#2e7d32;stroke-width:1}.label{font:12px sans-serif;fill:#111}</style>
+  </defs>
+  <line x1="20" y1="80" x2="260" y2="80" class="axis"/>
+  <rect x="60" y="60" width="140" height="40" class="domain"/>
+  <text x="130" y="45" class="label" text-anchor="middle">domain of f (interval on x)</text>
+  <text x="60" y="95" class="label">a</text>
+  <text x="200" y="95" class="label">b</text>
+</svg>

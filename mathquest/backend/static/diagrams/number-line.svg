@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 100" role="img" aria-label="Number line">
+  <defs>
+    <style>.tick{stroke:#333;stroke-width:2}.axis{stroke:#333;stroke-width:1.5}.label{font:12px sans-serif;fill:#111}</style>
+  </defs>
+  <line x1="20" y1="50" x2="420" y2="50" class="axis"/>
+  <polyline points="415,45 420,50 415,55" fill="none" stroke="#333" stroke-width="1.5"/>
+  <line x1="220" y1="46" x2="220" y2="54" class="tick"/>
+  <text x="220" y="72" class="label" text-anchor="middle">0</text>
+  <line x1="100" y1="46" x2="100" y2="54" class="tick"/>
+  <text x="100" y="72" class="label" text-anchor="middle">-3</text>
+  <line x1="160" y1="46" x2="160" y2="54" class="tick"/>
+  <text x="160" y="72" class="label" text-anchor="middle">-2</text>
+  <line x1="190" y1="46" x2="190" y2="54" class="tick"/>
+  <text x="190" y="72" class="label" text-anchor="middle">-1</text>
+  <line x1="250" y1="46" x2="250" y2="54" class="tick"/>
+  <text x="250" y="72" class="label" text-anchor="middle">1</text>
+  <line x1="280" y1="46" x2="280" y2="54" class="tick"/>
+  <text x="280" y="72" class="label" text-anchor="middle">2</text>
+  <line x1="340" y1="46" x2="340" y2="54" class="tick"/>
+  <text x="340" y="72" class="label" text-anchor="middle">3</text>
+  <line x1="235" y1="44" x2="235" y2="56" stroke="#666" stroke-width="1"/>
+  <text x="235" y="88" font-size="10" fill="#555" text-anchor="middle">1/2</text>
+  <line x1="205" y1="44" x2="205" y2="56" stroke="#666" stroke-width="1"/>
+  <text x="205" y="88" font-size="10" fill="#555" text-anchor="middle">-1/2</text>
+</svg>

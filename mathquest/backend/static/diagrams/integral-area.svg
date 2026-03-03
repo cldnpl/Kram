@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" role="img" aria-label="Definite integral: area under curve between a and b">
+  <defs>
+    <linearGradient id="areaGrad" x1="0" x2="0" y1="1" y2="0"><stop offset="0%" stop-color="#bbdefb"/><stop offset="100%" stop-color="#e3f2fd"/></linearGradient>
+    <style>.axes{stroke:#666;stroke-width:1}.curve{fill:none;stroke:#1976d2;stroke-width:2}.area{fill:url(#areaGrad);stroke:none}.label{font:12px sans-serif;fill:#111}</style>
+  </defs>
+  <!-- Axes -->
+  <line x1="40" y1="160" x2="300" y2="160" class="axes"/>
+  <line x1="40" y1="160" x2="40" y2="20" class="axes"/>
+  <!-- Area under curve (polygon) -->
+  <path d="M 80 160 L 80 130 L 120 100 L 160 75 L 200 55 L 240 75 L 260 95 L 260 160 Z" class="area"/>
+  <!-- Curve on top -->
+  <path d="M 80 130 Q 160 60 200 55 Q 240 65 260 95" class="curve"/>
+  <!-- Vertical lines at a and b -->
+  <line x1="80" y1="160" x2="80" y2="130" stroke="#333" stroke-width="1" stroke-dasharray="2 2"/>
+  <line x1="260" y1="160" x2="260" y2="95" stroke="#333" stroke-width="1" stroke-dasharray="2 2"/>
+  <!-- Labels -->
+  <text x="78" y="175" class="label" text-anchor="middle">a</text>
+  <text x="262" y="175" class="label" text-anchor="middle">b</text>
+  <text x="170" y="190" class="label" text-anchor="middle">integral_a^b f(x) dx = area</text>
+</svg>

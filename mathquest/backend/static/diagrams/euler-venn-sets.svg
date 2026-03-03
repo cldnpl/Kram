@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 340 220" role="img" aria-label="Number sets N Z Q R C">
+  <defs>
+    <style>.label{font:italic 14px serif;fill:#111}.set{fill:none;stroke:#333;stroke-width:2}</style>
+  </defs>
+  <rect x="8" y="8" width="324" height="204" class="set" rx="4"/>
+  <text x="300" y="26" class="label">C</text>
+  <ellipse cx="170" cy="110" rx="125" ry="75" class="set"/>
+  <text x="265" y="108" class="label">R</text>
+  <ellipse cx="170" cy="110" rx="85" ry="52" class="set"/>
+  <text x="235" y="110" class="label">Q</text>
+  <ellipse cx="170" cy="110" rx="52" ry="34" class="set"/>
+  <text x="205" y="112" class="label">Z</text>
+  <ellipse cx="170" cy="110" rx="28" ry="20" class="set"/>
+  <text x="182" y="115" class="label">N</text>
+  <text x="30" y="55" font-size="12" fill="#444">N C Z C Q C R C C</text>
+</svg>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 220" role="img" aria-label="Triangle ABC">
+  <defs>
+    <style>.tri{fill:none;stroke:#333;stroke-width:2}.label{font:14px sans-serif;fill:#111}.h{stroke:#c62828;stroke-dasharray:4 2}</style>
+  </defs>
+  <polygon points="50,180 210,180 130,40" class="tri"/>
+  <line x1="130" y1="40" x2="130" y2="180" class="h"/>
+  <text x="50" y="195" class="label">A</text>
+  <text x="210" y="195" class="label">B</text>
+  <text x="135" y="30" class="label">C</text>
+  <text x="115" y="115" class="label">h (height)</text>
+  <text x="130" y="215" class="label">base</text>
+</svg>

@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 220" role="img" aria-label="Powers: 5 rules table">
+  <defs>
+    <style>.head{fill:#e3f2fd}.row{fill:#ffffff}.cell{stroke:#333;stroke-width:1}.text{font:12px sans-serif;fill:#1a1a1a}.formula{font:13px sans-serif;font-weight:600;fill:#0d47a1}</style>
+  </defs>
+  <rect x="20" y="20" width="380" height="32" class="head cell"/>
+  <rect x="20" y="52" width="380" height="32" class="row cell"/>
+  <rect x="20" y="84" width="380" height="32" class="row cell"/>
+  <rect x="20" y="116" width="380" height="32" class="row cell"/>
+  <rect x="20" y="148" width="380" height="32" class="row cell"/>
+  <rect x="20" y="180" width="380" height="32" class="row cell"/>
+  <line x1="180" y1="20" x2="180" y2="212" class="cell"/>
+  <text x="100" y="40" class="text" text-anchor="middle">Rule</text>
+  <text x="300" y="40" class="text" text-anchor="middle">Formula</text>
+  <text x="100" y="72" class="text" text-anchor="middle">Same-base product</text>
+  <text x="300" y="72" class="formula" text-anchor="middle">a^n * a^m = a^(n+m)</text>
+  <text x="100" y="104" class="text" text-anchor="middle">Same-base quotient</text>
+  <text x="300" y="104" class="formula" text-anchor="middle">a^n : a^m = a^(n-m)</text>
+  <text x="100" y="136" class="text" text-anchor="middle">Power of a power</text>
+  <text x="300" y="136" class="formula" text-anchor="middle">(a^n)^m = a^(n*m)</text>
+  <text x="100" y="168" class="text" text-anchor="middle">Product of powers</text>
+  <text x="300" y="168" class="formula" text-anchor="middle">(a*b)^n = a^n * b^n</text>
+  <text x="100" y="200" class="text" text-anchor="middle">Quotient of powers</text>
+  <text x="300" y="200" class="formula" text-anchor="middle">(a:b)^n = a^n : b^n</text>
+</svg>

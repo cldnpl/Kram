@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Circle and disk">
+  <defs>
+    <style>.circle{fill:none;stroke:#333;stroke-width:2}.radius{stroke:#1976d2;stroke-width:1.5}.label{font:12px sans-serif;fill:#111}</style>
+  </defs>
+  <circle cx="100" cy="100" r="70" class="circle"/>
+  <line x1="100" y1="100" x2="170" y2="100" class="radius"/>
+  <text x="100" y="95" class="label">O</text>
+  <text x="175" y="105" class="label">r</text>
+  <text x="100" y="190" class="label" text-anchor="middle">C = 2*pi*r  Area = pi*r^2</text>
+</svg>

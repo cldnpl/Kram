@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 180" role="img" aria-label="Parabola y = ax^2 + bx + c">
+  <defs>
+    <style>.axes{stroke:#666;stroke-width:1}.curve{fill:none;stroke:#1976d2;stroke-width:2}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <line x1="20" y1="90" x2="180" y2="90" class="axes"/>
+  <line x1="100" y1="20" x2="100" y2="160" class="axes"/>
+  <path d="M 30 140 Q 100 30 170 140" class="curve"/>
+  <text x="175" y="95" class="label">x</text>
+  <text x="105" y="25" class="label">y</text>
+  <text x="100" y="175" class="label" text-anchor="middle">y = ax^2 + bx + c</text>
+</svg>

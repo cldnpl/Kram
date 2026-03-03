@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 160" role="img" aria-label="System of two lines: intersection point">
+  <defs>
+    <style>.axes{stroke:#666;stroke-width:1}.l1{stroke:#1976d2;stroke-width:2}.l2{stroke:#c62828;stroke-width:2}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <line x1="20" y1="80" x2="180" y2="80" class="axes"/>
+  <line x1="100" y1="20" x2="100" y2="140" class="axes"/>
+  <line x1="30" y1="140" x2="170" y2="20" class="l1"/>
+  <line x1="40" y1="25" x2="160" y2="135" class="l2"/>
+  <circle cx="100" cy="80" r="5" fill="#2e7d32"/>
+  <text x="100" y="155" class="label" text-anchor="middle">Solution = intersection</text>
+</svg>

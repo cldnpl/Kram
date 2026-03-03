@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 180" role="img" aria-label="Quadrilatero">
+  <defs>
+    <style>.quad{fill:none;stroke:#333;stroke-width:2}.label{font:12px sans-serif;fill:#111}</style>
+  </defs>
+  <polygon points="40,140 220,140 200,40 60,40" class="quad"/>
+  <text x="40" y="155" class="label">A</text>
+  <text x="220" y="155" class="label">B</text>
+  <text x="205" y="35" class="label">C</text>
+  <text x="60" y="35" class="label">D</text>
+</svg>

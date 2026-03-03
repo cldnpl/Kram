@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 140" role="img" aria-label="Primitive F such that F' = f">
+  <defs>
+    <style>.axes{stroke:#666;stroke-width:1}.f{fill:none;stroke:#1976d2;stroke-width:2}.F{fill:none;stroke:#2e7d32;stroke-width:1.5;stroke-dasharray:4 2}.label{font:11px sans-serif;fill:#111}</style>
+  </defs>
+  <line x1="20" y1="70" x2="220" y2="70" class="axes"/>
+  <line x1="40" y1="20" x2="40" y2="120" class="axes"/>
+  <path d="M 40 90 Q 100 50 160 70 Q 200 85 220 75" class="f"/>
+  <path d="M 40 95 Q 100 60 160 78 Q 200 92 220 82" class="F"/>
+  <text x="230" y="75" class="label">f</text>
+  <text x="230" y="85" class="label">F (primitive)</text>
+</svg>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 280" role="img" aria-label="Plane and solid geometry: area perimeter volume">
+  <defs>
+    <style>.fig{fill:none;stroke:#333;stroke-width:1.5}.label{font:11px sans-serif;fill:#111}.form{font:10px sans-serif;fill:#0d47a1}</style>
+  </defs>
+  <!-- Riga 1: Triangolo, Rettangolo, Cerchio -->
+  <polygon points="40,50 90,20 90,80" class="fig"/>
+  <text x="65" y="48" class="label">b</text>
+  <text x="92" y="52" class="label">h</text>
+  <text x="65" y="95" class="form">A=b&#x22C5;h/2</text>
+  <circle cx="170" cy="50" r="30" class="fig"/>
+  <text x="168" y="48" class="label">r</text>
+  <text x="145" y="95" class="form">A=&#x3C0;r&#xB2; C=2&#x3C0;r</text>
+  <rect x="220" y="25" width="60" height="50" class="fig"/>
+  <text x="248" y="20" class="label">b</text>
+  <text x="285" y="52" class="label">h</text>
+  <text x="235" y="95" class="form">A=b&#x22C5;h P=2(b+h)</text>
+  <!-- Riga 2: Quadrato, Parallelogramma, Trapezio -->
+  <rect x="30" y="130" width="45" height="45" class="fig"/>
+  <text x="50" y="195" class="form">A=l&#xB2; P=4l</text>
+  <path d="M 110 175 L 180 175 L 195 130 L 125 130 Z" class="fig"/>
+  <text x="152" y="195" class="form">A=b&#x22C5;h</text>
+  <path d="M 220 175 L 280 175 L 265 130 L 235 130 Z" class="fig"/>
+  <text x="250" y="195" class="form">A=(B+b)&#x22C5;h/2</text>
+  <!-- Riga 3: Sfera, Cilindro, Cono -->
+  <circle cx="80" cy="240" r="28" class="fig"/>
+  <text x="78" y="238" class="label">r</text>
+  <text x="52" y="278" class="form">V=4/3 &#x3C0;r&#xB3;</text>
+  <ellipse cx="200" cy="230" rx="35" ry="12" class="fig"/>
+  <line x1="165" y1="230" x2="165" y2="268" class="fig"/>
+  <line x1="235" y1="230" x2="235" y2="268" class="fig"/>
+  <ellipse cx="200" cy="268" rx="35" ry="12" class="fig"/>
+  <text x="200" y="225" class="label">r</text>
+  <text x="238" y="252" class="label">h</text>
+  <text x="175" y="278" class="form">V=&#x3C0;r&#xB2;h</text>
+  <path d="M 310 268 L 350 268 L 330 230 Z" class="fig"/>
+  <text x="328" y="225" class="label">r</text>
+  <text x="355" y="252" class="label">h</text>
+  <text x="318" y="278" class="form">V=&#x3C0;r&#xB2;h/3</text>
+</svg>
