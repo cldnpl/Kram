@@ -6,6 +6,7 @@ import 'core/theme/theme_bloc/theme_bloc.dart';
 import 'core/theme/theme_bloc/theme_event.dart';
 import 'core/theme/theme_bloc/theme_state.dart';
 import 'core/router/app_router.dart';
+import 'core/l10n/app_locale.dart';
 import 'injection.dart';
 
 class MathQuestApp extends StatelessWidget {
@@ -24,13 +25,19 @@ class MathQuestApp extends StatelessWidget {
       ],
       child: BlocBuilder<ThemeBloc, ThemeState>(
         builder: (context, state) {
-          return MaterialApp.router(
-            title: 'Kram',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.light,
-            darkTheme: AppTheme.dark,
-            themeMode: state.mode,
-            routerConfig: appRouter,
+          return ValueListenableBuilder<String>(
+            valueListenable: AppLocale.localeNotifier,
+            builder: (_, localeCode, __) {
+              return MaterialApp.router(
+                title: 'Kram',
+                debugShowCheckedModeBanner: false,
+                locale: Locale(localeCode),
+                theme: AppTheme.light,
+                darkTheme: AppTheme.dark,
+                themeMode: state.mode,
+                routerConfig: appRouter,
+              );
+            },
           );
         },
       ),

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/coin_badge.dart';
@@ -118,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                         child: Padding(
                           padding: const EdgeInsets.only(left: 20, top: 56),
                           child: Text(
-                            'Hi, ${_profileName.isEmpty ? 'there' : _profileName}!',
+                            'Hi, ${_profileName.isEmpty ? AppLocale.tr('hi_there') : _profileName}!',
                             style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black,
@@ -145,10 +146,10 @@ class _HomePageState extends State<HomePage> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Text('Error: $_error', textAlign: TextAlign.center),
+                                  Text('${AppLocale.tr('error')}: $_error', textAlign: TextAlign.center),
                                   const SizedBox(height: 16),
                                   FilledButton(
-                                      onPressed: _load, child: const Text('Retry')),
+                                      onPressed: _load, child: Text(AppLocale.tr('retry'))),
                                 ],
                               ),
                             )
@@ -262,13 +263,13 @@ class _HomePageState extends State<HomePage> {
           }
         },
         destinations: [
-          const NavigationDestination(icon: Icon(Icons.home), label: 'Lessons'),
-          const NavigationDestination(
-            icon: Icon(Icons.camera_alt),
-            label: 'Camera',
+          NavigationDestination(icon: const Icon(Icons.home), label: AppLocale.tr('lessons')),
+          NavigationDestination(
+            icon: const Icon(Icons.camera_alt),
+            label: AppLocale.tr('camera'),
           ),
-          const NavigationDestination(
-              icon: Icon(Icons.person), label: 'Profile'),
+          NavigationDestination(
+              icon: const Icon(Icons.person), label: AppLocale.tr('profile_tab')),
         ],
       ),
     );

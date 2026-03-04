@@ -27,7 +27,7 @@ struct HomeView: View {
                 VStack(spacing: 0) {
                     // Header
                     ZStack(alignment: .topTrailing) {
-                        Text("Hi, \(profileName.isEmpty ? "there" : profileName)!")
+                        Text("Hi, \(profileName.isEmpty ? L10n.hiThere : profileName)!")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundStyle(.black)
@@ -50,15 +50,15 @@ struct HomeView: View {
                         if viewModel.isLoading {
                             VStack(spacing: 12) {
                                 ProgressView()
-                                Text("Loading...")
+                                Text(L10n.loading)
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else if let msg = viewModel.errorMessage {
                             VStack(spacing: 8) {
-                                Text("Error: \(msg)")
+                                Text("\(L10n.error): \(msg)")
                                     .multilineTextAlignment(.center)
                                     .padding()
-                                Button("Retry") { Task { await viewModel.load() } }
+                                Button(L10n.retry) { Task { await viewModel.load() } }
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         } else {
@@ -187,13 +187,13 @@ struct CategorySubtopicsView: View {
         }
         .navigationTitle(category.title)
         .navigationBarTitleDisplayMode(.inline)
-        .alert("Sign in required", isPresented: $showLoginPrompt) {
-            Button("Not now", role: .cancel) {}
-            Button("Sign In") {
+        .alert(L10n.signInRequired, isPresented: $showLoginPrompt) {
+            Button(L10n.notNow, role: .cancel) {}
+            Button(L10n.signIn) {
                 showLoginSheet = true
             }
         } message: {
-            Text("Guests can open one lesson. Sign in to continue all lessons.")
+            Text(L10n.guestLessonMessage)
         }
         .fullScreenCover(isPresented: $showLoginSheet) {
             LoginView(showCloseButton: true)

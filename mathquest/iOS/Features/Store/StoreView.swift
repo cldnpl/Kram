@@ -90,13 +90,13 @@ struct StoreView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(.green)
                         .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
+                        .padding(.vertical, 9)
                         .background(Color.green.opacity(0.14))
                         .clipShape(Capsule())
                 }
             }
 
-            HStack {
+            HStack(alignment: .top) {
                 if let paidProduct = subscriptionManager.product(for: tier) {
                     Text(paidProduct.displayPrice)
                         .font(.headline)
@@ -111,13 +111,15 @@ struct StoreView: View {
 
                 Spacer()
 
-                Button(buttonTitle(for: tier)) {
-                    Task {
-                        await subscriptionManager.purchase(tier)
+                if !(tier == .free && tier == subscriptionManager.currentTier) {
+                    Button(buttonTitle(for: tier)) {
+                        Task {
+                            await subscriptionManager.purchase(tier)
+                        }
                     }
+                    .buttonStyle(.borderedProminent)
+                    .disabled(isButtonDisabled(for: tier))
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(isButtonDisabled(for: tier))
             }
         }
         .padding(.vertical, 6)

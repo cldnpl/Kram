@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/network/dio_client.dart';
 
 const _guestLessonsOpenedCountKey = 'guest_lessons_opened_count';
@@ -100,21 +101,19 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Sign in required'),
-          content: const Text(
-            'Guests can open one lesson. Sign in to continue all lessons.',
-          ),
+          title: Text(AppLocale.tr('sign_in_required')),
+          content: Text(AppLocale.tr('guest_lesson_message')),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Not now'),
+              child: Text(AppLocale.tr('not_now')),
             ),
             FilledButton(
               onPressed: () {
                 Navigator.of(context).pop();
                 this.context.go('/login?reason=lesson-limit');
               },
-              child: const Text('Sign in'),
+              child: Text(AppLocale.tr('sign_in')),
             ),
           ],
         );
@@ -144,10 +143,10 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Error: $_error', textAlign: TextAlign.center),
+                      Text('${AppLocale.tr('error')}: $_error', textAlign: TextAlign.center),
                       const SizedBox(height: 16),
                       FilledButton(
-                          onPressed: _load, child: const Text('Retry')),
+                          onPressed: _load, child: Text(AppLocale.tr('retry'))),
                     ],
                   ),
                 )

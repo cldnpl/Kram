@@ -8,7 +8,7 @@ enum APIConfig {
     static var baseURLString: String {
         #if targetEnvironment(simulator)
         // Simulator: always use localhost (backend on same Mac).
-        return "http://10.20.54.26:8080/api"
+        return "http://100.126.55.229:8080/api"
         #else
         if let configuredValue = Bundle.main.object(forInfoDictionaryKey: infoPlistBaseURLKey) as? String {
             let trimmedValue = configuredValue.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -16,7 +16,7 @@ enum APIConfig {
                 return trimmedValue
             }
         }
-        return "http://10.20.54.26:8080/api"
+        return "http://100.126.55.229:8080/api"
         #endif
     }
     

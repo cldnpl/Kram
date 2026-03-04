@@ -10,7 +10,7 @@ struct LessonDetailView: View {
     var body: some View {
         Group {
             if viewModel.isLoading {
-                ProgressView("Loading...")
+                ProgressView(L10n.loading)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let detail = viewModel.lessonDetail {
                 let currentTier = SubscriptionTier.current
@@ -18,7 +18,7 @@ struct LessonDetailView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("Lesson")
+                        Text(L10n.lesson)
                             .font(.headline)
                         ForEach(Array(parseContentBlocks(detail.intro).enumerated()), id: \.offset) { _, block in
                             switch block {
@@ -56,9 +56,9 @@ struct LessonDetailView: View {
                         }
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Lesson cost: \(lesson.coinCost) coins")
-                            Text("Plan: \(currentTier.displayName)")
-                            Text("Completion reward: up to \(projectedReward) coins")
+                            Text(L10n.lessonCost(lesson.coinCost))
+                            Text("\(L10n.planLabel): \(currentTier.displayName)")
+                            Text(L10n.completionReward(projectedReward))
                         }
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
@@ -75,8 +75,8 @@ struct LessonDetailView: View {
                                         .progressViewStyle(.circular)
                                 }
                                 Text(viewModel.isCompleting
-                                     ? "Completing..."
-                                     : "Complete Lesson (+\(projectedReward) max)")
+                                     ? L10n.completing
+                                     : L10n.completeLessonBtn(projectedReward))
                                     .font(.headline)
                             }
                             .frame(maxWidth: .infinity)
@@ -90,21 +90,21 @@ struct LessonDetailView: View {
                 }
             } else if let error = viewModel.errorMessage {
                 VStack(spacing: 8) {
-                    Text("Error: \(error)")
+                    Text("\(L10n.error): \(error)")
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
-                    Button("Retry") { Task { await viewModel.load(lessonId: lesson.id) } }
+                    Button(L10n.retry) { Task { await viewModel.load(lessonId: lesson.id) } }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 VStack(spacing: 12) {
-                    Text("Content not available")
+                    Text(L10n.contentNotAvailable)
                         .font(.headline)
-                    Text("Assicurati che il server sia avviato e riprova.")
+                    Text(L10n.serverRetryMessage)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                    Button("Riprova") { Task { await viewModel.load(lessonId: lesson.id) } }
+                    Button(L10n.retry) { Task { await viewModel.load(lessonId: lesson.id) } }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
@@ -114,8 +114,8 @@ struct LessonDetailView: View {
         .task {
             await viewModel.load(lessonId: lesson.id)
         }
-        .alert("Lesson", isPresented: $showFeedbackAlert) {
-            Button("OK", role: .cancel) {}
+        .alert(L10n.lesson, isPresented: $showFeedbackAlert) {
+            Button(L10n.ok, role: .cancel) {}
         } message: {
             Text(feedbackMessage)
         }
@@ -335,7 +335,7 @@ struct LessonDiagramView: View {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.red.opacity(0.5), lineWidth: 1)
                     .frame(minHeight: 80, maxHeight: 120)
-                    .overlay(Text("Diagram not available").font(.caption).foregroundColor(.secondary))
+                    .overlay(Text(L10n.diagramNotAvailable).font(.caption).foregroundColor(.secondary))
             } else if let data = svgData {
                 DiagramWebView(svgData: data)
                     .frame(minHeight: 120, maxHeight: 280)

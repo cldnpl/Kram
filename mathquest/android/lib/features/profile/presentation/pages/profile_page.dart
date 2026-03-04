@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -60,7 +61,10 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: ValueListenableBuilder<String>(
+          valueListenable: AppLocale.localeNotifier,
+          builder: (_, __, ___) => Text(AppLocale.tr('profile_tab')),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -212,7 +216,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         icon: Icons.book,
                         iconColor: const Color(0xFF6650A4),
                         value: '$_lessonsCompleted',
-                        label: 'Lessons',
+                        label: AppLocale.tr('lessons'),
                       ),
                     ),
                   ],
@@ -224,8 +228,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 _MenuRow(
                   icon: Icons.settings,
                   iconColor: Colors.grey,
-                  title: 'Settings',
-                  onTap: () {},
+                  title: AppLocale.tr('settings_title'),
+                  onTap: () => context.push('/settings'),
                 ),
                 const SizedBox(height: 12),
                 _MenuRow(
@@ -288,7 +292,7 @@ class _ProfilePageState extends State<ProfilePage> {
                               const Icon(Icons.logout, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                isLoggedIn ? 'Sign Out' : 'Sign In',
+                                isLoggedIn ? AppLocale.tr('sign_out') : AppLocale.tr('sign_in'),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

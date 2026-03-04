@@ -26,6 +26,7 @@ struct MathQuestApp: App {
     @AppStorage("hasCompletedProfile") private var hasCompletedProfile = false
     @AppStorage("profile_name") private var profileName = ""
     @AppStorage("profile_level") private var profileLevel = ""
+    @AppStorage("settings_language") private var appLanguage = "en"
 
     private var isProfileComplete: Bool {
         hasCompletedProfile && !profileName.isEmpty && !profileLevel.isEmpty

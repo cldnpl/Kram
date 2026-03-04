@@ -90,13 +90,8 @@ struct ProfileView: View {
 
                 // Menu items
                 VStack(spacing: 12) {
-                    MenuRow(icon: "gearshape.fill", title: "Settings", color: .gray) {
-                        NavigationLink {
-                            SettingsView()
-                        } label: {
-                            EmptyView()
-                        }
-                        .opacity(0)
+                    MenuRow(icon: "gearshape.fill", title: L10n.settingsTitle, color: .gray) {
+                        SettingsView()
                     }
 
                     MenuRow(icon: "questionmark.circle.fill", title: "Help & Support", color: .blue) {
@@ -120,7 +115,7 @@ struct ProfileView: View {
                 } label: {
                     HStack {
                         Image(systemName: isAuthenticated ? "rectangle.portrait.and.arrow.right" : "person.badge.plus")
-                        Text(isAuthenticated ? "Sign Out" : "Sign In")
+                        Text(isAuthenticated ? L10n.signOut : L10n.signIn)
                     }
                     .font(.system(size: 16, weight: .semibold))
                     .foregroundStyle(isAuthenticated ? .red : .white)
@@ -136,7 +131,7 @@ struct ProfileView: View {
             }
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle("Profile")
+        .navigationTitle(L10n.profileTab)
         .onAppear {
             viewModel.load()
         }

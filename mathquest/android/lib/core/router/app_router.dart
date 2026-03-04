@@ -9,6 +9,7 @@ import '../../features/lesson/presentation/pages/lesson_detail_page.dart';
 import '../../features/home/presentation/pages/category_subtopics_page.dart';
 import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
+import '../../features/profile/presentation/pages/settings_page.dart';
 import '../../features/camera/presentation/pages/camera_page.dart';
 import '../../features/shop/presentation/pages/shop_page.dart';
 
@@ -95,5 +96,6 @@ final appRouter = GoRouter(
     GoRoute(path: '/shop', builder: (_, __) => const ShopPage()),
     GoRoute(path: '/camera', builder: (_, __) => const CameraPage()),
     GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
+    GoRoute(path: '/settings', builder: (_, __) => const SettingsPage()),
   ],
 );

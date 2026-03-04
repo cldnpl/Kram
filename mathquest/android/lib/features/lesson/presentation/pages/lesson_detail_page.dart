@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/network/api_config.dart';
 import '../../../../core/network/dio_client.dart';
 
@@ -54,7 +55,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_detail?['title'] ?? 'Lesson'),
+        title: Text(_detail?['title'] ?? AppLocale.tr('lesson')),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
@@ -67,14 +68,14 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Error: $_error', textAlign: TextAlign.center),
+                      Text('${AppLocale.tr('error')}: $_error', textAlign: TextAlign.center),
                       const SizedBox(height: 16),
-                      FilledButton(onPressed: _load, child: const Text('Retry')),
+                      FilledButton(onPressed: _load, child: Text(AppLocale.tr('retry'))),
                     ],
                   ),
                 )
               : _detail == null
-                  ? const Center(child: Text('No content'))
+                  ? Center(child: Text(AppLocale.tr('no_content')))
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -83,7 +84,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                           if (_detail!['content_json'] != null &&
                               _detail!['content_json'] is Map &&
                               (_detail!['content_json'] as Map).containsKey('intro')) ...[
-                            Text('Lesson', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
+                            Text(AppLocale.tr('lesson'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                             const SizedBox(height: 8),
                             Padding(
                               padding: const EdgeInsets.only(bottom: 16),
@@ -102,7 +103,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                                 style: FilledButton.styleFrom(
                                   padding: const EdgeInsets.symmetric(vertical: 14),
                                 ),
-                                child: const Text('Practice'),
+                                child: Text(AppLocale.tr('practice')),
                               ),
                             ),
                           ),

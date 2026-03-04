@@ -7,7 +7,7 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             HomeView()
-                .tabItem { Label("Lessons", systemImage: "house.fill") }
+                .tabItem { Label(L10n.lessons, systemImage: "house.fill") }
                 .tag(0)
             NavigationStack {
                 if authManager.isAuthenticated {
@@ -16,12 +16,12 @@ struct ContentView: View {
                     CameraLoginRequiredView()
                 }
             }
-                .tabItem { Label("Camera", systemImage: "camera.fill") }
+                .tabItem { Label(L10n.camera, systemImage: "camera.fill") }
                 .tag(1)
             NavigationStack {
                 ProfileView()
             }
-                .tabItem { Label("Profile", systemImage: "person.fill") }
+                .tabItem { Label(L10n.profileTab, systemImage: "person.fill") }
                 .tag(2)
         }
     }
@@ -42,17 +42,17 @@ private struct CameraLoginRequiredView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
 
-            Text("Sign in required")
+            Text(L10n.signInRequired)
                 .font(.title3)
                 .fontWeight(.semibold)
 
-            Text("Sign in to use camera solving.")
+            Text(L10n.signInCamera)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
 
-            Button("Sign In") {
+            Button(L10n.signIn) {
                 showLogin = true
             }
             .buttonStyle(.borderedProminent)
@@ -60,7 +60,7 @@ private struct CameraLoginRequiredView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
-        .navigationTitle("Camera")
+        .navigationTitle(L10n.camera)
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showLogin) {
             LoginView(showCloseButton: true)
