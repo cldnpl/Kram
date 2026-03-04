@@ -16,7 +16,7 @@ enum APIConfig {
                 return trimmedValue
             }
         }
-        return "http://192.168.1.149:8080/api"
+        return "http://10.20.54.26:8080/api"
         #endif
     }
     
