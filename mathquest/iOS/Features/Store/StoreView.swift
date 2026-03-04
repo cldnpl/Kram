@@ -2,7 +2,6 @@ import StoreKit
 import SwiftUI
 
 struct StoreView: View {
-    @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
 
     var body: some View {
@@ -54,11 +53,6 @@ struct StoreView: View {
             }
             .navigationTitle("Subscription")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                }
-            }
             .task {
                 await subscriptionManager.refreshProducts()
                 await subscriptionManager.syncEntitlements()

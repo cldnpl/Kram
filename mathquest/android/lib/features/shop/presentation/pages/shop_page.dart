@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 
 const _packages = [
   (coins: 25, price: 2.99),
@@ -16,10 +15,6 @@ class ShopPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Coin Shop'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => context.pop(),
-        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

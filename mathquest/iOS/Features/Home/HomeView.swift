@@ -1,59 +1,98 @@
 import SwiftUI
 
+/// Viola usato in auth e nel resto dell'app (stesso colore).
+private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
+
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showShop = false
+    @AppStorage("profile_name") private var profileName = ""
 
     var body: some View {
         NavigationStack {
-            Group {
-                if viewModel.isLoading {
-                    VStack(spacing: 12) {
-                        ProgressView()
-                        Text("Loading...")
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if let msg = viewModel.errorMessage {
-                    VStack(spacing: 8) {
-                        Text("Error: \(msg)")
-                            .multilineTextAlignment(.center)
-                            .padding()
-                        Button("Retry") { Task { await viewModel.load() } }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ScrollView {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 175))], spacing: 14) {
-                            ForEach(viewModel.categories) { category in
-                                NavigationLink(destination: CategorySubtopicsView(category: category)) {
-                                    CategoryCardView(
-                                        title: category.title,
-                                        completed: 0,
-                                        total: viewModel.totalItems(for: category)
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                            }
+            ZStack {
+                // Gradiente su tutto lo sfondo, ignora safe area
+                LinearGradient(
+                    stops: [
+                        .init(color: appPurple, location: 0),
+                        .init(color: Color(red: 0.85, green: 0.82, blue: 0.98), location: 0.25),
+                        .init(color: Color(red: 0.93, green: 0.91, blue: 0.99), location: 0.3),
+                        .init(color: Color(red: 0.97, green: 0.96, blue: 1.0), location: 0.4),
+                        .init(color: Color.white, location: 0.55)  // bianco solo dal 90% in giù
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )                .ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    // Header
+                    ZStack(alignment: .topTrailing) {
+                        Text("Hi, \(profileName.isEmpty ? "there" : profileName)!")
+                            .font(.largeTitle)
+                            .fontWeight(.bold)
+                            .foregroundStyle(.black)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.leading, 20)
+                            .padding(.top, 56)
+
+                        Button {
+                            showShop = true
+                        } label: {
+                            CoinBadgeView(coins: viewModel.coinBalance, pillStyle: true)
                         }
-                        .padding()
+                        .buttonStyle(.plain)
+                        .padding(.top, 52)
+                        .padding(.trailing, 16)
+                    }
+                    .frame(height: 120)
+
+                    Group {
+                        if viewModel.isLoading {
+                            VStack(spacing: 12) {
+                                ProgressView()
+                                Text("Loading...")
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else if let msg = viewModel.errorMessage {
+                            VStack(spacing: 8) {
+                                Text("Error: \(msg)")
+                                    .multilineTextAlignment(.center)
+                                    .padding()
+                                Button("Retry") { Task { await viewModel.load() } }
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        } else {
+                            ScrollView {
+                                LazyVGrid(
+                                    columns: [GridItem(.flexible()), GridItem(.flexible())],
+                                    spacing: 16
+                                ) {
+                                    ForEach(viewModel.categories) { category in
+                                        NavigationLink(destination: CategorySubtopicsView(category: category)) {
+                                            CategoryCardView(
+                                                title: category.title,
+                                                completed: 0,
+                                                total: viewModel.totalItems(for: category)
+                                            )
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                                .padding(.horizontal, 25)
+                                .padding(.top, 20)
+                                .padding(.bottom, 24)
+                            }
+                            // Sfondo trasparente così si vede il gradiente dietro
+                            .scrollContentBackground(.hidden)
+                            .background(Color.clear)
+                        }
                     }
                 }
             }
             .navigationDestination(for: LessonItem.self) { lesson in
                 LessonDetailView(lesson: lesson)
             }
-            .navigationTitle("Lessons")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showShop = true
-                    } label: {
-                        CoinBadgeView(coins: viewModel.coinBalance)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
+            .navigationBarHidden(true)
             .sheet(isPresented: $showShop) {
                 StoreView()
             }
@@ -71,24 +110,32 @@ struct CategoryCardView: View {
     var total: Int = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.title3)
+                .font(.body)
                 .fontWeight(.semibold)
+                .foregroundStyle(.black)
                 .multilineTextAlignment(.leading)
                 .lineLimit(3)
-            Spacer(minLength: 6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
             Text("\(completed)/\(total)")
-                .font(.subheadline)
+                .font(.footnote)
                 .fontWeight(.semibold)
+                .foregroundStyle(.black)
             ProgressView(value: total > 0 ? Double(completed) / Double(total) : 0)
-                .tint(.red)
-                .scaleEffect(x: 1, y: 1.8, anchor: .center)
+                .tint(.green)
+                .scaleEffect(x: 1, y: 1.5, anchor: .center)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .frame(maxWidth: .infinity, minHeight: 120, alignment: .topLeading)
+        .padding(12)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(appPurple, lineWidth: 1)
+        )
     }
 }
 

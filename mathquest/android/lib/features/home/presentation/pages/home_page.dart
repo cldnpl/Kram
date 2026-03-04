@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/coin_badge.dart';
@@ -18,12 +19,19 @@ class _HomePageState extends State<HomePage> {
   int _coinBalance = 0;
   bool _loading = true;
   String? _error;
+  String _profileName = '';
 
   @override
   void initState() {
     super.initState();
     debugPrint('[Home] initState - loading data');
     _load();
+    _loadProfileName();
+  }
+
+  Future<void> _loadProfileName() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() => _profileName = prefs.getString('profile_name') ?? '');
   }
 
   Future<void> _load() async {
@@ -71,117 +79,173 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardBg = isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA);
-    final progressDone = AppColors.errorLight;
     final progressRemaining = isDark ? Colors.black54 : Colors.black26;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-      appBar: AppBar(
-        title: const Text('HOME',
-            style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-        centerTitle: true,
-        actions: [
-          CoinBadge(
-            coins: _coinBalance,
-            onTap: () => context.push('/shop'),
+      body: Stack(
+        children: [
+          // Gradiente su tutto lo sfondo (come iOS)
+          Positioned.fill(
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.appPurple,
+                    Color(0xFFD9D6F5),
+                    Color(0xFFEDEAFB),
+                    Color(0xFFF7F6FF),
+                    Colors.white,
+                  ],
+                  stops: [0.0, 0.25, 0.3, 0.4, 0.55],
+                ),
+              ),
+            ),
           ),
-        ],
-      ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+          SafeArea(
+            bottom: false,
+            child: Column(
+              children: [
+                // Header (height 120 come iOS)
+                SizedBox(
+                  height: 120,
+                  child: Stack(
+                    alignment: Alignment.topRight,
                     children: [
-                      Text('Error: $_error', textAlign: TextAlign.center),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                          onPressed: _load, child: const Text('Retry')),
-                    ],
-                  ),
-                )
-              : GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    childAspectRatio: 0.88,
-                  ),
-                  itemCount: _categories.length,
-                  itemBuilder: (context, i) {
-                    final cat = _categories[i];
-                    final id = cat['id'] as String? ?? '';
-                    final title = cat['title'] as String? ?? '';
-                    final sections = cat['sections'] as List<dynamic>? ?? [];
-                    int total = 0;
-                    for (final s in sections) {
-                      final items = (s as Map)['items'] as List<dynamic>? ?? [];
-                      total += items.length;
-                    }
-                    final completed = _completedCount(cat);
-
-                    return Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => context.go('/category/$id'),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          padding: const EdgeInsets.all(18),
-                          decoration: BoxDecoration(
-                            color: cardBg,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                title,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      height: 1.25,
-                                      fontSize: 17,
-                                    ),
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                '$completed/$total',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 16,
-                                    ),
-                              ),
-                              const SizedBox(height: 4),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(2),
-                                child: LinearProgressIndicator(
-                                  value: total > 0 ? completed / total : 0,
-                                  backgroundColor: progressRemaining,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    progressDone,
-                                  ),
-                                  minHeight: 8,
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 20, top: 56),
+                          child: Text(
+                            'Hi, ${_profileName.isEmpty ? 'there' : _profileName}!',
+                            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
                                 ),
-                              ),
-                            ],
                           ),
                         ),
                       ),
-                    );
-                  },
+                      Padding(
+                        padding: const EdgeInsets.only(top: 52, right: 16),
+                        child: CoinBadge(
+                          coins: _coinBalance,
+                          onTap: () => context.push('/shop'),
+                          pillStyle: true,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
+                Expanded(
+                  child: _loading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _error != null
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Error: $_error', textAlign: TextAlign.center),
+                                  const SizedBox(height: 16),
+                                  FilledButton(
+                                      onPressed: _load, child: const Text('Retry')),
+                                ],
+                              ),
+                            )
+                          : GridView.builder(
+                              padding: const EdgeInsets.fromLTRB(25, 20, 25, 24),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                                childAspectRatio: 0.85,
+                              ),
+                              itemCount: _categories.length,
+                              itemBuilder: (context, i) {
+                                final cat = _categories[i];
+                                final id = cat['id'] as String? ?? '';
+                                final title = cat['title'] as String? ?? '';
+                                final sections =
+                                    cat['sections'] as List<dynamic>? ?? [];
+                                int total = 0;
+                                for (final s in sections) {
+                                  final items =
+                                      (s as Map)['items'] as List<dynamic>? ?? [];
+                                  total += items.length;
+                                }
+                                final completed = _completedCount(cat);
+
+                                return Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () => context.go('/category/$id'),
+                                    borderRadius: BorderRadius.circular(16),
+                                    child: Container(
+                                      constraints: const BoxConstraints(minHeight: 120),
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(
+                                          color: AppColors.appPurple,
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            title,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyLarge
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black,
+                                                ),
+                                            maxLines: 3,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            '$completed/$total',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodySmall
+                                                ?.copyWith(
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.black,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(2),
+                                            child: LinearProgressIndicator(
+                                              value: total > 0
+                                                  ? completed / total
+                                                  : 0,
+                                              backgroundColor: progressRemaining,
+                                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                                  AppColors.successLight),
+                                              minHeight: 6,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: 0,
         onDestinationSelected: (index) {

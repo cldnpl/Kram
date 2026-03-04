@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
 abstract class AppColors {
+  /// Viola auth (stesso usato in header home e bordi card).
+  static const Color appPurple = Color(0xFF664DE6);
+
   // Light
   static const Color primaryLight = Color(0xFF6C63FF);
   static const Color secondaryLight = Color(0xFFFFD700);
