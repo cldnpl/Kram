@@ -1,7 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/network/dio_client.dart';
+
+const _guestLessonsOpenedCountKey = 'guest_lessons_opened_count';
 
 class CategorySubtopicsPage extends StatefulWidget {
   const CategorySubtopicsPage({super.key, required this.categoryId});
@@ -67,6 +71,55 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
         _error = e.toString();
       });
     }
+  }
+
+  Future<void> _handleLessonTap(String lessonId) async {
+    final isAuthenticated = FirebaseAuth.instance.currentUser != null;
+    if (isAuthenticated) {
+      if (!mounted) return;
+      context.push('/lesson/$lessonId');
+      return;
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final openedCount = prefs.getInt(_guestLessonsOpenedCountKey) ?? 0;
+
+    if (openedCount >= 1) {
+      if (!mounted) return;
+      _showLoginRequiredDialog();
+      return;
+    }
+
+    await prefs.setInt(_guestLessonsOpenedCountKey, openedCount + 1);
+    if (!mounted) return;
+    context.push('/lesson/$lessonId');
+  }
+
+  void _showLoginRequiredDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Sign in required'),
+          content: const Text(
+            'Guests can open one lesson. Sign in to continue all lessons.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Not now'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                this.context.go('/login?reason=lesson-limit');
+              },
+              child: const Text('Sign in'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -137,8 +190,7 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
                               child: Material(
                                 color: Colors.transparent,
                                 child: InkWell(
-                                  onTap: () =>
-                                      context.push('/lesson/$itemLessonId'),
+                                  onTap: () => _handleLessonTap(itemLessonId),
                                   borderRadius: BorderRadius.circular(12),
                                   child: Container(
                                     width: double.infinity,

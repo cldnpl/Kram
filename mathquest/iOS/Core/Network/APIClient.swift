@@ -45,6 +45,7 @@ actor APIClient {
         if let token = token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
+        request.setValue(SubscriptionTier.current.rawValue, forHTTPHeaderField: "X-Subscription-Tier")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = body
 

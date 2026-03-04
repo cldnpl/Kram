@@ -25,6 +25,8 @@ type Handler struct {
 	dailyLimit int
 }
 
+const unlimitedDailyLimit = -1
+
 type appUser struct {
 	ID          uint   `gorm:"column:id"`
 	FirebaseUID string `gorm:"column:firebase_uid"`
@@ -41,6 +43,28 @@ func NewHandler(db *gorm.DB, redisClient *redis.Client, cfg *config.Config) *Han
 		redis:      redisClient,
 		claudeSvc:  claude.NewService(cfg.ClaudeAPIKey),
 		dailyLimit: cfg.CameraDailyLimit,
+	}
+}
+
+func normalizeSubscriptionTier(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "pro":
+		return "pro"
+	case "max":
+		return "max"
+	default:
+		return "free"
+	}
+}
+
+func (h *Handler) dailyLimitForTier(tier string) int {
+	switch tier {
+	case "pro":
+		return 10
+	case "max":
+		return unlimitedDailyLimit
+	default:
+		return h.dailyLimit
 	}
 }
 
@@ -113,6 +137,8 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 // Solve handles POST /api/camera/solve
 func (h *Handler) Solve(c *fiber.Ctx) error {
 	userID := h.resolveUserID(c)
+	tier := normalizeSubscriptionTier(c.Get("X-Subscription-Tier"))
+	effectiveDailyLimit := h.dailyLimitForTier(tier)
 
 	ctx := context.Background()
 
@@ -124,7 +150,7 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 		})
 	}
 
-	if usedToday >= h.dailyLimit {
+	if effectiveDailyLimit >= 0 && usedToday >= effectiveDailyLimit {
 		return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
 			"error":                "daily limit reached",
 			"uses_remaining_today": 0,
@@ -192,9 +218,12 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 		}
 	}
 
-	remaining := h.dailyLimit - usedToday - 1
-	if remaining < 0 {
-		remaining = 0
+	remaining := unlimitedDailyLimit
+	if effectiveDailyLimit >= 0 {
+		remaining = effectiveDailyLimit - usedToday - 1
+		if remaining < 0 {
+			remaining = 0
+		}
 	}
 
 	return c.JSON(SolveResponse{
@@ -294,6 +323,8 @@ func (h *Handler) HistoryDetail(c *fiber.Ctx) error {
 // Status handles GET /api/camera/status
 func (h *Handler) Status(c *fiber.Ctx) error {
 	userID := h.resolveUserID(c)
+	tier := normalizeSubscriptionTier(c.Get("X-Subscription-Tier"))
+	effectiveDailyLimit := h.dailyLimitForTier(tier)
 
 	ctx := context.Background()
 	usedToday, err := h.getDailyUsage(ctx, userID)
@@ -301,13 +332,16 @@ func (h *Handler) Status(c *fiber.Ctx) error {
 		usedToday = 0
 	}
 
-	remaining := h.dailyLimit - usedToday
-	if remaining < 0 {
-		remaining = 0
+	remaining := unlimitedDailyLimit
+	if effectiveDailyLimit >= 0 {
+		remaining = effectiveDailyLimit - usedToday
+		if remaining < 0 {
+			remaining = 0
+		}
 	}
 
 	return c.JSON(StatusResponse{
-		DailyLimit: h.dailyLimit,
+		DailyLimit: effectiveDailyLimit,
 		UsedToday:  usedToday,
 		Remaining:  remaining,
 	})

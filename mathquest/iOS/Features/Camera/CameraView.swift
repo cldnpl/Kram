@@ -13,6 +13,8 @@ struct CameraView: View {
 
     @StateObject private var viewModel = CameraViewModel()
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var selectedGalleryImage: UIImage?
+    @State private var showGalleryCropper = false
     @State private var selectedSolution: SolveResponse?
     @State private var showSolutionPage = false
     @State private var focusRect: CGRect = .zero
@@ -27,9 +29,11 @@ struct CameraView: View {
         ZStack {
             // Camera Preview
             cameraPreview
+                .ignoresSafeArea(.container, edges: [.top, .bottom])
 
             // Overlays based on state
             overlayForState
+                .ignoresSafeArea(.container, edges: [.top, .bottom])
 
             // Bottom controls
             VStack {
@@ -38,6 +42,8 @@ struct CameraView: View {
             }
         }
         .ignoresSafeArea(.container, edges: .top)
+        .toolbarBackground(.hidden, for: .tabBar)
+        .toolbarColorScheme(.dark, for: .tabBar)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -82,13 +88,40 @@ struct CameraView: View {
                 .presentationDetents([.height(340)])
                 .presentationDragIndicator(.visible)
         }
+        .fullScreenCover(isPresented: $showGalleryCropper) {
+            if let selectedGalleryImage {
+                GalleryCropSheet(
+                    image: selectedGalleryImage,
+                    onCancel: {
+                        showGalleryCropper = false
+                        self.selectedGalleryImage = nil
+                    },
+                    onUseCrop: { croppedImage in
+                        showGalleryCropper = false
+                        self.selectedGalleryImage = nil
+                        Task {
+                            await viewModel.solveFromGalleryImage(croppedImage)
+                        }
+                    }
+                )
+            }
+        }
         .onChange(of: selectedPhotoItem) { _, newItem in
             guard let newItem else { return }
 
             Task {
                 do {
                     let data = try await newItem.loadTransferable(type: Data.self)
-                    await viewModel.solveFromGalleryData(data)
+                    guard let data,
+                          let image = UIImage(data: data) else {
+                        viewModel.setError("Failed to load selected image")
+                        return
+                    }
+
+                    await MainActor.run {
+                        selectedGalleryImage = image
+                        showGalleryCropper = true
+                    }
                 } catch {
                     viewModel.setError("Failed to load selected image")
                 }
@@ -262,7 +295,11 @@ struct CameraView: View {
             // Uses remaining
             HStack {
                 Image(systemName: "camera.fill")
-                Text("\(viewModel.usesRemaining) of \(viewModel.dailyLimit) uses remaining today")
+                if hasUnlimitedCameraUsage {
+                    Text("Unlimited captures available today")
+                } else {
+                    Text("\(viewModel.usesRemaining) of \(viewModel.dailyLimit) uses remaining today")
+                }
             }
             .font(.subheadline)
             .foregroundColor(.white)
@@ -286,8 +323,8 @@ struct CameraView: View {
                         .background(Color.black.opacity(0.55))
                         .clipShape(Circle())
                     }
-                    .disabled(viewModel.usesRemaining == 0)
-                    .opacity(viewModel.usesRemaining == 0 ? 0.5 : 1)
+                    .disabled(hasReachedCameraLimit)
+                    .opacity(hasReachedCameraLimit ? 0.5 : 1)
 
                     Button {
                         Task {
@@ -304,12 +341,20 @@ struct CameraView: View {
                                 .frame(width: 80, height: 80)
                         }
                     }
-                    .disabled(viewModel.usesRemaining == 0 || !viewModel.cameraService.isAuthorized)
-                    .opacity((viewModel.usesRemaining == 0 || !viewModel.cameraService.isAuthorized) ? 0.5 : 1)
+                    .disabled(hasReachedCameraLimit || !viewModel.cameraService.isAuthorized)
+                    .opacity((hasReachedCameraLimit || !viewModel.cameraService.isAuthorized) ? 0.5 : 1)
                 }
             }
         }
         .padding(.bottom, 40)
+    }
+
+    private var hasUnlimitedCameraUsage: Bool {
+        viewModel.dailyLimit < 0 || viewModel.usesRemaining < 0
+    }
+
+    private var hasReachedCameraLimit: Bool {
+        !hasUnlimitedCameraUsage && viewModel.usesRemaining == 0
     }
 
     private var cameraPermissionSheet: some View {
@@ -692,6 +737,299 @@ private struct CornerBracketShape: Shape {
             path.addLine(to: CGPoint(x: maxX, y: minY))
         }
         return path
+    }
+}
+
+private struct GalleryCropSheet: View {
+    let image: UIImage
+    let onCancel: () -> Void
+    let onUseCrop: (UIImage) -> Void
+
+    private let minCropSize: CGFloat = 100
+    private let cropCornerRadius: CGFloat = 16
+
+    @State private var imageFrame: CGRect = .zero
+    @State private var cropRect: CGRect = .zero
+    @State private var dragStartRect: CGRect?
+    @State private var resizeStartRect: CGRect?
+
+    var body: some View {
+        NavigationStack {
+            GeometryReader { geometry in
+                let fittedFrame = fittedImageFrame(in: geometry.size)
+
+                ZStack {
+                    Color.black.ignoresSafeArea()
+
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: fittedFrame.width, height: fittedFrame.height)
+                        .position(x: fittedFrame.midX, y: fittedFrame.midY)
+
+                    cropOverlay(in: fittedFrame)
+
+                    VStack {
+                        Spacer()
+                        Text("Drag to move crop. Pinch to resize.")
+                            .font(.footnote)
+                            .foregroundColor(.white.opacity(0.9))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .background(Color.black.opacity(0.55))
+                            .clipShape(Capsule())
+                            .padding(.bottom, 28)
+                    }
+                }
+                .onAppear {
+                    syncLayout(with: fittedFrame)
+                }
+                .onChange(of: geometry.size) { _, newSize in
+                    syncLayout(with: fittedImageFrame(in: newSize))
+                }
+            }
+            .navigationTitle("Crop")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel", action: onCancel)
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Use Crop") {
+                        onUseCrop(croppedImage() ?? image)
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func cropOverlay(in fittedFrame: CGRect) -> some View {
+        let activeCropRect = resolvedCropRect(in: fittedFrame)
+
+        ZStack {
+            Path { path in
+                path.addRect(fittedFrame)
+                path.addRoundedRect(
+                    in: activeCropRect,
+                    cornerSize: CGSize(width: cropCornerRadius, height: cropCornerRadius)
+                )
+            }
+            .fill(
+                Color.black.opacity(0.45),
+                style: FillStyle(eoFill: true)
+            )
+
+            RoundedRectangle(cornerRadius: cropCornerRadius)
+                .stroke(Color.white, lineWidth: 2.5)
+                .frame(width: activeCropRect.width, height: activeCropRect.height)
+                .position(x: activeCropRect.midX, y: activeCropRect.midY)
+                .shadow(color: .black.opacity(0.35), radius: 3, x: 0, y: 1)
+
+            Rectangle()
+                .fill(Color.clear)
+                .contentShape(Rectangle())
+                .frame(width: activeCropRect.width, height: activeCropRect.height)
+                .position(x: activeCropRect.midX, y: activeCropRect.midY)
+                .gesture(moveGesture(in: fittedFrame))
+                .simultaneousGesture(scaleGesture(in: fittedFrame))
+        }
+    }
+
+    private func fittedImageFrame(in size: CGSize) -> CGRect {
+        guard size.width > 0, size.height > 0, image.size.width > 0, image.size.height > 0 else {
+            return .zero
+        }
+
+        let imageAspect = image.size.width / image.size.height
+        let containerAspect = size.width / size.height
+
+        if imageAspect > containerAspect {
+            let width = size.width
+            let height = width / imageAspect
+            return CGRect(
+                x: 0,
+                y: (size.height - height) / 2,
+                width: width,
+                height: height
+            )
+        }
+
+        let height = size.height
+        let width = height * imageAspect
+        return CGRect(
+            x: (size.width - width) / 2,
+            y: 0,
+            width: width,
+            height: height
+        )
+    }
+
+    private func syncLayout(with fittedFrame: CGRect) {
+        guard fittedFrame.width > 0, fittedFrame.height > 0 else {
+            return
+        }
+
+        if imageFrame == .zero || cropRect == .zero {
+            imageFrame = fittedFrame
+            cropRect = defaultCropRect(in: fittedFrame)
+            return
+        }
+
+        let normalized = normalizedRect(cropRect, in: imageFrame)
+        imageFrame = fittedFrame
+        cropRect = clampCropRect(denormalizedRect(normalized, in: fittedFrame), in: fittedFrame)
+    }
+
+    private func defaultCropRect(in frame: CGRect) -> CGRect {
+        let maxWidth = frame.width * 0.8
+        let maxHeight = frame.height * 0.8
+        let width = max(minCropSize, maxWidth)
+        let height = max(minCropSize, min(maxHeight, width * 0.75))
+        let rect = CGRect(
+            x: frame.midX - (width / 2),
+            y: frame.midY - (height / 2),
+            width: width,
+            height: height
+        )
+        return clampCropRect(rect, in: frame)
+    }
+
+    private func resolvedCropRect(in frame: CGRect) -> CGRect {
+        if cropRect.width > 0, cropRect.height > 0 {
+            return clampCropRect(cropRect, in: frame)
+        }
+        return defaultCropRect(in: frame)
+    }
+
+    private func clampCropRect(_ rect: CGRect, in bounds: CGRect) -> CGRect {
+        guard bounds.width > 0, bounds.height > 0 else {
+            return rect
+        }
+
+        let width = min(max(rect.width, minCropSize), bounds.width)
+        let height = min(max(rect.height, minCropSize), bounds.height)
+        let minX = bounds.minX
+        let maxX = bounds.maxX - width
+        let minY = bounds.minY
+        let maxY = bounds.maxY - height
+
+        return CGRect(
+            x: min(max(rect.minX, minX), maxX),
+            y: min(max(rect.minY, minY), maxY),
+            width: width,
+            height: height
+        )
+    }
+
+    private func moveGesture(in frame: CGRect) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in
+                if dragStartRect == nil {
+                    dragStartRect = resolvedCropRect(in: frame)
+                }
+
+                guard let startRect = dragStartRect else { return }
+                let translated = startRect.offsetBy(
+                    dx: value.translation.width,
+                    dy: value.translation.height
+                )
+                cropRect = clampCropRect(translated, in: frame)
+            }
+            .onEnded { _ in
+                dragStartRect = nil
+            }
+    }
+
+    private func scaleGesture(in frame: CGRect) -> some Gesture {
+        MagnificationGesture()
+            .onChanged { scale in
+                if resizeStartRect == nil {
+                    resizeStartRect = resolvedCropRect(in: frame)
+                }
+
+                guard let startRect = resizeStartRect else { return }
+
+                let width = startRect.width * scale
+                let height = startRect.height * scale
+                let resized = CGRect(
+                    x: startRect.midX - (width / 2),
+                    y: startRect.midY - (height / 2),
+                    width: width,
+                    height: height
+                )
+
+                cropRect = clampCropRect(resized, in: frame)
+            }
+            .onEnded { _ in
+                resizeStartRect = nil
+            }
+    }
+
+    private func normalizedRect(_ rect: CGRect, in frame: CGRect) -> CGRect {
+        guard frame.width > 0, frame.height > 0 else {
+            return CGRect(x: 0, y: 0, width: 1, height: 1)
+        }
+
+        return CGRect(
+            x: (rect.minX - frame.minX) / frame.width,
+            y: (rect.minY - frame.minY) / frame.height,
+            width: rect.width / frame.width,
+            height: rect.height / frame.height
+        )
+    }
+
+    private func denormalizedRect(_ normalizedRect: CGRect, in frame: CGRect) -> CGRect {
+        CGRect(
+            x: frame.minX + (normalizedRect.minX * frame.width),
+            y: frame.minY + (normalizedRect.minY * frame.height),
+            width: normalizedRect.width * frame.width,
+            height: normalizedRect.height * frame.height
+        )
+    }
+
+    private func croppedImage() -> UIImage? {
+        guard imageFrame.width > 0, imageFrame.height > 0 else {
+            return nil
+        }
+
+        let normalized = normalizedRect(cropRect, in: imageFrame)
+        let clamped = normalized
+            .standardized
+            .intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
+
+        guard !clamped.isNull, clamped.width > 0, clamped.height > 0 else {
+            return nil
+        }
+
+        let normalizedImage = normalizedOrientationImage(image)
+        guard let cgImage = normalizedImage.cgImage else {
+            return nil
+        }
+
+        let cropRectInPixels = CGRect(
+            x: clamped.minX * CGFloat(cgImage.width),
+            y: clamped.minY * CGFloat(cgImage.height),
+            width: clamped.width * CGFloat(cgImage.width),
+            height: clamped.height * CGFloat(cgImage.height)
+        ).integral
+
+        guard cropRectInPixels.width > 1,
+              cropRectInPixels.height > 1,
+              let croppedCGImage = cgImage.cropping(to: cropRectInPixels) else {
+            return nil
+        }
+
+        return UIImage(cgImage: croppedCGImage, scale: 1, orientation: .up)
+    }
+
+    private func normalizedOrientationImage(_ image: UIImage) -> UIImage {
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+
+        return UIGraphicsImageRenderer(size: image.size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: image.size))
+        }
     }
 }
 

@@ -17,21 +17,24 @@ class _CarouselOnboardingPageState extends State<CarouselOnboardingPage> {
 
   static const _slides = [
     _OnboardingSlide(
-      title: 'Scan math problems in seconds',
+      title: 'Scan math in seconds',
       subtitle:
-          'Use the camera to capture equations and get clear step-by-step help.',
-      imagePath: 'assets/images/onboarding_1.png',
+          'Capture equations with your camera and get guided solutions instantly.',
+      icon: Icons.center_focus_strong_rounded,
+      gradientColors: [Color(0xFF6650A4), Color(0xFF9980F0)],
     ),
     _OnboardingSlide(
-      title: 'Learn with structured lessons',
+      title: 'Learn step by step',
       subtitle:
-          'Build skills from basics to advanced topics with a guided path.',
-      imagePath: 'assets/images/onboarding_2.png',
+          'Follow structured lessons from beginner concepts to advanced topics.',
+      icon: Icons.menu_book_rounded,
+      gradientColors: [Color(0xFF3399E6), Color(0xFF66CCF2)],
     ),
     _OnboardingSlide(
-      title: 'Track progress and streaks',
-      subtitle: 'Stay consistent and unlock rewards while improving every day.',
-      imagePath: 'assets/images/onboarding_3.png',
+      title: 'Build streaks and progress',
+      subtitle: 'Track consistency, complete lessons, and improve daily.',
+      icon: Icons.local_fire_department_rounded,
+      gradientColors: [Color(0xFFF28033), Color(0xFFF2B366)],
     ),
   ];
 
@@ -39,7 +42,7 @@ class _CarouselOnboardingPageState extends State<CarouselOnboardingPage> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_carouselSeenKey, true);
     if (!mounted) return;
-    context.go('/login');
+    context.go('/');
   }
 
   void _next() {
@@ -64,57 +67,83 @@ class _CarouselOnboardingPageState extends State<CarouselOnboardingPage> {
     final isLast = _currentIndex == _slides.length - 1;
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              Align(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: _completeOnboarding,
-                  child: const Text('Skip'),
-                ),
-              ),
-              Expanded(
-                child: PageView.builder(
-                  controller: _pageController,
-                  itemCount: _slides.length,
-                  onPageChanged: (index) =>
-                      setState(() => _currentIndex = index),
-                  itemBuilder: (context, index) {
-                    final slide = _slides[index];
-                    return _OnboardingSlideView(slide: slide);
-                  },
-                ),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  _slides.length,
-                  (index) => AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    margin: const EdgeInsets.symmetric(horizontal: 4),
-                    width: _currentIndex == index ? 22 : 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: _currentIndex == index
-                          ? Theme.of(context).colorScheme.primary
-                          : Theme.of(context).colorScheme.outlineVariant,
-                      borderRadius: BorderRadius.circular(100),
+                  child: Text(
+                    'Skip',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey.shade600,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: _next,
-                  child: Text(isLast ? 'Continue' : 'Next'),
+            ),
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _slides.length,
+                onPageChanged: (index) => setState(() => _currentIndex = index),
+                itemBuilder: (context, index) {
+                  final slide = _slides[index];
+                  return _OnboardingSlideView(slide: slide);
+                },
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                _slides.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: _currentIndex == index ? 24 : 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: _currentIndex == index
+                        ? const Color(0xFF6650A4)
+                        : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(100),
+                  ),
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _next,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF6650A4),
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    shadowColor: const Color(0xFF6650A4).withOpacity(0.3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: Text(
+                    isLast ? 'Get Started' : 'Next',
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
@@ -129,44 +158,100 @@ class _OnboardingSlideView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Container(
-          width: double.infinity,
-          height: 240,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(20),
+        const Spacer(),
+        // Illustration with concentric circles
+        SizedBox(
+          width: 280,
+          height: 280,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Outer circle
+              Container(
+                width: 280,
+                height: 280,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: slide.gradientColors
+                        .map((c) => c.withOpacity(0.15))
+                        .toList(),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+              // Middle circle
+              Container(
+                width: 200,
+                height: 200,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: slide.gradientColors
+                        .map((c) => c.withOpacity(0.25))
+                        .toList(),
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+              // Inner circle with icon
+              Container(
+                width: 140,
+                height: 140,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: slide.gradientColors,
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: slide.gradientColors[0].withOpacity(0.4),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  slide.icon,
+                  size: 56,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ),
-          clipBehavior: Clip.antiAlias,
-          child: Image.asset(
-            slide.imagePath,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Center(
-              child: Icon(
-                Icons.image_outlined,
-                size: 56,
-                color: Theme.of(context).colorScheme.primary,
+        ),
+        const Spacer(),
+        // Text content
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: Column(
+            children: [
+              Text(
+                slide.title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
+              const SizedBox(height: 12),
+              Text(
+                slide.subtitle,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 30),
-        Text(
-          slide.title,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          slide.subtitle,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
-        ),
+        const SizedBox(height: 60),
       ],
     );
   }
@@ -176,10 +261,12 @@ class _OnboardingSlide {
   const _OnboardingSlide({
     required this.title,
     required this.subtitle,
-    required this.imagePath,
+    required this.icon,
+    required this.gradientColors,
   });
 
   final String title;
   final String subtitle;
-  final String imagePath;
+  final IconData icon;
+  final List<Color> gradientColors;
 }

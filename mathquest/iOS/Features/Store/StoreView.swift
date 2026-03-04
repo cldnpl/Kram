@@ -1,62 +1,177 @@
+import StoreKit
 import SwiftUI
-
-private let coinPackages: [(coins: Int, price: Double)] = [
-    (25, 2.99),
-    (60, 5),
-    (200, 15),
-    (500, 49.99),
-]
 
 struct StoreView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var subscriptionManager: SubscriptionManager
 
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    ForEach(coinPackages, id: \.coins) { p in
-                        HStack {
-                            Image(systemName: "dollarsign.circle.fill")
-                                .font(.title2)
-                                .foregroundStyle(.yellow)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("\(p.coins) coins")
-                                    .font(.headline)
-                                Text(priceString(p.price))
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Button("Purchase") {
-                                // TODO: in-app purchase
-                            }
-                            .buttonStyle(.borderedProminent)
+                Section("Current Plan") {
+                    HStack(spacing: 12) {
+                        Image(systemName: "checkmark.seal.fill")
+                            .foregroundStyle(.green)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(subscriptionManager.currentTier.displayName)
+                                .font(.headline)
+                            Text(subscriptionManager.currentTier.featureSummary)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
                         }
-                        .padding(.vertical, 4)
                     }
-                } header: {
-                    Text("Get more coins")
-                        .font(.headline)
+                    .padding(.vertical, 4)
+                }
+
+                Section("Subscriptions") {
+                    ForEach(SubscriptionTier.allCases, id: \.self) { tier in
+                        planRow(for: tier)
+                    }
+                }
+
+                Section {
+                    Button("Restore Purchases") {
+                        Task {
+                            await subscriptionManager.restorePurchases()
+                        }
+                    }
+                    .disabled(subscriptionManager.isPurchasing)
+
+                    if let statusMessage = subscriptionManager.statusMessage {
+                        Text(statusMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+
+                    if !subscriptionManager.missingProductIDs.isEmpty {
+                        Text("Missing IDs: \(subscriptionManager.missingProductIDs.joined(separator: ", "))")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                } footer: {
+                    Text("Use StoreKit product IDs: \(SubscriptionTier.proProductID) and \(SubscriptionTier.maxProductID).")
                 }
             }
-            .navigationTitle("Coin Shop")
+            .navigationTitle("Subscription")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
                 }
             }
+            .task {
+                await subscriptionManager.refreshProducts()
+                await subscriptionManager.syncEntitlements()
+            }
         }
     }
 
-    private func priceString(_ price: Double) -> String {
-        if price == Double(Int(price)) {
-            return "€\(Int(price))"
+    @ViewBuilder
+    private func planRow(for tier: SubscriptionTier) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(tier.displayName)
+                        .font(.headline)
+
+                    Text(cameraLine(for: tier))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    Text(rewardLine(for: tier))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    if tier == .max {
+                        Text("Lessons are almost unlimited with full lesson refunds.")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Spacer()
+
+                if tier == subscriptionManager.currentTier {
+                    Text("Current")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.green)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.green.opacity(0.14))
+                        .clipShape(Capsule())
+                }
+            }
+
+            HStack {
+                if let paidProduct = subscriptionManager.product(for: tier) {
+                    Text(paidProduct.displayPrice)
+                        .font(.headline)
+                } else if tier == .free {
+                    Text("Included")
+                        .font(.headline)
+                } else {
+                    Text("Unavailable")
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Button(buttonTitle(for: tier)) {
+                    Task {
+                        await subscriptionManager.purchase(tier)
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(isButtonDisabled(for: tier))
+            }
         }
-        return String(format: "€%.2f", price)
+        .padding(.vertical, 6)
+    }
+
+    private func cameraLine(for tier: SubscriptionTier) -> String {
+        if let limit = tier.cameraDailyLimit {
+            return "\(limit) images per day"
+        }
+        return "Unlimited daily camera usage"
+    }
+
+    private func rewardLine(for tier: SubscriptionTier) -> String {
+        let sampleCost = 20
+        let sampleReward = tier.rewardForLesson(cost: sampleCost)
+        return "Lesson reward up to \(sampleReward)/\(sampleCost) coins"
+    }
+
+    private func buttonTitle(for tier: SubscriptionTier) -> String {
+        if tier == subscriptionManager.currentTier {
+            return "Active"
+        }
+
+        if tier == .free {
+            return "Use Free"
+        }
+
+        return "Subscribe"
+    }
+
+    private func isButtonDisabled(for tier: SubscriptionTier) -> Bool {
+        if tier == subscriptionManager.currentTier {
+            return true
+        }
+
+        if subscriptionManager.isPurchasing {
+            return true
+        }
+
+        if tier == .free {
+            return false
+        }
+
+        return subscriptionManager.product(for: tier) == nil
     }
 }
 
 #Preview {
     StoreView()
+        .environmentObject(SubscriptionManager())
 }

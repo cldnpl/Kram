@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
@@ -14,32 +15,53 @@ import '../../features/shop/presentation/pages/shop_page.dart';
 const _carouselSeenKey = 'carousel_seen';
 const _profileSetupDoneKey = 'profile_setup_done';
 
+// Notifier to trigger router refresh
+class RouterRefreshNotifier extends ChangeNotifier {
+  static final RouterRefreshNotifier instance = RouterRefreshNotifier._();
+  RouterRefreshNotifier._();
+
+  void refresh() {
+    notifyListeners();
+  }
+}
+
 final appRouter = GoRouter(
   initialLocation: '/',
+  refreshListenable: RouterRefreshNotifier.instance,
   redirect: (context, state) async {
     final prefs = await SharedPreferences.getInstance();
     final hasSeenCarousel = prefs.getBool(_carouselSeenKey) ?? false;
     final hasCompletedProfile = prefs.getBool(_profileSetupDoneKey) ?? false;
+    final profileName = prefs.getString('profile_name') ?? '';
+    final profileLevel = prefs.getString('profile_level') ?? '';
+    final isProfileComplete = hasCompletedProfile &&
+        profileName.isNotEmpty &&
+        profileLevel.isNotEmpty;
     final isAuthenticated = FirebaseAuth.instance.currentUser != null;
 
     final location = state.matchedLocation;
     final isCarouselRoute = location == '/carousel';
     final isLoginRoute = location == '/login';
     final isProfileSetupRoute = location == '/profile-setup';
+    final isCameraRoute = location == '/camera';
 
     if (!hasSeenCarousel) {
       return isCarouselRoute ? null : '/carousel';
     }
 
-    if (!isAuthenticated) {
-      return isLoginRoute ? null : '/login';
-    }
-
-    if (!hasCompletedProfile) {
+    if (!isProfileComplete) {
       return isProfileSetupRoute ? null : '/profile-setup';
     }
 
-    if (isCarouselRoute || isLoginRoute || isProfileSetupRoute) {
+    if (!isAuthenticated && isCameraRoute) {
+      return '/login?reason=camera';
+    }
+
+    if (isCarouselRoute || isProfileSetupRoute) {
+      return '/';
+    }
+
+    if (isAuthenticated && isLoginRoute) {
       return '/';
     }
 

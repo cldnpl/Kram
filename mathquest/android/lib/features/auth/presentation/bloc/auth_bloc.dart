@@ -10,7 +10,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc(this._authService) : super(const AuthState()) {
     on<AuthSubscriptionRequested>(_onSubscriptionRequested);
     on<AuthGoogleSignInRequested>(_onGoogleSignInRequested);
-    on<AuthAppleSignInRequested>(_onAppleSignInRequested);
     on<AuthSignOutRequested>(_onSignOutRequested);
     on<_AuthUserChanged>(_onUserChanged);
     add(const AuthSubscriptionRequested());
@@ -65,36 +64,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     try {
       await _authService.signInWithGoogle();
-    } on FirebaseAuthException catch (error) {
-      emit(
-        state.copyWith(
-          status: AuthStatus.failure,
-          errorMessage: error.message ?? error.code,
-        ),
-      );
-    } catch (error) {
-      emit(
-        state.copyWith(
-          status: AuthStatus.failure,
-          errorMessage: error.toString(),
-        ),
-      );
-    }
-  }
-
-  Future<void> _onAppleSignInRequested(
-    AuthAppleSignInRequested event,
-    Emitter<AuthState> emit,
-  ) async {
-    emit(
-      state.copyWith(
-        status: AuthStatus.loading,
-        clearError: true,
-      ),
-    );
-
-    try {
-      await _authService.signInWithApple();
     } on FirebaseAuthException catch (error) {
       emit(
         state.copyWith(

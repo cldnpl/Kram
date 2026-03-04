@@ -3,58 +3,172 @@ import AuthenticationServices
 
 struct LoginView: View {
     @EnvironmentObject private var authManager: AuthManager
+    @Environment(\.dismiss) private var dismiss
     @AppStorage("hasSeenCarousel") private var hasSeenCarousel = true
+    var showCloseButton = false
 
     var body: some View {
-        VStack(spacing: 20) {
-            Text("Kram")
-                .font(.system(size: 40, weight: .heavy))
-                .padding(.top, 40)
+        ZStack {
+            // Background gradient
+            LinearGradient(
+                colors: [
+                    Color(red: 0.4, green: 0.3, blue: 0.9),
+                    Color(red: 0.6, green: 0.4, blue: 0.95),
+                    Color(red: 0.5, green: 0.35, blue: 0.85)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
-            Text("Sign in to continue")
-                .font(.headline)
-                .foregroundStyle(.secondary)
+            // Decorative circles
+            GeometryReader { geo in
+                Circle()
+                    .fill(.white.opacity(0.1))
+                    .frame(width: 300, height: 300)
+                    .offset(x: -100, y: -50)
 
-            Spacer()
+                Circle()
+                    .fill(.white.opacity(0.08))
+                    .frame(width: 200, height: 200)
+                    .offset(x: geo.size.width - 80, y: geo.size.height - 200)
 
-            Button {
-                Task { await authManager.signInWithGoogle() }
-            } label: {
-                Label("Google Sign-In", systemImage: "person.circle.fill")
-                    .frame(maxWidth: .infinity, minHeight: 50)
-            }
-            .buttonStyle(.borderedProminent)
-            .disabled(authManager.isLoading)
-
-            SignInWithAppleButton(.signIn) { request in
-                authManager.prepareAppleSignInRequest(request)
-            } onCompletion: { result in
-                Task { await authManager.signInWithApple(result: result) }
-            }
-            .signInWithAppleButtonStyle(.black)
-            .frame(height: 50)
-            .disabled(authManager.isLoading)
-
-            Button("View onboarding") {
-                hasSeenCarousel = false
-            }
-            .buttonStyle(.borderless)
-            .disabled(authManager.isLoading)
-
-            if authManager.isLoading {
-                ProgressView()
+                Circle()
+                    .fill(.white.opacity(0.05))
+                    .frame(width: 150, height: 150)
+                    .offset(x: geo.size.width - 120, y: 100)
             }
 
-            if let errorMessage = authManager.errorMessage {
-                Text(errorMessage)
-                    .font(.footnote)
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
-            }
+            VStack(spacing: 0) {
+                if showCloseButton {
+                    HStack {
+                        Spacer()
+                        Button {
+                            dismiss()
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.white)
+                                .padding(10)
+                                .background(Color.black.opacity(0.25))
+                                .clipShape(Circle())
+                        }
+                        .padding(.horizontal, 24)
+                        .padding(.top, 16)
+                    }
+                }
 
-            Spacer()
+                Spacer()
+
+                // Logo and title
+                VStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(.white)
+                            .frame(width: 100, height: 100)
+                            .shadow(color: .black.opacity(0.1), radius: 20, y: 10)
+
+                        Image(systemName: "function")
+                            .font(.system(size: 44, weight: .bold))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [Color(red: 0.4, green: 0.3, blue: 0.9), Color(red: 0.6, green: 0.4, blue: 0.95)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    }
+
+                    Text("Kram")
+                        .font(.system(size: 42, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+
+                    Text("Master math, one step at a time")
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.85))
+                }
+
+                Spacer()
+
+                // Sign in buttons
+                VStack(spacing: 14) {
+                    // Google Sign-In Button
+                    Button {
+                        Task { await authManager.signInWithGoogle() }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "g.circle.fill")
+                                .font(.system(size: 22))
+                            Text("Continue with Google")
+                                .font(.system(size: 17, weight: .semibold))
+                        }
+                        .foregroundStyle(.black.opacity(0.8))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 56)
+                        .background(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
+                    }
+                    .disabled(authManager.isLoading)
+
+                    // Apple Sign-In Button
+                    SignInWithAppleButton(.continue) { request in
+                        authManager.prepareAppleSignInRequest(request)
+                    } onCompletion: { result in
+                        Task { await authManager.signInWithApple(result: result) }
+                    }
+                    .signInWithAppleButtonStyle(.black)
+                    .frame(height: 56)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                    .disabled(authManager.isLoading)
+
+                    if authManager.isLoading {
+                        ProgressView()
+                            .tint(.white)
+                            .padding(.top, 8)
+                    }
+
+                    if let errorMessage = authManager.errorMessage {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundStyle(.white.opacity(0.9))
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal)
+                            .padding(.top, 8)
+                    }
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 20)
+
+                if showCloseButton {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("Continue as guest")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    .disabled(authManager.isLoading)
+                    .padding(.bottom, 12)
+                }
+
+                // Footer
+                Button {
+                    hasSeenCarousel = false
+                } label: {
+                    Text("View onboarding again")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.7))
+                }
+                .disabled(authManager.isLoading)
+                .padding(.bottom, 32)
+            }
         }
-        .padding()
+        .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
+            if showCloseButton && isAuthenticated {
+                dismiss()
+            }
+        }
     }
 }
 

@@ -4,6 +4,8 @@ import WebKit
 struct LessonDetailView: View {
     let lesson: LessonItem
     @StateObject private var viewModel = LessonDetailViewModel()
+    @State private var feedbackMessage = ""
+    @State private var showFeedbackAlert = false
 
     var body: some View {
         Group {
@@ -11,6 +13,9 @@ struct LessonDetailView: View {
                 ProgressView("Loading...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let detail = viewModel.lessonDetail {
+                let currentTier = SubscriptionTier.current
+                let projectedReward = currentTier.rewardForLesson(cost: lesson.coinCost)
+
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         Text("Lesson")
@@ -49,13 +54,36 @@ struct LessonDetailView: View {
                                     .padding(.vertical, 8)
                             }
                         }
-                        Button(action: {}) {
-                            Text("Practice")
-                                .font(.headline)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 14)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Lesson cost: \(lesson.coinCost) coins")
+                            Text("Plan: \(currentTier.displayName)")
+                            Text("Completion reward: up to \(projectedReward) coins")
+                        }
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 12)
+
+                        Button {
+                            Task {
+                                await completeLesson()
+                            }
+                        } label: {
+                            HStack {
+                                if viewModel.isCompleting {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                }
+                                Text(viewModel.isCompleting
+                                     ? "Completing..."
+                                     : "Complete Lesson (+\(projectedReward) max)")
+                                    .font(.headline)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
                         }
                         .buttonStyle(.borderedProminent)
+                        .disabled(viewModel.isCompleting)
                         .padding(.top, 24)
                     }
                     .padding()
@@ -86,6 +114,25 @@ struct LessonDetailView: View {
         .task {
             await viewModel.load(lessonId: lesson.id)
         }
+        .alert("Lesson", isPresented: $showFeedbackAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(feedbackMessage)
+        }
+    }
+
+    private func completeLesson() async {
+        do {
+            let coinsEarned = try await viewModel.completeLesson(
+                lessonId: lesson.id,
+                lessonCost: lesson.coinCost
+            )
+            feedbackMessage = "Completed. You earned \(coinsEarned) coins."
+        } catch {
+            feedbackMessage = error.localizedDescription
+        }
+
+        showFeedbackAlert = true
     }
 }
 
@@ -99,6 +146,7 @@ struct LessonDetailExercise: Identifiable {
 final class LessonDetailViewModel: ObservableObject {
     @Published var lessonDetail: (intro: String, exercises: [LessonDetailExercise])?
     @Published var isLoading = false
+    @Published var isCompleting = false
     @Published var errorMessage: String?
 
     private let client = APIClient()
@@ -122,6 +170,25 @@ final class LessonDetailViewModel: ObservableObject {
             errorMessage = error.localizedDescription
         }
     }
+
+    func completeLesson(lessonId: String, lessonCost: Int) async throws -> Int {
+        isCompleting = true
+        defer { isCompleting = false }
+
+        await client.setToken("mock-dev-token")
+        let request = LessonCompleteRequest(lessonCost: Swift.max(0, lessonCost))
+        let body = try JSONEncoder().encode(request)
+        let response: LessonCompleteResponse = try await client.request(
+            "lessons/\(lessonId)/complete",
+            method: "POST",
+            body: body
+        )
+
+        let normalizedCost = Swift.max(0, response.lessonCost ?? lessonCost)
+        let safeReward = Swift.max(0, Swift.min(normalizedCost, response.coinsEarned))
+        CoinWallet.addLocalBonus(safeReward)
+        return safeReward
+    }
 }
 
 private struct LessonDetailResponse: Decodable {
@@ -143,6 +210,24 @@ private struct ExerciseDTO: Decodable {
     let id: String?
     let question: String?
     let options: [String]?
+}
+
+private struct LessonCompleteRequest: Encodable {
+    let lessonCost: Int
+
+    enum CodingKeys: String, CodingKey {
+        case lessonCost = "lesson_cost"
+    }
+}
+
+private struct LessonCompleteResponse: Decodable {
+    let coinsEarned: Int
+    let lessonCost: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case coinsEarned = "coins_earned"
+        case lessonCost = "lesson_cost"
+    }
 }
 
 private enum ContentBlock {

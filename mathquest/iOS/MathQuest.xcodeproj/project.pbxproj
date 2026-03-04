@@ -37,14 +37,19 @@
 		B1000000000000000000001C /* CarouselOnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001C /* CarouselOnboardingView.swift */; };
 		B1000000000000000000001D /* ProfileSetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001D /* ProfileSetupView.swift */; };
 		B1000000000000000000001E /* ProfileSetupViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001E /* ProfileSetupViewModel.swift */; };
+		B1000000000000000000001F /* SubscriptionTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001F /* SubscriptionTier.swift */; };
+		B10000000000000000000020 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000020 /* SubscriptionManager.swift */; };
+		B10000000000000000000021 /* CoinWallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000021 /* CoinWallet.swift */; };
 		B20000000000000000000001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000001 /* FirebaseAuth */; };
 		B20000000000000000000002 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000002 /* GoogleSignIn */; };
+		E349E3B42F57B0EE000B1E48 /* Kram.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E349E3B32F57B0EE000B1E48 /* Kram.storekit */; };
 		E37D5ED92F572CAB0024821A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E37D5ED82F572CAB0024821A /* GoogleService-Info.plist */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		E10000000000000000000001 /* MathQuest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MathQuest.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		E37D5ED72F572BF40024821A /* MathQuest.entitlements */ = {isa = PBXFileReference; lastKnownFileType = file; path = MathQuest.entitlements; sourceTree = "<group>"; };
+		E349E3B32F57B0EE000B1E48 /* Kram.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Kram.storekit; sourceTree = "<group>"; };
+		E37D5ED72F572BF40024821A /* MathQuest.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MathQuest.entitlements; sourceTree = "<group>"; };
 		E37D5ED82F572CAB0024821A /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		F10000000000000000000001 /* MathQuestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathQuestApp.swift; sourceTree = "<group>"; };
 		F10000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -76,6 +81,9 @@
 		F1000000000000000000001C /* CarouselOnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselOnboardingView.swift; sourceTree = "<group>"; };
 		F1000000000000000000001D /* ProfileSetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupView.swift; sourceTree = "<group>"; };
 		F1000000000000000000001E /* ProfileSetupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSetupViewModel.swift; sourceTree = "<group>"; };
+		F1000000000000000000001F /* SubscriptionTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionTier.swift; sourceTree = "<group>"; };
+		F10000000000000000000020 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		F10000000000000000000021 /* CoinWallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinWallet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -94,6 +102,7 @@
 		G10000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
+				E349E3B32F57B0EE000B1E48 /* Kram.storekit */,
 				E37D5ED72F572BF40024821A /* MathQuest.entitlements */,
 				G10000000000000000000002,
 				G10000000000000000000003 /* Products */,
@@ -126,6 +135,8 @@
 			children = (
 				G10000000000000000000008 /* Network */,
 				G10000000000000000000009 /* Auth */,
+				G10000000000000000000012 /* Subscription */,
+				G10000000000000000000013 /* Wallet */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -257,6 +268,23 @@
 			path = Lesson;
 			sourceTree = "<group>";
 		};
+		G10000000000000000000012 /* Subscription */ = {
+			isa = PBXGroup;
+			children = (
+				F1000000000000000000001F /* SubscriptionTier.swift */,
+				F10000000000000000000020 /* SubscriptionManager.swift */,
+			);
+			path = Subscription;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000013 /* Wallet */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000021 /* CoinWallet.swift */,
+			);
+			path = Wallet;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -289,7 +317,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					D10000000000000000000001 = {
 						CreatedOnToolsVersion = 15.0;
@@ -305,11 +333,11 @@
 				Base,
 			);
 			mainGroup = G10000000000000000000001;
-			productRefGroup = G10000000000000000000003 /* Products */;
 			packageReferences = (
 				R20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				R20000000000000000000002 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
+			productRefGroup = G10000000000000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -323,6 +351,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E349E3B42F57B0EE000B1E48 /* Kram.storekit in Resources */,
 				B10000000000000000000013 /* Assets.xcassets in Resources */,
 				E37D5ED92F572CAB0024821A /* GoogleService-Info.plist in Resources */,
 			);
@@ -364,42 +393,13 @@
 				B1000000000000000000001C /* CarouselOnboardingView.swift in Sources */,
 				B1000000000000000000001D /* ProfileSetupView.swift in Sources */,
 				B1000000000000000000001E /* ProfileSetupViewModel.swift in Sources */,
+				B1000000000000000000001F /* SubscriptionTier.swift in Sources */,
+				B10000000000000000000020 /* SubscriptionManager.swift in Sources */,
+				B10000000000000000000021 /* CoinWallet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		R20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 11.0.0;
-			};
-		};
-		R20000000000000000000002 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		S20000000000000000000001 /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = R20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
-		};
-		S20000000000000000000002 /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = R20000000000000000000002 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		X10000000000000000000001 /* Debug */ = {
@@ -437,6 +437,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = H4M7KJL5DT;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -460,6 +461,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -500,6 +502,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = H4M7KJL5DT;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
@@ -516,6 +519,7 @@
 				MTL_ENABLE_DEBUG_MODE = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -530,10 +534,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = 988N3YY62P;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Kram;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -543,9 +548,11 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -558,10 +565,11 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = 988N3YY62P;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Kram;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -571,9 +579,11 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
@@ -599,6 +609,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		R20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.0.0;
+			};
+		};
+		R20000000000000000000002 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		S20000000000000000000001 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = R20000000000000000000001 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		S20000000000000000000002 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = R20000000000000000000002 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A10000000000000000000001 /* Project object */;
 }

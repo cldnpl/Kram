@@ -91,7 +91,7 @@ final class HomeViewModel: ObservableObject {
 
             print("[Home] fetching balance...")
             let balanceRes: BalanceResponse = try await client.request("coins/balance")
-            coinBalance = balanceRes.balance
+            coinBalance = balanceRes.balance + CoinWallet.localBonus()
             print("[Home] balance = \(coinBalance)")
         } catch {
             print("[Home] ERROR: \(error)")

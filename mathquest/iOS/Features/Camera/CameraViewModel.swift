@@ -5,9 +5,11 @@ import UIKit
 
 @MainActor
 final class CameraViewModel: ObservableObject {
+    private static let unlimitedValue = -1
+
     @Published var state: CameraState = .idle
-    @Published var usesRemaining = 5
-    @Published var dailyLimit = 5
+    @Published var usesRemaining: Int
+    @Published var dailyLimit: Int
     @Published var showHistory = false
     @Published var showCameraPermissionSheet = false
     @Published var history: [HistoryItem] = []
@@ -18,6 +20,10 @@ final class CameraViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     init() {
+        let tier = SubscriptionTier.current
+        dailyLimit = tier.cameraDailyLimit ?? Self.unlimitedValue
+        usesRemaining = tier.cameraDailyLimit ?? Self.unlimitedValue
+
         // Forward nested camera service updates so SwiftUI re-renders when
         // authorization/session state changes.
         cameraService.objectWillChange
@@ -70,10 +76,10 @@ final class CameraViewModel: ObservableObject {
     func fetchStatus() async {
         do {
             let response: StatusResponse = try await client.request("camera/status")
-            usesRemaining = response.remaining
-            dailyLimit = response.dailyLimit
+            applyStatus(response)
         } catch {
             print("Failed to fetch status: \(error)")
+            applyFallbackFromTier()
         }
     }
 
@@ -118,6 +124,14 @@ final class CameraViewModel: ObservableObject {
             return
         }
 
+        await solveFromGalleryImage(image)
+    }
+
+    func solveFromGalleryImage(_ image: UIImage) async {
+        guard canStartSolve() else {
+            return
+        }
+
         await solve(image: image, setProcessingState: true, cropRectNormalized: nil)
     }
 
@@ -158,7 +172,12 @@ final class CameraViewModel: ObservableObject {
             let response: SolveResponse = try await client.request("camera/solve", method: "POST", body: body)
 
             state = .success(response)
-            usesRemaining = response.usesRemainingToday
+            if response.usesRemainingToday < 0 {
+                usesRemaining = Self.unlimitedValue
+                dailyLimit = Self.unlimitedValue
+            } else {
+                usesRemaining = response.usesRemainingToday
+            }
             Task {
                 await fetchHistory()
             }
@@ -209,12 +228,30 @@ final class CameraViewModel: ObservableObject {
             return false
         }
 
-        guard usesRemaining > 0 else {
+        guard usesRemaining == Self.unlimitedValue || usesRemaining > 0 else {
             state = .error("Daily limit reached. Come back tomorrow!")
             return false
         }
 
         return true
+    }
+
+    private func applyStatus(_ response: StatusResponse) {
+        let tier = SubscriptionTier.current
+        if tier == .max || response.dailyLimit < 0 || response.remaining < 0 {
+            dailyLimit = Self.unlimitedValue
+            usesRemaining = Self.unlimitedValue
+            return
+        }
+
+        dailyLimit = response.dailyLimit
+        usesRemaining = response.remaining
+    }
+
+    private func applyFallbackFromTier() {
+        let tier = SubscriptionTier.current
+        dailyLimit = tier.cameraDailyLimit ?? Self.unlimitedValue
+        usesRemaining = tier.cameraDailyLimit ?? Self.unlimitedValue
     }
 
     private var isBusy: Bool {

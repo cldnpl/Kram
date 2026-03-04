@@ -20,9 +20,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct MathQuestApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject private var authManager = AuthManager()
+    @StateObject private var subscriptionManager = SubscriptionManager()
 
     @AppStorage("hasSeenCarousel") private var hasSeenCarousel = false
     @AppStorage("hasCompletedProfile") private var hasCompletedProfile = false
+    @AppStorage("profile_name") private var profileName = ""
+    @AppStorage("profile_level") private var profileLevel = ""
+
+    private var isProfileComplete: Bool {
+        hasCompletedProfile && !profileName.isEmpty && !profileLevel.isEmpty
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -31,16 +38,14 @@ struct MathQuestApp: App {
                     CarouselOnboardingView(onComplete: {
                         hasSeenCarousel = true
                     })
-                } else if !authManager.isAuthenticated {
-                    LoginView()
-                        .environmentObject(authManager)
-                } else if !hasCompletedProfile {
+                } else if !isProfileComplete {
                     ProfileSetupView(onComplete: {
                         hasCompletedProfile = true
                     })
                 } else {
                     ContentView()
                         .environmentObject(authManager)
+                        .environmentObject(subscriptionManager)
                 }
             }
         }

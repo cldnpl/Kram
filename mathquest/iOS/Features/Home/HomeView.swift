@@ -94,6 +94,11 @@ struct CategoryCardView: View {
 
 struct CategorySubtopicsView: View {
     let category: CategoryItem
+    @EnvironmentObject private var authManager: AuthManager
+    @AppStorage("guest_lessons_opened_count") private var guestLessonsOpenedCount = 0
+    @State private var selectedLesson: LessonItem?
+    @State private var showLoginPrompt = false
+    @State private var showLoginSheet = false
 
     var body: some View {
         List {
@@ -103,23 +108,75 @@ struct CategorySubtopicsView: View {
                     .fontWeight(.semibold)
                     .foregroundStyle(.secondary)) {
                     ForEach(section.items) { item in
-                        NavigationLink(destination: LessonDetailView(lesson: LessonItem(
-                            id: item.id,
+                        let lessonCost = lessonCostForSection(section.lessonId)
+                        let lesson = LessonItem(
+                            id: section.lessonId,
                             title: item.title,
                             description: "",
                             difficulty: 0,
-                            coinCost: 0
-                        ))) {
-                            Text(item.title)
-                                .font(.body)
+                            coinCost: lessonCost
+                        )
+
+                        Button {
+                            handleLessonTap(lesson)
+                        } label: {
+                            HStack {
+                                Text(item.title)
+                                    .font(.body)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
+                            }
                         }
+                        .buttonStyle(.plain)
                     }
                 }
             }
         }
         .listStyle(.insetGrouped)
+        .navigationDestination(item: $selectedLesson) { lesson in
+            LessonDetailView(lesson: lesson)
+        }
         .navigationTitle(category.title)
         .navigationBarTitleDisplayMode(.inline)
+        .alert("Sign in required", isPresented: $showLoginPrompt) {
+            Button("Not now", role: .cancel) {}
+            Button("Sign In") {
+                showLoginSheet = true
+            }
+        } message: {
+            Text("Guests can open one lesson. Sign in to continue all lessons.")
+        }
+        .fullScreenCover(isPresented: $showLoginSheet) {
+            LoginView(showCloseButton: true)
+        }
+        .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
+            if isAuthenticated {
+                showLoginSheet = false
+            }
+        }
+    }
+
+    private func lessonCostForSection(_ lessonId: String) -> Int {
+        let base = 20
+        let increment = ((Int(lessonId) ?? 1) - 1) % 4
+        return base + (increment * 5)
+    }
+
+    private func handleLessonTap(_ lesson: LessonItem) {
+        if authManager.isAuthenticated {
+            selectedLesson = lesson
+            return
+        }
+
+        if guestLessonsOpenedCount < 1 {
+            guestLessonsOpenedCount += 1
+            selectedLesson = lesson
+            return
+        }
+
+        showLoginPrompt = true
     }
 }
 

@@ -306,7 +306,7 @@ class _LessonDiagramWidgetState extends State<_LessonDiagramWidget> {
         if (!mounted) return;
         setState(() {
           _controller = WebViewController()
-            ..setJavaScriptMode(JavaScriptMode.unloaded)
+            ..setJavaScriptMode(JavaScriptMode.disabled)
             ..loadRequest(Uri.parse(dataUrl));
           _failed = false;
         });
