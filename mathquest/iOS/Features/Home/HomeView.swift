@@ -1,100 +1,73 @@
 import SwiftUI
 
-/// Viola usato in auth e nel resto dell'app (stesso colore).
-private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
-
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showShop = false
-    @AppStorage("profile_name") private var profileName = ""
+    @State private var showCamera = false
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                // Gradiente su tutto lo sfondo, ignora safe area
-                LinearGradient(
-                    stops: [
-                        .init(color: appPurple, location: 0),
-                        .init(color: Color(red: 0.85, green: 0.82, blue: 0.98), location: 0.25),
-                        .init(color: Color(red: 0.93, green: 0.91, blue: 0.99), location: 0.3),
-                        .init(color: Color(red: 0.97, green: 0.96, blue: 1.0), location: 0.4),
-                        .init(color: Color.white, location: 0.55)  // bianco solo dal 90% in giù
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )                .ignoresSafeArea()
-
-                VStack(spacing: 0) {
-                    // Header
-                    ZStack(alignment: .topTrailing) {
-                        Text("Hi, \(profileName.isEmpty ? L10n.hiThere : profileName)!")
-                            .font(.largeTitle)
-                            .fontWeight(.bold)
-                            .foregroundStyle(.black)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.leading, 20)
-                            .padding(.top, 56)
-
-                        Button {
-                            showShop = true
-                        } label: {
-                            CoinBadgeView(coins: viewModel.coinBalance, pillStyle: true)
-                        }
-                        .buttonStyle(.plain)
-                        .padding(.top, 52)
-                        .padding(.trailing, 16)
+            Group {
+                if viewModel.isLoading {
+                    VStack(spacing: 12) {
+                        ProgressView()
+                        Text("Loading...")
                     }
-                    .frame(height: 120)
-
-                    Group {
-                        if viewModel.isLoading {
-                            VStack(spacing: 12) {
-                                ProgressView()
-                                Text(L10n.loading)
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        } else if let msg = viewModel.errorMessage {
-                            VStack(spacing: 8) {
-                                Text("\(L10n.error): \(msg)")
-                                    .multilineTextAlignment(.center)
-                                    .padding()
-                                Button(L10n.retry) { Task { await viewModel.load() } }
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        } else {
-                            ScrollView {
-                                LazyVGrid(
-                                    columns: [GridItem(.flexible()), GridItem(.flexible())],
-                                    spacing: 16
-                                ) {
-                                    ForEach(viewModel.categories) { category in
-                                        NavigationLink(destination: CategorySubtopicsView(category: category)) {
-                                            CategoryCardView(
-                                                title: category.title,
-                                                completed: 0,
-                                                total: viewModel.totalItems(for: category)
-                                            )
-                                        }
-                                        .buttonStyle(.plain)
-                                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else if let msg = viewModel.errorMessage {
+                    VStack(spacing: 8) {
+                        Text("Error: \(msg)")
+                            .multilineTextAlignment(.center)
+                            .padding()
+                        Button("Retry") { Task { await viewModel.load() } }
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    ScrollView {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 175))], spacing: 14) {
+                            ForEach(viewModel.categories) { category in
+                                NavigationLink(destination: CategorySubtopicsView(category: category)) {
+                                    CategoryCardView(
+                                        title: category.title,
+                                        completed: 0,
+                                        total: viewModel.totalItems(for: category)
+                                    )
                                 }
-                                .padding(.horizontal, 25)
-                                .padding(.top, 20)
-                                .padding(.bottom, 24)
+                                .buttonStyle(.plain)
                             }
-                            // Sfondo trasparente così si vede il gradiente dietro
-                            .scrollContentBackground(.hidden)
-                            .background(Color.clear)
                         }
+                        .padding()
                     }
                 }
             }
             .navigationDestination(for: LessonItem.self) { lesson in
                 LessonDetailView(lesson: lesson)
+                    .toolbar(.hidden, for: .tabBar)
             }
-            .navigationBarHidden(true)
+            .navigationTitle("Lessons")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        showCamera = true
+                    } label: {
+                        Image(systemName: "camera.fill")
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showShop = true
+                    } label: {
+                        CoinBadgeView(coins: viewModel.coinBalance)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
             .sheet(isPresented: $showShop) {
                 StoreView()
+            }
+            .fullScreenCover(isPresented: $showCamera) {
+                CameraView()
             }
             .task {
                 print("[Home] view appeared, loading data")
@@ -110,32 +83,24 @@ struct CategoryCardView: View {
     var total: Int = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.body)
+                .font(.title3)
                 .fontWeight(.semibold)
-                .foregroundStyle(.black)
                 .multilineTextAlignment(.leading)
                 .lineLimit(3)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 0)
+            Spacer(minLength: 6)
             Text("\(completed)/\(total)")
-                .font(.footnote)
+                .font(.subheadline)
                 .fontWeight(.semibold)
-                .foregroundStyle(.black)
             ProgressView(value: total > 0 ? Double(completed) / Double(total) : 0)
-                .tint(.green)
-                .scaleEffect(x: 1, y: 1.5, anchor: .center)
+                .tint(.red)
+                .scaleEffect(x: 1, y: 1.8, anchor: .center)
         }
-        .frame(maxWidth: .infinity, minHeight: 120, alignment: .topLeading)
-        .padding(12)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(appPurple, lineWidth: 1)
-        )
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(18)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }
 
@@ -187,13 +152,14 @@ struct CategorySubtopicsView: View {
         }
         .navigationTitle(category.title)
         .navigationBarTitleDisplayMode(.inline)
-        .alert(L10n.signInRequired, isPresented: $showLoginPrompt) {
-            Button(L10n.notNow, role: .cancel) {}
-            Button(L10n.signIn) {
+        .toolbar(.hidden, for: .tabBar)
+        .alert("Sign in required", isPresented: $showLoginPrompt) {
+            Button("Not now", role: .cancel) {}
+            Button("Sign In") {
                 showLoginSheet = true
             }
         } message: {
-            Text(L10n.guestLessonMessage)
+            Text("Guests can open one lesson. Sign in to continue all lessons.")
         }
         .fullScreenCover(isPresented: $showLoginSheet) {
             LoginView(showCloseButton: true)

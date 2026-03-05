@@ -1,6 +1,9 @@
 import StoreKit
 import SwiftUI
 
+/// Viola scuro per pulsanti (stesso hex #3D2468 di Android buttonDarkPurple).
+private let buttonDarkPurple = Color(red: 61/255, green: 36/255, blue: 104/255)
+
 struct StoreView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
 
@@ -34,6 +37,8 @@ struct StoreView: View {
                             await subscriptionManager.restorePurchases()
                         }
                     }
+                    .buttonStyle(.borderedProminent)
+                    .tint(buttonDarkPurple)
                     .disabled(subscriptionManager.isPurchasing)
 
                     if let statusMessage = subscriptionManager.statusMessage {
@@ -100,13 +105,6 @@ struct StoreView: View {
                 if let paidProduct = subscriptionManager.product(for: tier) {
                     Text(paidProduct.displayPrice)
                         .font(.headline)
-                } else if tier == .free {
-                    Text("Included")
-                        .font(.headline)
-                } else {
-                    Text("Unavailable")
-                        .font(.headline)
-                        .foregroundStyle(.secondary)
                 }
 
                 Spacer()
@@ -118,6 +116,7 @@ struct StoreView: View {
                         }
                     }
                     .buttonStyle(.borderedProminent)
+                    .tint(buttonDarkPurple)
                     .disabled(isButtonDisabled(for: tier))
                 }
             }

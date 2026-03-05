@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/theme/app_colors.dart';
+
 const _packages = [
   (coins: 25, price: 2.99),
   (coins: 60, price: 5.0),
@@ -47,7 +49,12 @@ class _ShopCard extends StatelessWidget {
     return Card(
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        leading: Icon(Icons.monetization_on, color: Theme.of(context).colorScheme.primary, size: 40),
+        leading: Image.asset(
+          'assets/images/coin_icon.png',
+          width: 40,
+          height: 40,
+          fit: BoxFit.contain,
+        ),
         title: Text(
           '$coins coins',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -57,6 +64,10 @@ class _ShopCard extends StatelessWidget {
           onPressed: () {
             // TODO: integrate in-app purchase
           },
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.buttonDarkPurple,
+            foregroundColor: Colors.white,
+          ),
           child: const Text('Purchase'),
         ),
       ),

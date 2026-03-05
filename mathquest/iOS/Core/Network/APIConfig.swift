@@ -1,23 +1,13 @@
 import Foundation
 
+// Device e simulatore: stesso URL. Modifica macHost se il Mac ha un altro IP (es. 10.20.54.26).
 enum APIConfig {
-    /// Optional Info.plist key. Set this to your Mac LAN URL for real-device runs,
-    /// e.g. `http://192.168.1.149:8080/api`.
-    private static let infoPlistBaseURLKey = "APIBaseURL"
+    private static let macHost = "10.20.54.26"
+    private static let apiPath = "8080/api"
 
+    /// Usato da tutte le richieste API (lessons, coins, ecc.). Nessun #if simulator/device.
     static var baseURLString: String {
-        #if targetEnvironment(simulator)
-        // Simulator: always use localhost (backend on same Mac).
-        return "http://100.126.55.229:8080/api"
-        #else
-        if let configuredValue = Bundle.main.object(forInfoDictionaryKey: infoPlistBaseURLKey) as? String {
-            let trimmedValue = configuredValue.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmedValue.isEmpty {
-                return trimmedValue
-            }
-        }
-        return "http://100.126.55.229:8080/api"
-        #endif
+        "http://\(macHost):\(apiPath)"
     }
     
     static var baseURL: URL {

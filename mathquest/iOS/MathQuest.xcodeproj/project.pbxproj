@@ -40,7 +40,6 @@
 		B1000000000000000000001F /* SubscriptionTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001F /* SubscriptionTier.swift */; };
 		B10000000000000000000020 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000020 /* SubscriptionManager.swift */; };
 		B10000000000000000000021 /* CoinWallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000021 /* CoinWallet.swift */; };
-		B10000000000000000000022 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000022 /* L10n.swift */; };
 		B20000000000000000000001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000001 /* FirebaseAuth */; };
 		B20000000000000000000002 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000002 /* GoogleSignIn */; };
 		E349E3B42F57B0EE000B1E48 /* Kram.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E349E3B32F57B0EE000B1E48 /* Kram.storekit */; };
@@ -85,7 +84,6 @@
 		F1000000000000000000001F /* SubscriptionTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionTier.swift; sourceTree = "<group>"; };
 		F10000000000000000000020 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		F10000000000000000000021 /* CoinWallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinWallet.swift; sourceTree = "<group>"; };
-		F10000000000000000000022 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -137,19 +135,10 @@
 			children = (
 				G10000000000000000000008 /* Network */,
 				G10000000000000000000009 /* Auth */,
-				G10000000000000000000014 /* L10n */,
 				G10000000000000000000012 /* Subscription */,
 				G10000000000000000000013 /* Wallet */,
 			);
 			path = Core;
-			sourceTree = "<group>";
-		};
-		G10000000000000000000014 /* L10n */ = {
-			isa = PBXGroup;
-			children = (
-				F10000000000000000000022 /* L10n.swift */,
-			);
-			path = L10n;
 			sourceTree = "<group>";
 		};
 		G10000000000000000000005 /* Features */ = {
@@ -407,7 +396,6 @@
 				B1000000000000000000001F /* SubscriptionTier.swift in Sources */,
 				B10000000000000000000020 /* SubscriptionManager.swift in Sources */,
 				B10000000000000000000021 /* CoinWallet.swift in Sources */,
-				B10000000000000000000022 /* L10n.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -546,6 +534,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = H4M7KJL5DT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;
@@ -577,6 +566,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				DEVELOPMENT_TEAM = H4M7KJL5DT;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Info.plist;

@@ -16,11 +16,19 @@ final class AuthManager: NSObject, ObservableObject {
     private var currentNonce: String?
 
     override init() {
+        isAuthenticated = false
+        firebaseUID = nil
+        super.init()
+        // Setup Firebase Auth in background per evitare blocco del main thread (watchdog/SIGKILL su device).
+        Task { @MainActor in
+            self.setupAuthStateListener()
+        }
+    }
+
+    private func setupAuthStateListener() {
         let currentUser = Auth.auth().currentUser
         isAuthenticated = currentUser != nil
         firebaseUID = currentUser?.uid
-        super.init()
-
         authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             Task { @MainActor in
                 self?.isAuthenticated = user != nil

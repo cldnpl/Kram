@@ -28,6 +28,8 @@ final class SubscriptionManager: ObservableObject {
         }
 
         Task {
+            // Breve ritardo per permettere al primo frame (launch) di essere disegnato prima di StoreKit.
+            try? await Task.sleep(nanoseconds: 200_000_000) // 0.2 s
             await refreshProducts()
             await syncEntitlements()
         }

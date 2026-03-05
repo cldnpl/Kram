@@ -4,6 +4,12 @@ abstract class AppColors {
   /// Viola auth (stesso usato in header home e bordi card).
   static const Color appPurple = Color(0xFF664DE6);
 
+  /// Viola scuro per pulsanti principali (Shop, CTA).
+  static const Color buttonDarkPurple = Color(0xFF3D2468);
+
+  /// Viola scuro per login (Continue with username) – diverso dallo Shop.
+  static const Color loginButtonDarkPurple = Color(0xFF2D1B4E);
+
   // Light
   static const Color primaryLight = Color(0xFF6C63FF);
   static const Color secondaryLight = Color(0xFFFFD700);

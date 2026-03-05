@@ -1,0 +1,93 @@
+nano convert_kram.py
+import pandas as pd
+import json
+import os
+import matplotlib.pyplot as plt
+
+# 1. Carichiamo il CSV
+df = pd.read_csv('dataset/external_df.csv')
+
+# 2. Creiamo la cartella per le immagini
+os.makedirs('dataset/images', exist_ok=True)
+
+def text_to_image(text, filepath):
+    """Trasforma il testo del problema in un'immagine PNG per Kram."""
+    plt.figure(figsize=(10, 5))
+    # Spezziamo il testo ogni 70 caratteri per non farlo uscire dall'immagine
+    wrapped_text = '\n'.join([text[i:i+70] for i in range(0, len(text), 70)])
+    plt.text(0.05, 0.5, wrapped_text, fontsize=10, family='monospace', va='center')
+    plt.axis('off')
+    plt.savefig(filepath, bbox_inches='tight', dpi=120)
+    plt.close()
+
+print("Kram sta iniziando a generare le sue prime 100 immagini...")
+
+# 3. Creiamo il file di metadati e le immagini
+with open('dataset/metadata.jsonl', 'w') as f:
+    # Testiamo con i primi 100 per ora (così è veloce)
+    for i, row in df.head(100).iterrows():
+        img_name = f"img_{i}.png"
+        img_path = f"dataset/images/{img_name}"
+        
+        # Genera l'immagine fisica
+        text_to_image(row['problem'], img_path)
+        
+        # Scrivi il metadato collegando l'immagine alla soluzione
+        entry = {
+            "file_name": f"images/{img_name}",
+            "ground_truth": json.dumps({
+                "gt_parse": {
+                    "problem": row['problem'],
+                    "solution": row['solution']
+                }
+            })
+        }
+        f.write(json.dumps(entry) + "\n")
+
+print(f"✅ Conversione completata! Controlla la cartella dataset/images/")
+import pandas as pd
+import json
+import os
+import matplotlib.pyplot as plt
+
+# 1. Carichiamo il CSV
+df = pd.read_csv('dataset/external_df.csv')
+
+# 2. Creiamo la cartella per le immagini
+os.makedirs('dataset/images', exist_ok=True)
+
+def text_to_image(text, filepath):
+    """Trasforma il testo del problema in un'immagine PNG per Kram."""
+    plt.figure(figsize=(10, 5))
+    # Spezziamo il testo ogni 70 caratteri per non farlo uscire dall'immagine
+    wrapped_text = '\n'.join([text[i:i+70] for i in range(0, len(text), 70)])
+    plt.text(0.05, 0.5, wrapped_text, fontsize=10, family='monospace', va='center')
+    plt.axis('off')
+    plt.savefig(filepath, bbox_inches='tight', dpi=120)
+    plt.close()
+
+print("Kram sta iniziando a generare le sue prime 100 immagini...")
+
+# 3. Creiamo il file di metadati e le immagini
+with open('dataset/metadata.jsonl', 'w') as f:
+    # Testiamo con i primi 100 per ora (così è veloce)
+    for i, row in df.head(100).iterrows():
+        img_name = f"img_{i}.png"
+        img_path = f"dataset/images/{img_name}"
+        
+        # Genera l'immagine fisica
+        text_to_image(row['problem'], img_path)
+        
+        # Scrivi il metadato collegando l'immagine alla soluzione
+        entry = {
+            "file_name": f"images/{img_name}",
+            "ground_truth": json.dumps({
+                "gt_parse": {
+                    "problem": row['problem'],
+                    "solution": row['solution']
+                }
+            })
+        }
+        f.write(json.dumps(entry) + "\n")
+
+print(f"✅ Conversione completata! Controlla la cartella dataset/images/")

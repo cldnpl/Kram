@@ -16,18 +16,19 @@ final class ProfileSetupViewModel: ObservableObject {
     }
 
     init() {
-        loadExistingData()
+        // Carica dati in async per non bloccare il primo frame (Auth.auth() può essere lento su device).
+        Task { @MainActor in
+            loadExistingData()
+        }
     }
 
     private func loadExistingData() {
-        // First check if we have saved profile data
         let savedName = UserDefaults.standard.string(forKey: "profile_name") ?? ""
         let savedLevel = UserDefaults.standard.string(forKey: "profile_level") ?? ""
 
         if !savedName.isEmpty {
             name = savedName
         } else if let user = Auth.auth().currentUser, let displayName = user.displayName, !displayName.isEmpty {
-            // Pre-populate from Firebase user
             name = displayName
         }
 
