@@ -134,6 +134,9 @@ struct ProfileView: View {
         .onAppear {
             viewModel.load()
         }
+        .onChange(of: authManager.isAuthenticated) { _, _ in
+            viewModel.load()
+        }
         .fullScreenCover(isPresented: $showLogin) {
             LoginView(
                 showCloseButton: true,

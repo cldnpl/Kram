@@ -9,10 +9,15 @@ struct ContentView: View {
     @StateObject private var tabSelection = TabSelection()
     @EnvironmentObject private var authManager: AuthManager
     @AppStorage("profile_username") private var profileUsername = ""
+    @State private var cameraTrialUsed = KeychainFlag.isSet("camera_trial_used")
 
-    /// Camera disponibile se loggato con Firebase (Apple/Google) oppure con username/password.
-    private var canUseCamera: Bool {
+    private var isLoggedIn: Bool {
         authManager.isAuthenticated || !profileUsername.isEmpty
+    }
+
+    /// Camera available if logged in, OR free trial not yet used.
+    private var canUseCamera: Bool {
+        isLoggedIn || !cameraTrialUsed
     }
 
     var body: some View {
@@ -22,7 +27,7 @@ struct ContentView: View {
                 .tag(0)
             NavigationStack {
                 if canUseCamera {
-                    CameraView()
+                    CameraView(onTrialUsed: markTrialUsed)
                 } else {
                     CameraLoginRequiredView()
                 }
@@ -36,6 +41,12 @@ struct ContentView: View {
             .tag(2)
         }
         .environmentObject(tabSelection)
+    }
+
+    private func markTrialUsed() {
+        guard !isLoggedIn else { return }
+        KeychainFlag.set("camera_trial_used")
+        cameraTrialUsed = true
     }
 }
 

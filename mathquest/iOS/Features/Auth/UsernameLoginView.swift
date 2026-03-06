@@ -2,17 +2,12 @@ import SwiftUI
 
 private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 
-private let usernameAlreadyExistsMessage = "Nome utente già esistente"
-
-/// View per login/registrazione con username e password.
-/// Titolo "Login" o "Register"; tap su "Don't you have an account? Create one" mostra la stessa view in modalità Register.
+/// View for login with username and password.
 struct UsernameLoginView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var isLoginMode = true
     @State private var username = ""
     @State private var password = ""
     @State private var errorMessage: String?
-    @State private var isRegistering = false
 
     var onDismiss: (() -> Void)?
 
@@ -51,7 +46,7 @@ struct UsernameLoginView: View {
                     .padding(.top, 16)
                 }
 
-                Text(isLoginMode ? "Login" : "Register")
+                Text("Login")
                     .font(.system(size: 34, weight: .bold))
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -94,15 +89,6 @@ struct UsernameLoginView: View {
                     .padding(.top, 24)
                     .padding(.bottom, 20)
 
-                    Button {
-                        isLoginMode.toggle()
-                    } label: {
-                        Text(isLoginMode ? "Don't you have an account? Create one" : "Already have an account? Login")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.gray)
-                    }
-                    .padding(.top, 8)
-
                     if let msg = errorMessage {
                         Text(msg)
                             .font(.system(size: 14))
@@ -115,33 +101,22 @@ struct UsernameLoginView: View {
                         let u = username.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !u.isEmpty else { return }
                         errorMessage = nil
-                        if isLoginMode {
-                            UserDefaults.standard.set(u, forKey: "profile_username")
-                            (onDismiss ?? { dismiss() })()
-                        } else {
-                            Task { await registerUsername(u) }
-                        }
+                        UserDefaults.standard.set(u, forKey: "profile_username")
+                        (onDismiss ?? { dismiss() })()
                     } label: {
-                        HStack(spacing: 8) {
-                            if isRegistering {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            }
-                            Text(isLoginMode ? "Login" : "Register")
-                                .font(.system(size: 17, weight: .semibold))
-                                .foregroundStyle(.white)
-                        }
-                        .frame(width: 300, height: 50)
-                        .background(
-                            LinearGradient(
-                                colors: [appPurple, Color(red: 0.6, green: 0.4, blue: 0.95)],
-                                startPoint: .leading,
-                                endPoint: .trailing
+                        Text("Login")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(width: 300, height: 50)
+                            .background(
+                                LinearGradient(
+                                    colors: [appPurple, Color(red: 0.6, green: 0.4, blue: 0.95)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
                             )
-                        )
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
+                            .clipShape(RoundedRectangle(cornerRadius: 14))
                     }
-                    .disabled(isRegistering)
                     .padding(.top, 20)
                     .padding(.bottom, 24)
                 }
@@ -160,32 +135,6 @@ struct UsernameLoginView: View {
         }
     }
 
-    @MainActor
-    private func registerUsername(_ u: String) async {
-        isRegistering = true
-        defer { isRegistering = false }
-        let url = APIConfig.baseURL.appendingPathComponent("auth/register-username")
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: ["username": u])
-        do {
-            let (_, response) = try await URLSession.shared.data(for: request)
-            guard let http = response as? HTTPURLResponse else { return }
-            if http.statusCode == 409 {
-                errorMessage = usernameAlreadyExistsMessage
-                return
-            }
-            if (200...299).contains(http.statusCode) {
-                UserDefaults.standard.set(u, forKey: "profile_username")
-                (onDismiss ?? { dismiss() })()
-                return
-            }
-            errorMessage = "This username is already taken."
-        } catch {
-            errorMessage = "This username is already taken."
-        }
-    }
 }
 
 #Preview {

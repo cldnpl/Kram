@@ -24,14 +24,13 @@ struct HomeView: View {
                 .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    ZStack(alignment: .topTrailing) {
+                    HStack {
                         Text("Hi, \(profileName.isEmpty ? L10n.hiThere : profileName)!")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundStyle(.black)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.leading, 20)
-                            .padding(.top, 56)
+
+                        Spacer()
 
                         Button {
                             showShop = true
@@ -53,49 +52,47 @@ struct HomeView: View {
                             .clipShape(Capsule())
                         }
                         .buttonStyle(.plain)
-                        .padding(.top, 52)
-                        .padding(.trailing, 16)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 56)
 
-                        Group {
-                            if viewModel.isLoading {
-                                VStack(spacing: 12) {
-                                    ProgressView()
-                                    Text(L10n.loading)
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            } else if let msg = viewModel.errorMessage {
-                                VStack(spacing: 8) {
-                                    Text("\(L10n.error): \(msg)")
-                                        .multilineTextAlignment(.center)
-                                        .padding()
-                                    Button(L10n.retry) { Task { await viewModel.load() } }
-                                }
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            } else {
-                                ScrollView {
-                                    LazyVGrid(
-                                        columns: [GridItem(.flexible()), GridItem(.flexible())],
-                                        spacing: 16
-                                    ) {
-                                        ForEach(viewModel.categories) { category in
-                                            NavigationLink(destination: CategorySubtopicsView(category: category)) {
-                                                CategoryCardView(
-                                                    title: category.title,
-                                                    completed: 0,
-                                                    total: viewModel.totalItems(for: category)
-                                                )
-                                            }
-                                            .buttonStyle(.plain)
-                                        }
-                                    }
-                                    .padding(.horizontal, 25)
-                                    .padding(.top, 20)
-                                    .padding(.bottom, 24)
-                                }
-                                .scrollContentBackground(.hidden)
-                                .background(Color.clear)
-                            }
+                    if viewModel.isLoading {
+                        VStack(spacing: 12) {
+                            ProgressView()
+                            Text(L10n.loading)
                         }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else if let msg = viewModel.errorMessage {
+                        VStack(spacing: 8) {
+                            Text("\(L10n.error): \(msg)")
+                                .multilineTextAlignment(.center)
+                                .padding()
+                            Button(L10n.retry) { Task { await viewModel.load() } }
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        ScrollView {
+                            LazyVGrid(
+                                columns: [GridItem(.flexible()), GridItem(.flexible())],
+                                spacing: 16
+                            ) {
+                                ForEach(viewModel.categories) { category in
+                                    NavigationLink(destination: CategorySubtopicsView(category: category)) {
+                                        CategoryCardView(
+                                            title: category.title,
+                                            completed: 0,
+                                            total: viewModel.totalItems(for: category)
+                                        )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            .padding(.horizontal, 25)
+                            .padding(.top, 20)
+                            .padding(.bottom, 24)
+                        }
+                        .scrollContentBackground(.hidden)
+                        .background(Color.clear)
                     }
                 }
                 .navigationDestination(for: LessonItem.self) { lesson in

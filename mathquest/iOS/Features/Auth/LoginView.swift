@@ -1,8 +1,7 @@
 import SwiftUI
 import AuthenticationServices
 
-/// Viola scuro per pulsante "Continue with username" (diverso dallo Shop #3D2468).
-private let loginButtonDarkPurple = Color(red: 30/255, green: 18/255, blue: 52/255) // #1E1234
+private let loginButtonDarkPurple = Color(red: 30/255, green: 18/255, blue: 52/255)
 
 struct LoginView: View {
     @EnvironmentObject private var authManager: AuthManager
@@ -10,7 +9,7 @@ struct LoginView: View {
     @AppStorage("hasSeenCarousel") private var hasSeenCarousel = true
     @State private var showUsernameLogin = false
     var showCloseButton = false
-    /// Chiamato dopo login/register con username: chiude questa view e porta alla Home.
+    /// Called after successful login: dismisses this view and navigates to Home.
     var onUsernameLoginSuccess: (() -> Void)?
     
     var body: some View {
@@ -112,6 +111,7 @@ struct LoginView: View {
                     }
                     .buttonStyle(.plain)
                     .contentShape(Rectangle())
+
                     // Google Sign-In Button
                     Button {
                         Task { await authManager.signInWithGoogle() }

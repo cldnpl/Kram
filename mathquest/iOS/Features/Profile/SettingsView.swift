@@ -4,13 +4,15 @@ private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 
 struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var authManager: AuthManager
     @AppStorage("profile_name") private var profileName = ""
     @AppStorage("profile_level") private var profileLevel = "Beginner"
-    @AppStorage("settings_dark_mode") private var darkMode = false
-    @AppStorage("settings_notifications") private var notificationsEnabled = true
     @AppStorage("settings_sound") private var soundEnabled = true
     @AppStorage("settings_language") private var language = "en"
     @AppStorage("settings_difficulty") private var difficulty = "medio"
+    @AppStorage("profile_username") private var profileUsername = ""
+    @State private var showDeleteConfirmation = false
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
@@ -44,25 +46,8 @@ struct SettingsView: View {
 
                 settingsSection(title: L10n.studyPreferences) {
                     VStack(spacing: 0) {
-
-                        Toggle(isOn: $notificationsEnabled) {
-                            Label(L10n.studyReminder, systemImage: "bell.fill")
-                        }
-                        .tint(appPurple)
-
-                        Divider().padding(.vertical, 8)
-
                         Toggle(isOn: $soundEnabled) {
                             Label(L10n.sounds, systemImage: "speaker.wave.2.fill")
-                        }
-                        .tint(appPurple)
-                    }
-                }
-
-                settingsSection(title: L10n.interface) {
-                    VStack(spacing: 0) {
-                        Toggle(isOn: $darkMode) {
-                            Label(L10n.darkTheme, systemImage: "moon.fill")
                         }
                         .tint(appPurple)
                     }
@@ -83,6 +68,18 @@ struct SettingsView: View {
                         .tint(appPurple)
                     }
                 }
+
+                if authManager.isAuthenticated || !profileUsername.isEmpty {
+                    settingsSection(title: "Account") {
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Delete Account", systemImage: "trash.fill")
+                                .foregroundStyle(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 24)
@@ -90,6 +87,33 @@ struct SettingsView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle(L10n.settingsTitle)
         .navigationBarTitleDisplayMode(.large)
+        .alert("Delete Account", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                deleteAccount()
+            }
+        } message: {
+            Text("This will permanently delete your account and all data. This action cannot be undone.")
+        }
+    }
+
+    private func deleteAccount() {
+        // Clear all local data
+        profileName = ""
+        profileUsername = ""
+        UserDefaults.standard.removeObject(forKey: "profile_username")
+        UserDefaults.standard.removeObject(forKey: "profile_name")
+        UserDefaults.standard.removeObject(forKey: "profile_level")
+        UserDefaults.standard.removeObject(forKey: "profile_photo_path")
+        CoinWallet.resetLocalBonus()
+
+        // Sign out from Firebase if authenticated
+        if authManager.isAuthenticated {
+            authManager.signOut()
+        }
+
+        // Pop back to profile
+        dismiss()
     }
 
     private func mathLevelDescription(for level: String) -> String {

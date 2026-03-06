@@ -11,6 +11,9 @@ struct CameraView: View {
     private let handleTouchSize: CGFloat = 44
     private let handleVisualSize: CGFloat = 18
 
+    /// Called when a guest user completes their free trial camera use.
+    var onTrialUsed: (() -> Void)?
+
     @StateObject private var viewModel = CameraViewModel()
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var selectedGalleryImage: UIImage?
@@ -67,6 +70,7 @@ struct CameraView: View {
             selectedSolution = response
             showSolutionPage = true
             viewModel.stopCamera()
+            onTrialUsed?()
         }
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }
