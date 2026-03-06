@@ -200,12 +200,7 @@
 			children = (
 				F10000000000000000000005 /* LoginView.swift */,
 				F10000000000000000000006 /* AuthViewModel.swift */,
-<<<<<<< HEAD
 				F10000000000000000000023 /* UsernameLoginView.swift */,
-=======
-				F10000000000000000000022 /* UsernamePasswordAuthView.swift */,
-				F10000000000000000000023 /* UsernamePasswordRegisterView.swift */,
->>>>>>> 5c98b591af9cb2ac601d5e8e91219daddfd31737
 			);
 			path = Auth;
 			sourceTree = "<group>";
