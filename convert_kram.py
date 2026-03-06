@@ -4,7 +4,6 @@ import os
 from PIL import Image, ImageDraw, ImageFont
 
 # Carica il CSV
-# Carica il CSV
 df = pd.read_csv('dataset/external_df.csv')
 os.makedirs('dataset/images', exist_ok=True)
 
