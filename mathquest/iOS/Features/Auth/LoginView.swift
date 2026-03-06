@@ -8,11 +8,7 @@ struct LoginView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
     @AppStorage("hasSeenCarousel") private var hasSeenCarousel = true
-<<<<<<< HEAD
     @State private var showUsernameLogin = false
-=======
-    @State private var showUsernamePasswordAuth = false
->>>>>>> 5c98b591af9cb2ac601d5e8e91219daddfd31737
     var showCloseButton = false
     /// Chiamato dopo login/register con username: chiude questa view e porta alla Home.
     var onUsernameLoginSuccess: (() -> Void)?
@@ -102,24 +98,8 @@ struct LoginView: View {
                 
                 // Sign in buttons
                 VStack(spacing: 14) {
-<<<<<<< HEAD
-<<<<<<< HEAD
-                    Button("Continue with username") {
-                        showUsernameLogin = true
-                    }
-                        .frame(width: 360, height: 55)
-                        .foregroundStyle(.white)
-                        .background(Color(red: 61/255, green: 36/255, blue: 104/255).opacity(0.5))
-                        .clipShape(RoundedRectangle(cornerRadius:16))
-                    
-                    
-=======
-                    // Continue with username (dark purple – distinct from Shop)
-=======
-                    // Continue with username → open username/password auth page
->>>>>>> 5c98b591af9cb2ac601d5e8e91219daddfd31737
                     Button {
-                        showUsernamePasswordAuth = true
+                        showUsernameLogin = true
                     } label: {
                         Text("Continue with username")
                             .font(.system(size: 17, weight: .semibold))
@@ -132,8 +112,6 @@ struct LoginView: View {
                     }
                     .buttonStyle(.plain)
                     .contentShape(Rectangle())
-
->>>>>>> fc0d863da90dc4edd125a225f5211d800566e104
                     // Google Sign-In Button
                     Button {
                         Task { await authManager.signInWithGoogle() }
@@ -194,17 +172,11 @@ struct LoginView: View {
                 .padding(.bottom, 12)
             }
         }
-<<<<<<< HEAD
         .fullScreenCover(isPresented: $showUsernameLogin) {
             UsernameLoginView(onDismiss: {
                 showUsernameLogin = false
                 onUsernameLoginSuccess?()
             })
-=======
-        .fullScreenCover(isPresented: $showUsernamePasswordAuth) {
-            UsernamePasswordAuthView(onDismiss: { showUsernamePasswordAuth = false })
-                .environmentObject(authManager)
->>>>>>> 5c98b591af9cb2ac601d5e8e91219daddfd31737
         }
         .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
             if showCloseButton && isAuthenticated {

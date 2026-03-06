@@ -65,7 +65,7 @@ class _ShopCard extends StatelessWidget {
             // TODO: integrate in-app purchase
           },
           style: FilledButton.styleFrom(
-            backgroundColor: AppColors.buttonDarkPurple,
+            backgroundColor: AppColors.appPurple,
             foregroundColor: Colors.white,
           ),
           child: const Text('Purchase'),

@@ -21,20 +21,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 @main
 struct MathQuestApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-<<<<<<< HEAD
-    @StateObject private var authManager = AuthManager()
-    @StateObject private var subscriptionManager = SubscriptionManager()
-
-    @AppStorage("hasSeenCarousel") private var hasSeenCarousel = false
-    @AppStorage("hasCompletedProfile") private var hasCompletedProfile = false
-    @AppStorage("settings_language") private var appLanguage = "en"
-
-    /// Dopo il primo setup non si torna più alla schermata "Set your profile": nome e livello si modificano solo in Impostazioni.
-    private var isProfileComplete: Bool {
-        hasCompletedProfile
-    }
-=======
->>>>>>> fc0d863da90dc4edd125a225f5211d800566e104
 
     var body: some Scene {
         WindowGroup {
