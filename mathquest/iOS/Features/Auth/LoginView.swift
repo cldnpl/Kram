@@ -2,12 +2,13 @@ import SwiftUI
 import AuthenticationServices
 
 /// Viola scuro per pulsante "Continue with username" (diverso dallo Shop #3D2468).
-private let loginButtonDarkPurple = Color(red: 45/255, green: 27/255, blue: 78/255) // #2D1B4E
+private let loginButtonDarkPurple = Color(red: 30/255, green: 18/255, blue: 52/255) // #1E1234
 
 struct LoginView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
     @AppStorage("hasSeenCarousel") private var hasSeenCarousel = true
+    @State private var showUsernamePasswordAuth = false
     var showCloseButton = false
 
     var body: some View {
@@ -95,9 +96,9 @@ struct LoginView: View {
 
                 // Sign in buttons
                 VStack(spacing: 14) {
-                    // Continue with username (dark purple – distinct from Shop)
+                    // Continue with username → open username/password auth page
                     Button {
-                        // TODO: email/username sign-in
+                        showUsernamePasswordAuth = true
                     } label: {
                         Text("Continue with username")
                             .font(.system(size: 17, weight: .semibold))
@@ -108,7 +109,8 @@ struct LoginView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                             .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
                     }
-                    .disabled(authManager.isLoading)
+                    .buttonStyle(.plain)
+                    .contentShape(Rectangle())
 
                     // Google Sign-In Button
                     Button {
@@ -181,6 +183,10 @@ struct LoginView: View {
                 .disabled(authManager.isLoading)
                 .padding(.bottom, 32)
             }
+        }
+        .fullScreenCover(isPresented: $showUsernamePasswordAuth) {
+            UsernamePasswordAuthView(onDismiss: { showUsernamePasswordAuth = false })
+                .environmentObject(authManager)
         }
         .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
             if showCloseButton && isAuthenticated {

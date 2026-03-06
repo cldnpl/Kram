@@ -84,5 +84,10 @@ class AppLocale {
     'diagram_not_available': {'it': 'Diagramma non disponibile', 'en': 'Diagram not available', 'fr': 'Diagramme non disponible', 'es': 'Diagrama no disponible', 'uz': 'Diagramma mavjud emas'},
     'no_content': {'it': 'Nessun contenuto', 'en': 'No content', 'fr': 'Aucun contenu', 'es': 'Sin contenido', 'uz': 'Mazmun yo\'q'},
     'practice': {'it': 'Esercitati', 'en': 'Practice', 'fr': 'Pratique', 'es': 'Practicar', 'uz': 'Mashq qilish'},
+    'dont_have_account': {'it': 'Non hai un account?', 'en': "Don't have an account?", 'fr': 'Pas encore de compte?', 'es': '¿No tienes cuenta?', 'uz': "Hisobingiz yo'qmi?"},
+    'create_one': {'it': 'Creane uno', 'en': 'Create one', 'fr': 'Créer un compte', 'es': 'Crear una', 'uz': 'Yaratish'},
+    'already_have_account': {'it': 'Hai già un account?', 'en': 'Already have an account?', 'fr': 'Déjà un compte?', 'es': '¿Ya tienes cuenta?', 'uz': "Allaqachon hisobingiz bormi?"},
+    'register': {'it': 'Registrati', 'en': 'Register', 'fr': "S'inscrire", 'es': 'Registrarse', 'uz': "Ro'yxatdan o'tish"},
+    'login': {'it': 'Accedi', 'en': 'Login', 'fr': 'Connexion', 'es': 'Iniciar sesión', 'uz': 'Kirish'},
   };
 }

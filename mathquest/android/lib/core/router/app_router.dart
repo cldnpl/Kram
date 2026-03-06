@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/username_password_auth_page.dart';
+import '../../features/auth/presentation/pages/username_password_register_page.dart';
 import '../../features/onboarding/presentation/pages/carousel_onboarding_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/lesson/presentation/pages/lesson_detail_page.dart';
@@ -44,6 +46,14 @@ final appRouter = GoRouter(
   },
   routes: [
     GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+    GoRoute(
+      path: '/login/username-password',
+      builder: (_, __) => const UsernamePasswordAuthPage(),
+    ),
+    GoRoute(
+      path: '/login/username-password/register',
+      builder: (_, __) => const UsernamePasswordRegisterPage(),
+    ),
     GoRoute(
       path: '/carousel',
       builder: (_, __) => const CarouselOnboardingPage(),
