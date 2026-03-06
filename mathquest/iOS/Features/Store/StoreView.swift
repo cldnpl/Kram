@@ -87,6 +87,15 @@ struct StoreView: View {
                 }
 
                 Spacer()
+            }
+
+            HStack(alignment: .center) {
+                if let paidProduct = subscriptionManager.product(for: tier) {
+                    Text(paidProduct.displayPrice)
+                        .font(.headline)
+                }
+
+                Spacer()
 
                 if tier == subscriptionManager.currentTier {
                     Text("Current")
@@ -96,18 +105,7 @@ struct StoreView: View {
                         .padding(.vertical, 9)
                         .background(Color.green.opacity(0.14))
                         .clipShape(Capsule())
-                }
-            }
-
-            HStack(alignment: .top) {
-                if let paidProduct = subscriptionManager.product(for: tier) {
-                    Text(paidProduct.displayPrice)
-                        .font(.headline)
-                }
-
-                Spacer()
-
-                if !(tier == .free && tier == subscriptionManager.currentTier) {
+                } else if !(tier == .free && tier == subscriptionManager.currentTier) {
                     Button(buttonTitle(for: tier))
                     {
                         Task {
