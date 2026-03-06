@@ -2,13 +2,17 @@ import SwiftUI
 import AuthenticationServices
 
 /// Viola scuro per pulsante "Continue with username" (diverso dallo Shop #3D2468).
-private let loginButtonDarkPurple = Color(red: 45/255, green: 27/255, blue: 78/255) // #2D1B4E
+private let loginButtonDarkPurple = Color(red: 30/255, green: 18/255, blue: 52/255) // #1E1234
 
 struct LoginView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
     @AppStorage("hasSeenCarousel") private var hasSeenCarousel = true
+<<<<<<< HEAD
     @State private var showUsernameLogin = false
+=======
+    @State private var showUsernamePasswordAuth = false
+>>>>>>> 5c98b591af9cb2ac601d5e8e91219daddfd31737
     var showCloseButton = false
     /// Chiamato dopo login/register con username: chiude questa view e porta alla Home.
     var onUsernameLoginSuccess: (() -> Void)?
@@ -99,6 +103,7 @@ struct LoginView: View {
                 // Sign in buttons
                 VStack(spacing: 14) {
 <<<<<<< HEAD
+<<<<<<< HEAD
                     Button("Continue with username") {
                         showUsernameLogin = true
                     }
@@ -110,8 +115,11 @@ struct LoginView: View {
                     
 =======
                     // Continue with username (dark purple – distinct from Shop)
+=======
+                    // Continue with username → open username/password auth page
+>>>>>>> 5c98b591af9cb2ac601d5e8e91219daddfd31737
                     Button {
-                        // TODO: email/username sign-in
+                        showUsernamePasswordAuth = true
                     } label: {
                         Text("Continue with username")
                             .font(.system(size: 17, weight: .semibold))
@@ -122,7 +130,8 @@ struct LoginView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 16))
                             .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
                     }
-                    .disabled(authManager.isLoading)
+                    .buttonStyle(.plain)
+                    .contentShape(Rectangle())
 
 >>>>>>> fc0d863da90dc4edd125a225f5211d800566e104
                     // Google Sign-In Button
@@ -185,11 +194,17 @@ struct LoginView: View {
                 .padding(.bottom, 12)
             }
         }
+<<<<<<< HEAD
         .fullScreenCover(isPresented: $showUsernameLogin) {
             UsernameLoginView(onDismiss: {
                 showUsernameLogin = false
                 onUsernameLoginSuccess?()
             })
+=======
+        .fullScreenCover(isPresented: $showUsernamePasswordAuth) {
+            UsernamePasswordAuthView(onDismiss: { showUsernamePasswordAuth = false })
+                .environmentObject(authManager)
+>>>>>>> 5c98b591af9cb2ac601d5e8e91219daddfd31737
         }
         .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
             if showCloseButton && isAuthenticated {

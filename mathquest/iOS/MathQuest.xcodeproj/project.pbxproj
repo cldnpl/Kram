@@ -41,6 +41,8 @@
 		B1000000000000000000001F /* SubscriptionTier.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1000000000000000000001F /* SubscriptionTier.swift */; };
 		B10000000000000000000020 /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000020 /* SubscriptionManager.swift */; };
 		B10000000000000000000021 /* CoinWallet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000021 /* CoinWallet.swift */; };
+		B10000000000000000000022 /* UsernamePasswordAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000022 /* UsernamePasswordAuthView.swift */; };
+		B10000000000000000000023 /* UsernamePasswordRegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000023 /* UsernamePasswordRegisterView.swift */; };
 		B20000000000000000000001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000001 /* FirebaseAuth */; };
 		B20000000000000000000002 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000002 /* GoogleSignIn */; };
 		E349E3B42F57B0EE000B1E48 /* Kram.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E349E3B32F57B0EE000B1E48 /* Kram.storekit */; };
@@ -86,6 +88,8 @@
 		F1000000000000000000001F /* SubscriptionTier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionTier.swift; sourceTree = "<group>"; };
 		F10000000000000000000020 /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		F10000000000000000000021 /* CoinWallet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoinWallet.swift; sourceTree = "<group>"; };
+		F10000000000000000000022 /* UsernamePasswordAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernamePasswordAuthView.swift; sourceTree = "<group>"; };
+		F10000000000000000000023 /* UsernamePasswordRegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernamePasswordRegisterView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -196,7 +200,12 @@
 			children = (
 				F10000000000000000000005 /* LoginView.swift */,
 				F10000000000000000000006 /* AuthViewModel.swift */,
+<<<<<<< HEAD
 				F10000000000000000000023 /* UsernameLoginView.swift */,
+=======
+				F10000000000000000000022 /* UsernamePasswordAuthView.swift */,
+				F10000000000000000000023 /* UsernamePasswordRegisterView.swift */,
+>>>>>>> 5c98b591af9cb2ac601d5e8e91219daddfd31737
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -400,6 +409,8 @@
 				B1000000000000000000001F /* SubscriptionTier.swift in Sources */,
 				B10000000000000000000020 /* SubscriptionManager.swift in Sources */,
 				B10000000000000000000021 /* CoinWallet.swift in Sources */,
+				B10000000000000000000022 /* UsernamePasswordAuthView.swift in Sources */,
+				B10000000000000000000023 /* UsernamePasswordRegisterView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

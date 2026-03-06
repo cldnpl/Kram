@@ -167,11 +167,9 @@ class LoginPage extends StatelessWidget {
                               width: double.infinity,
                               height: 56,
                               child: FilledButton(
-                                onPressed: loading
-                                    ? null
-                                    : () {
-                                        // TODO: email/username sign-in
-                                      },
+                                onPressed: () {
+                                  context.push('/login/username-password');
+                                },
                                 style: FilledButton.styleFrom(
                                   backgroundColor: AppColors.loginButtonDarkPurple,
                                   foregroundColor: Colors.white,
