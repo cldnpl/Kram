@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
@@ -161,6 +162,34 @@ class LoginPage extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                         child: Column(
                           children: [
+                            // Continue with username (dark purple – distinct from Shop)
+                            SizedBox(
+                              width: double.infinity,
+                              height: 56,
+                              child: FilledButton(
+                                onPressed: loading
+                                    ? null
+                                    : () {
+                                        // TODO: email/username sign-in
+                                      },
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: AppColors.loginButtonDarkPurple,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Continue with username',
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
                             // Google Sign-In Button
                             SizedBox(
                               width: double.infinity,

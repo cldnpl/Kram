@@ -1,6 +1,9 @@
 import SwiftUI
 import AuthenticationServices
 
+/// Viola scuro per pulsante "Continue with username" (diverso dallo Shop #3D2468).
+private let loginButtonDarkPurple = Color(red: 45/255, green: 27/255, blue: 78/255) // #2D1B4E
+
 struct LoginView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
@@ -95,6 +98,7 @@ struct LoginView: View {
                 
                 // Sign in buttons
                 VStack(spacing: 14) {
+<<<<<<< HEAD
                     Button("Continue with username") {
                         showUsernameLogin = true
                     }
@@ -104,6 +108,23 @@ struct LoginView: View {
                         .clipShape(RoundedRectangle(cornerRadius:16))
                     
                     
+=======
+                    // Continue with username (dark purple – distinct from Shop)
+                    Button {
+                        // TODO: email/username sign-in
+                    } label: {
+                        Text("Continue with username")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 56)
+                            .background(loginButtonDarkPurple)
+                            .clipShape(RoundedRectangle(cornerRadius: 16))
+                            .shadow(color: .black.opacity(0.12), radius: 8, y: 4)
+                    }
+                    .disabled(authManager.isLoading)
+
+>>>>>>> fc0d863da90dc4edd125a225f5211d800566e104
                     // Google Sign-In Button
                     Button {
                         Task { await authManager.signInWithGoogle() }

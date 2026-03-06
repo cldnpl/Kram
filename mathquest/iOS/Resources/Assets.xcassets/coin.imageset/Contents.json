@@ -1,7 +1,11 @@
 {
   "images" : [
     {
+<<<<<<< HEAD
       "filename" : "Screenshot_2026-03-05_at_09.35.49-removebg-preview.png",
+=======
+      "filename" : "coin.png",
+>>>>>>> fc0d863da90dc4edd125a225f5211d800566e104
       "idiom" : "universal",
       "scale" : "1x"
     },

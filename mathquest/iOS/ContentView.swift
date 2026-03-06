@@ -18,7 +18,7 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $tabSelection.selectedTab) {
             HomeView()
-                .tabItem { Label(L10n.lessons, systemImage: "house.fill") }
+                .tabItem { Label("Lessons", systemImage: "house.fill") }
                 .tag(0)
             NavigationStack {
                 if canUseCamera {
@@ -27,13 +27,13 @@ struct ContentView: View {
                     CameraLoginRequiredView()
                 }
             }
-                .tabItem { Label(L10n.camera, systemImage: "camera.fill") }
-                .tag(1)
+            .tabItem { Label("Camera", systemImage: "camera.fill") }
+            .tag(1)
             NavigationStack {
                 ProfileView()
             }
-                .tabItem { Label(L10n.profileTab, systemImage: "person.fill") }
-                .tag(2)
+            .tabItem { Label("Profile", systemImage: "person.fill") }
+            .tag(2)
         }
         .environmentObject(tabSelection)
     }
@@ -55,17 +55,17 @@ private struct CameraLoginRequiredView: View {
                 .font(.system(size: 48))
                 .foregroundStyle(.secondary)
 
-            Text(L10n.signInRequired)
+            Text("Sign in required")
                 .font(.title3)
                 .fontWeight(.semibold)
 
-            Text(L10n.signInCamera)
+            Text("Sign in to use camera solving.")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 24)
 
-            Button(L10n.signIn) {
+            Button("Sign In") {
                 showLogin = true
             }
             .buttonStyle(.borderedProminent)
@@ -73,7 +73,7 @@ private struct CameraLoginRequiredView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemBackground))
-        .navigationTitle(L10n.camera)
+        .navigationTitle("Camera")
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showLogin) {
             LoginView(

@@ -39,9 +39,13 @@ actor APIClient {
     }
 
     func request<T: Decodable>(_ path: String, method: String = "GET", body: Data? = nil) async throws -> T {
-        var request = URLRequest(url: baseURL.appendingPathComponent(path))
+        let url = baseURL.appendingPathComponent(path)
+        var request = URLRequest(url: url)
         request.httpMethod = method
-        request.timeoutInterval = 15
+        request.timeoutInterval = 30
+        #if DEBUG
+        print("[APIClient] \(method) \(url.absoluteString)")
+        #endif
         if let token = token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
