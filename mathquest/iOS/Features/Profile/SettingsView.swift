@@ -11,17 +11,16 @@ struct SettingsView: View {
     @AppStorage("settings_sound") private var soundEnabled = true
     @AppStorage("settings_language") private var language = "en"
     @AppStorage("settings_difficulty") private var difficulty = "medio"
-
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
                 settingsSection(title: L10n.profile) {
-                    HStack {
+                    HStack(spacing: 12) {
                         Label(L10n.name, systemImage: "person.fill")
                             .foregroundStyle(.primary)
-                        Spacer()
-                        Text(profileName.isEmpty ? "—" : profileName)
-                            .foregroundStyle(.secondary)
+                        TextField(L10n.name, text: $profileName)
+                            .textFieldStyle(.plain)
+                            .font(.system(size: 17))
                     }
                     .padding(.vertical, 4)
                 }

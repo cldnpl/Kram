@@ -94,6 +94,8 @@ enum L10n {
             "server_retry_message": ["it": "Assicurati che il server sia avviato e riprova.", "en": "Make sure the server is running and try again.", "fr": "Vérifiez que le serveur est démarré et réessayez.", "es": "Asegúrate de que el servidor esté en ejecución e inténtalo de nuevo.", "uz": "Server ishlayotganiga ishonch hosil qiling va qayta urinib ko'ring."],
             "ok": ["it": "OK", "en": "OK", "fr": "OK", "es": "OK", "uz": "OK"],
             "diagram_not_available": ["it": "Diagramma non disponibile", "en": "Diagram not available", "fr": "Diagramme non disponible", "es": "Diagrama no disponible", "uz": "Diagramma mavjud emas"],
+            "cancel": ["it": "Annulla", "en": "Cancel", "fr": "Annuler", "es": "Cancelar", "uz": "Bekor qilish"],
+            "save": ["it": "Salva", "en": "Save", "fr": "Enregistrer", "es": "Guardar", "uz": "Saqlash"],
         ]
         let lang = currentLanguage
         let dict = table[key] ?? [:]
@@ -142,4 +144,6 @@ enum L10n {
     static var serverRetryMessage: String { string("server_retry_message") }
     static var ok: String { string("ok") }
     static var diagramNotAvailable: String { string("diagram_not_available") }
+    static var cancel: String { string("cancel") }
+    static var save: String { string("save") }
 }

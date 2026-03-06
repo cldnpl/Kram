@@ -84,5 +84,7 @@ class AppLocale {
     'diagram_not_available': {'it': 'Diagramma non disponibile', 'en': 'Diagram not available', 'fr': 'Diagramme non disponible', 'es': 'Diagrama no disponible', 'uz': 'Diagramma mavjud emas'},
     'no_content': {'it': 'Nessun contenuto', 'en': 'No content', 'fr': 'Aucun contenu', 'es': 'Sin contenido', 'uz': 'Mazmun yo\'q'},
     'practice': {'it': 'Esercitati', 'en': 'Practice', 'fr': 'Pratique', 'es': 'Practicar', 'uz': 'Mashq qilish'},
+    'cancel': {'it': 'Annulla', 'en': 'Cancel', 'fr': 'Annuler', 'es': 'Cancelar', 'uz': 'Bekor qilish'},
+    'save': {'it': 'Salva', 'en': 'Save', 'fr': 'Enregistrer', 'es': 'Guardar', 'uz': 'Saqlash'},
   };
 }

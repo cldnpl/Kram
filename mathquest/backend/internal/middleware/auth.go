@@ -31,3 +31,27 @@ func FirebaseAuth() fiber.Handler {
 		return c.Next()
 	}
 }
+
+// OptionalCameraAuth accepts either Bearer token (Firebase) or X-Username header (login con username).
+// Usato per le route camera così funzionano con Apple, Google o username/password.
+func OptionalCameraAuth() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		auth := c.Get("Authorization")
+		if auth != "" {
+			parts := strings.SplitN(auth, " ", 2)
+			if len(parts) == 2 && parts[0] == "Bearer" {
+				c.Locals(FirebaseUIDKey, parts[1])
+				c.Locals(UserIDKey, uint(0))
+				return c.Next()
+			}
+		}
+		username := strings.TrimSpace(strings.ToLower(c.Get("X-Username")))
+		if username != "" {
+			c.Locals(FirebaseUIDKey, "username:"+username)
+			c.Locals(UserIDKey, uint(0))
+			return c.Next()
+		}
+		log.Printf("[AUTH] 401 %s %s - missing authorization or X-Username", c.Method(), c.Path())
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "missing authorization or X-Username"})
+	}
+}

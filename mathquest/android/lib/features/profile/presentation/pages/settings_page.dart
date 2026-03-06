@@ -19,6 +19,7 @@ class _SettingsPageState extends State<SettingsPage> {
   String _difficulty = 'medio';
   String _language = 'en';
   String _profileLevel = 'Beginner';
+  final _nameEditController = TextEditingController();
 
   static const _keyNotifications = 'settings_notifications';
   static const _keySound = 'settings_sound';
@@ -26,6 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
   static const _keyDifficulty = 'settings_difficulty';
   static const _keyLanguage = 'settings_language';
   static const _keyProfileLevel = 'profile_level';
+  static const _keyProfileName = 'profile_name';
 
   @override
   void initState() {
@@ -33,10 +35,17 @@ class _SettingsPageState extends State<SettingsPage> {
     _load();
   }
 
+  @override
+  void dispose() {
+    _nameEditController.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _profileName = prefs.getString('profile_name') ?? '';
+      _profileName = prefs.getString(_keyProfileName) ?? '';
+      _nameEditController.text = _profileName;
       _notificationsEnabled = prefs.getBool(_keyNotifications) ?? true;
       _soundEnabled = prefs.getBool(_keySound) ?? true;
       _darkMode = prefs.getBool(_keyDarkMode) ?? false;
@@ -112,12 +121,32 @@ class _SettingsPageState extends State<SettingsPage> {
             context,
             backgroundColor: cardBg,
             borderColor: borderColor,
-            child: ListTile(
-              leading: Icon(Icons.person, color: AppColors.appPurple, size: 22),
-              title: Text(AppLocale.tr('name'), style: const TextStyle(fontWeight: FontWeight.w500)),
-              trailing: Text(
-                _profileName.isEmpty ? '—' : _profileName,
-                style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Icon(Icons.person, color: AppColors.appPurple, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _nameEditController,
+                      decoration: InputDecoration(
+                        hintText: AppLocale.tr('name'),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
+                      onChanged: (v) async {
+                        _profileName = v;
+                        await _setString(_keyProfileName, v);
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

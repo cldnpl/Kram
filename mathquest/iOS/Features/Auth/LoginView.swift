@@ -5,8 +5,11 @@ struct LoginView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
     @AppStorage("hasSeenCarousel") private var hasSeenCarousel = true
+    @State private var showUsernameLogin = false
     var showCloseButton = false
-
+    /// Chiamato dopo login/register con username: chiude questa view e porta alla Home.
+    var onUsernameLoginSuccess: (() -> Void)?
+    
     var body: some View {
         ZStack {
             // Background gradient
@@ -20,25 +23,25 @@ struct LoginView: View {
                 endPoint: .bottomTrailing
             )
             .ignoresSafeArea()
-
+            
             // Decorative circles
             GeometryReader { geo in
                 Circle()
                     .fill(.white.opacity(0.1))
                     .frame(width: 300, height: 300)
                     .offset(x: -100, y: -50)
-
+                
                 Circle()
                     .fill(.white.opacity(0.08))
                     .frame(width: 200, height: 200)
                     .offset(x: geo.size.width - 80, y: geo.size.height - 200)
-
+                
                 Circle()
                     .fill(.white.opacity(0.05))
                     .frame(width: 150, height: 150)
                     .offset(x: geo.size.width - 120, y: 100)
             }
-
+            
             VStack(spacing: 0) {
                 if showCloseButton {
                     HStack {
@@ -57,9 +60,9 @@ struct LoginView: View {
                         .padding(.top, 16)
                     }
                 }
-
+                
                 Spacer()
-
+                
                 // Logo and title
                 VStack(spacing: 16) {
                     ZStack {
@@ -67,7 +70,7 @@ struct LoginView: View {
                             .fill(.white)
                             .frame(width: 100, height: 100)
                             .shadow(color: .black.opacity(0.1), radius: 20, y: 10)
-
+                        
                         Image(systemName: "function")
                             .font(.system(size: 44, weight: .bold))
                             .foregroundStyle(
@@ -78,20 +81,29 @@ struct LoginView: View {
                                 )
                             )
                     }
-
+                    
                     Text("Kram")
                         .font(.system(size: 42, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
-
+                    
                     Text("Master math, one step at a time")
                         .font(.system(size: 17, weight: .medium))
                         .foregroundStyle(.white.opacity(0.85))
                 }
-
+                
                 Spacer()
-
+                
                 // Sign in buttons
                 VStack(spacing: 14) {
+                    Button("Continue with username") {
+                        showUsernameLogin = true
+                    }
+                        .frame(width: 360, height: 55)
+                        .foregroundStyle(.white)
+                        .background(Color(red: 61/255, green: 36/255, blue: 104/255).opacity(0.5))
+                        .clipShape(RoundedRectangle(cornerRadius:16))
+                    
+                    
                     // Google Sign-In Button
                     Button {
                         Task { await authManager.signInWithGoogle() }
@@ -110,7 +122,7 @@ struct LoginView: View {
                         .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
                     }
                     .disabled(authManager.isLoading)
-
+                    
                     // Apple Sign-In Button
                     SignInWithAppleButton(.continue) { request in
                         authManager.prepareAppleSignInRequest(request)
@@ -121,13 +133,13 @@ struct LoginView: View {
                     .frame(height: 56)
                     .clipShape(RoundedRectangle(cornerRadius: 16))
                     .disabled(authManager.isLoading)
-
+                    
                     if authManager.isLoading {
                         ProgressView()
                             .tint(.white)
                             .padding(.top, 8)
                     }
-
+                    
                     if let errorMessage = authManager.errorMessage {
                         Text(errorMessage)
                             .font(.footnote)
@@ -138,34 +150,29 @@ struct LoginView: View {
                     }
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 20)
-
-                if showCloseButton {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("Continue as guest")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
-                    .disabled(authManager.isLoading)
-                    .padding(.bottom, 12)
-                }
-
-                // Footer
+                .padding(.bottom, 30)
+                
+                
                 Button {
-                    hasSeenCarousel = false
+                    dismiss()
                 } label: {
-                    Text("View onboarding again")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.7))
+                    Text("Continue as guest")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.white.opacity(0.65))
                 }
                 .disabled(authManager.isLoading)
-                .padding(.bottom, 32)
+                .padding(.bottom, 12)
             }
+        }
+        .fullScreenCover(isPresented: $showUsernameLogin) {
+            UsernameLoginView(onDismiss: {
+                showUsernameLogin = false
+                onUsernameLoginSuccess?()
+            })
         }
         .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
             if showCloseButton && isAuthenticated {
+                onUsernameLoginSuccess?()
                 dismiss()
             }
         }

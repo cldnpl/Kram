@@ -32,6 +32,7 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	authGroup := api.Group("/auth")
 	authGroup.Post("/google", auth.Google)
 	authGroup.Post("/apple", auth.Apple)
+	authGroup.Post("/register-username", auth.RegisterUsername(db))
 	authGroup.Get("/me", middleware.FirebaseAuth(), auth.Me)
 
 	// Onboarding
@@ -49,12 +50,13 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	// Exercises
 	protected.Post("/exercises/:id/submit", exercise.Submit)
 
-	// Camera - with dependencies
+	// Camera - con OptionalCameraAuth: Bearer (Apple/Google) oppure X-Username (login username)
 	cameraHandler := camera.NewHandler(db, redisClient, cfg)
-	protected.Post("/camera/solve", cameraHandler.Solve)
-	protected.Get("/camera/history", cameraHandler.History)
-	protected.Get("/camera/history/:id", cameraHandler.HistoryDetail)
-	protected.Get("/camera/status", cameraHandler.Status)
+	cameraAuth := api.Group("", middleware.OptionalCameraAuth())
+	cameraAuth.Post("/camera/solve", cameraHandler.Solve)
+	cameraAuth.Get("/camera/history", cameraHandler.History)
+	cameraAuth.Get("/camera/history/:id", cameraHandler.HistoryDetail)
+	cameraAuth.Get("/camera/status", cameraHandler.Status)
 
 	// Coins
 	protected.Get("/coins/balance", coins.Balance)

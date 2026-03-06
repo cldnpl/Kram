@@ -1,16 +1,27 @@
 import SwiftUI
 
+/// Permette di cambiare tab da figli (es. dopo login username → andare alla Home).
+final class TabSelection: ObservableObject {
+    @Published var selectedTab: Int = 0
+}
+
 struct ContentView: View {
-    @State private var selectedTab = 0
+    @StateObject private var tabSelection = TabSelection()
     @EnvironmentObject private var authManager: AuthManager
+    @AppStorage("profile_username") private var profileUsername = ""
+
+    /// Camera disponibile se loggato con Firebase (Apple/Google) oppure con username/password.
+    private var canUseCamera: Bool {
+        authManager.isAuthenticated || !profileUsername.isEmpty
+    }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $tabSelection.selectedTab) {
             HomeView()
                 .tabItem { Label(L10n.lessons, systemImage: "house.fill") }
                 .tag(0)
             NavigationStack {
-                if authManager.isAuthenticated {
+                if canUseCamera {
                     CameraView()
                 } else {
                     CameraLoginRequiredView()
@@ -24,6 +35,7 @@ struct ContentView: View {
                 .tabItem { Label(L10n.profileTab, systemImage: "person.fill") }
                 .tag(2)
         }
+        .environmentObject(tabSelection)
     }
 }
 
@@ -34,6 +46,7 @@ struct ContentView: View {
 }
 
 private struct CameraLoginRequiredView: View {
+    @EnvironmentObject private var tabSelection: TabSelection
     @State private var showLogin = false
 
     var body: some View {
@@ -63,7 +76,16 @@ private struct CameraLoginRequiredView: View {
         .navigationTitle(L10n.camera)
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showLogin) {
-            LoginView(showCloseButton: true)
+            LoginView(
+                showCloseButton: true,
+                onUsernameLoginSuccess: {
+                    showLogin = false
+                    tabSelection.selectedTab = 0
+                }
+            )
+        }
+        .onChange(of: tabSelection.selectedTab) { _, newTab in
+            if newTab != 1 { showLogin = false }
         }
     }
 }

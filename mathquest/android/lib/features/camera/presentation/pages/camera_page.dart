@@ -4,7 +4,6 @@ import '../../data/camera_models.dart';
 import '../providers/camera_provider.dart';
 import '../widgets/camera_preview.dart';
 import '../widgets/solution_panel.dart';
-import '../widgets/step_card.dart';
 import 'camera_history_page.dart';
 
 class CameraPage extends StatefulWidget {

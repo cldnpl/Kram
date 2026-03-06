@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/username_login_page.dart';
 import '../../features/onboarding/presentation/pages/carousel_onboarding_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/lesson/presentation/pages/lesson_detail_page.dart';
@@ -38,7 +39,9 @@ final appRouter = GoRouter(
     final isProfileComplete = hasCompletedProfile &&
         profileName.isNotEmpty &&
         profileLevel.isNotEmpty;
-    final isAuthenticated = FirebaseAuth.instance.currentUser != null;
+    final isFirebaseAuth = FirebaseAuth.instance.currentUser != null;
+    final hasUsername = (prefs.getString('profile_username') ?? '').isNotEmpty;
+    final isLoggedIn = isFirebaseAuth || hasUsername;
 
     final location = state.matchedLocation;
     final isCarouselRoute = location == '/carousel';
@@ -54,7 +57,7 @@ final appRouter = GoRouter(
       return isProfileSetupRoute ? null : '/profile-setup';
     }
 
-    if (!isAuthenticated && isCameraRoute) {
+    if (!isLoggedIn && isCameraRoute) {
       return '/login?reason=camera';
     }
 
@@ -62,7 +65,7 @@ final appRouter = GoRouter(
       return '/';
     }
 
-    if (isAuthenticated && isLoginRoute) {
+    if (isLoggedIn && isLoginRoute) {
       return '/';
     }
 
@@ -70,6 +73,7 @@ final appRouter = GoRouter(
   },
   routes: [
     GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+    GoRoute(path: '/username-login', builder: (_, __) => const UsernameLoginPage()),
     GoRoute(
       path: '/carousel',
       builder: (_, __) => const CarouselOnboardingPage(),

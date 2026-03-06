@@ -24,12 +24,11 @@ struct MathQuestApp: App {
 
     @AppStorage("hasSeenCarousel") private var hasSeenCarousel = false
     @AppStorage("hasCompletedProfile") private var hasCompletedProfile = false
-    @AppStorage("profile_name") private var profileName = ""
-    @AppStorage("profile_level") private var profileLevel = ""
     @AppStorage("settings_language") private var appLanguage = "en"
 
+    /// Dopo il primo setup non si torna più alla schermata "Set your profile": nome e livello si modificano solo in Impostazioni.
     private var isProfileComplete: Bool {
-        hasCompletedProfile && !profileName.isEmpty && !profileLevel.isEmpty
+        hasCompletedProfile
     }
 
     var body: some Scene {
