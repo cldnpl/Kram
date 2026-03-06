@@ -1,29 +1,29 @@
 import SwiftUI
 
+private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
+
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showShop = false
-<<<<<<< HEAD
     @AppStorage("profile_name") private var profileName = ""
-    
+
     var body: some View {
         NavigationStack {
             ZStack {
-                // Gradiente su tutto lo sfondo, ignora safe area
                 LinearGradient(
                     stops: [
                         .init(color: appPurple, location: 0),
                         .init(color: Color(red: 0.85, green: 0.82, blue: 0.98), location: 0.25),
                         .init(color: Color(red: 0.93, green: 0.91, blue: 0.99), location: 0.3),
                         .init(color: Color(red: 0.97, green: 0.96, blue: 1.0), location: 0.4),
-                        .init(color: Color.white, location: 0.55)  // bianco solo dal 90% in giù
+                        .init(color: Color.white, location: 0.55)
                     ],
                     startPoint: .top,
                     endPoint: .bottom
-                )                .ignoresSafeArea()
-                
+                )
+                .ignoresSafeArea()
+
                 VStack(spacing: 0) {
-                    // Header
                     ZStack(alignment: .topTrailing) {
                         Text("Hi, \(profileName.isEmpty ? L10n.hiThere : profileName)!")
                             .font(.largeTitle)
@@ -32,7 +32,7 @@ struct HomeView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.leading, 20)
                             .padding(.top, 56)
-                        
+
                         Button {
                             showShop = true
                         } label: {
@@ -41,9 +41,9 @@ struct HomeView: View {
                                     .resizable()
                                     .renderingMode(.original)
                                     .scaledToFit()
-                                    .frame(width: 24, height: 24)   // layout “base”
-                                    .scaleEffect(2.3)               // ingrandisce SOLO la moneta
-                                
+                                    .frame(width: 24, height: 24)
+                                    .scaleEffect(2.3)
+
                                 Text("\(viewModel.coinBalance)")
                                     .fontWeight(.semibold)
                             }
@@ -55,7 +55,7 @@ struct HomeView: View {
                         .buttonStyle(.plain)
                         .padding(.top, 52)
                         .padding(.trailing, 16)
-                        
+
                         Group {
                             if viewModel.isLoading {
                                 VStack(spacing: 12) {
@@ -92,7 +92,6 @@ struct HomeView: View {
                                     .padding(.top, 20)
                                     .padding(.bottom, 24)
                                 }
-                                // Sfondo trasparente così si vede il gradiente dietro
                                 .scrollContentBackground(.hidden)
                                 .background(Color.clear)
                             }
@@ -113,174 +112,6 @@ struct HomeView: View {
             }
         }
     }
-    
-    struct CategoryCardView: View {
-        let title: String
-        var completed: Int = 0
-        var total: Int = 0
-        
-        var body: some View {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(title)
-                    .font(.body)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.black)
-                    .multilineTextAlignment(.leading)
-                    .lineLimit(3)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 0)
-                Text("\(completed)/\(total)")
-                    .font(.footnote)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.black)
-                ProgressView(value: total > 0 ? Double(completed) / Double(total) : 0)
-                    .tint(.green)
-                    .scaleEffect(x: 1, y: 1.5, anchor: .center)
-            }
-            .frame(maxWidth: .infinity, minHeight: 120, alignment: .topLeading)
-            .padding(12)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(appPurple, lineWidth: 1)
-            )
-        }
-    }
-    
-    struct CategorySubtopicsView: View {
-        let category: CategoryItem
-        @EnvironmentObject private var authManager: AuthManager
-        @AppStorage("guest_lessons_opened_count") private var guestLessonsOpenedCount = 0
-        @State private var selectedLesson: LessonItem?
-        @State private var showLoginPrompt = false
-        @State private var showLoginSheet = false
-        
-        var body: some View {
-            List {
-                ForEach(category.sections) { section in
-                    Section(header: Text(section.title)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)) {
-                            ForEach(section.items) { item in
-                                let lessonCost = lessonCostForSection(section.lessonId)
-                                let lesson = LessonItem(
-                                    id: section.lessonId,
-                                    title: item.title,
-                                    description: "",
-                                    difficulty: 0,
-                                    coinCost: lessonCost
-                                )
-                                
-                                Button {
-                                    handleLessonTap(lesson)
-                                } label: {
-                                    HStack {
-                                        Text(item.title)
-                                            .font(.body)
-                                        Spacer()
-                                        Image(systemName: "chevron.right")
-                                            .font(.footnote.weight(.semibold))
-                                            .foregroundStyle(.tertiary)
-                                    }
-=======
-    @State private var showCamera = false
-
-    var body: some View {
-        NavigationStack {
-            Group {
-                if viewModel.isLoading {
-                    VStack(spacing: 12) {
-                        ProgressView()
-                        Text("Loading...")
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if let msg = viewModel.errorMessage {
-                    VStack(spacing: 8) {
-                        Text("Error: \(msg)")
-                            .multilineTextAlignment(.center)
-                            .padding()
-                        Button("Retry") { Task { await viewModel.load() } }
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ScrollView {
-                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 175))], spacing: 14) {
-                            ForEach(viewModel.categories) { category in
-                                NavigationLink(destination: CategorySubtopicsView(category: category)) {
-                                    CategoryCardView(
-                                        title: category.title,
-                                        completed: 0,
-                                        total: viewModel.totalItems(for: category)
-                                    )
->>>>>>> fc0d863da90dc4edd125a225f5211d800566e104
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-<<<<<<< HEAD
-=======
-                        .padding()
-                    }
->>>>>>> fc0d863da90dc4edd125a225f5211d800566e104
-                }
-            }
-            .listStyle(.insetGrouped)
-            .navigationDestination(item: $selectedLesson) { lesson in
-                LessonDetailView(lesson: lesson)
-                    .toolbar(.hidden, for: .tabBar)
-            }
-            .navigationTitle("Lessons")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        showCamera = true
-                    } label: {
-                        Image(systemName: "camera.fill")
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showShop = true
-                    } label: {
-                        CoinBadgeView(coins: viewModel.coinBalance)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-<<<<<<< HEAD
-            .navigationTitle(category.title)
-            .navigationBarTitleDisplayMode(.inline)
-            .alert(L10n.signInRequired, isPresented: $showLoginPrompt) {
-                Button(L10n.notNow, role: .cancel) {}
-                Button(L10n.signIn) {
-                    showLoginSheet = true
-                }
-            } message: {
-                Text(L10n.guestLessonMessage)
-            }
-            .fullScreenCover(isPresented: $showLoginSheet) {
-                LoginView(showCloseButton: true)
-            }
-            .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
-                if isAuthenticated {
-                    showLoginSheet = false
-=======
-            .sheet(isPresented: $showShop) {
-                StoreView()
-            }
-            .fullScreenCover(isPresented: $showCamera) {
-                CameraView()
-            }
-            .task {
-                print("[Home] view appeared, loading data")
-                await viewModel.load()
-            }
-        }
-    }
 }
 
 struct CategoryCardView: View {
@@ -289,24 +120,32 @@ struct CategoryCardView: View {
     var total: Int = 0
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.title3)
+                .font(.body)
                 .fontWeight(.semibold)
+                .foregroundStyle(.black)
                 .multilineTextAlignment(.leading)
                 .lineLimit(3)
-            Spacer(minLength: 6)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
             Text("\(completed)/\(total)")
-                .font(.subheadline)
+                .font(.footnote)
                 .fontWeight(.semibold)
+                .foregroundStyle(.black)
             ProgressView(value: total > 0 ? Double(completed) / Double(total) : 0)
-                .tint(.red)
-                .scaleEffect(x: 1, y: 1.8, anchor: .center)
+                .tint(.green)
+                .scaleEffect(x: 1, y: 1.5, anchor: .center)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(18)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .frame(maxWidth: .infinity, minHeight: 120, alignment: .topLeading)
+        .padding(12)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(appPurple, lineWidth: 1)
+        )
     }
 }
 
@@ -349,39 +188,23 @@ struct CategorySubtopicsView: View {
                         }
                         .buttonStyle(.plain)
                     }
->>>>>>> fc0d863da90dc4edd125a225f5211d800566e104
                 }
             }
         }
-        
-        private func lessonCostForSection(_ lessonId: String) -> Int {
-            let base = 20
-            let increment = ((Int(lessonId) ?? 1) - 1) % 4
-            return base + (increment * 5)
-        }
-<<<<<<< HEAD
-        
-        private func handleLessonTap(_ lesson: LessonItem) {
-            if authManager.isAuthenticated {
-                selectedLesson = lesson
-                return
-            }
-            
-            if guestLessonsOpenedCount < 1 {
-                guestLessonsOpenedCount += 1
-                selectedLesson = lesson
-                return
-=======
+        .listStyle(.insetGrouped)
         .navigationTitle(category.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)
-        .alert("Sign in required", isPresented: $showLoginPrompt) {
-            Button("Not now", role: .cancel) {}
-            Button("Sign In") {
+        .navigationDestination(item: $selectedLesson) { lesson in
+            LessonDetailView(lesson: lesson)
+        }
+        .alert(L10n.signInRequired, isPresented: $showLoginPrompt) {
+            Button(L10n.notNow, role: .cancel) {}
+            Button(L10n.signIn) {
                 showLoginSheet = true
             }
         } message: {
-            Text("Guests can open one lesson. Sign in to continue all lessons.")
+            Text(L10n.guestLessonMessage)
         }
         .fullScreenCover(isPresented: $showLoginSheet) {
             LoginView(showCloseButton: true)
@@ -389,13 +212,32 @@ struct CategorySubtopicsView: View {
         .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
             if isAuthenticated {
                 showLoginSheet = false
->>>>>>> fc0d863da90dc4edd125a225f5211d800566e104
             }
-            
-            showLoginPrompt = true
         }
     }
+
+    private func lessonCostForSection(_ lessonId: String) -> Int {
+        let base = 20
+        let increment = ((Int(lessonId) ?? 1) - 1) % 4
+        return base + (increment * 5)
+    }
+
+    private func handleLessonTap(_ lesson: LessonItem) {
+        if authManager.isAuthenticated {
+            selectedLesson = lesson
+            return
+        }
+
+        if guestLessonsOpenedCount < 1 {
+            guestLessonsOpenedCount += 1
+            selectedLesson = lesson
+            return
+        }
+
+        showLoginPrompt = true
+    }
 }
+
 #Preview {
     HomeView()
 }
