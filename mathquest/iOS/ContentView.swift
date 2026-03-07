@@ -32,6 +32,9 @@ struct ContentView: View {
             HomeView()
                 .tabItem { Label("Lessons", systemImage: "house.fill") }
                 .tag(0)
+            CommunityView()
+                .tabItem { Label("Community", systemImage: "person.2.fill") }
+                .tag(1)
             NavigationStack {
                 if canUseCamera {
                     CameraView(onTrialUsed: markTrialUsed)
@@ -40,12 +43,12 @@ struct ContentView: View {
                 }
             }
             .tabItem { Label("Camera", systemImage: "camera.fill") }
-            .tag(1)
+            .tag(2)
             NavigationStack {
                 ProfileView()
             }
             .tabItem { Label("Profile", systemImage: "person.fill") }
-            .tag(2)
+            .tag(3)
         }
         .environmentObject(tabSelection)
         .fullScreenCover(isPresented: $showProfileSetup) {
@@ -118,7 +121,7 @@ private struct CameraLoginRequiredView: View {
             )
         }
         .onChange(of: tabSelection.selectedTab) { _, newTab in
-            if newTab != 1 { showLogin = false }
+            if newTab != 2 { showLogin = false }
         }
     }
 }

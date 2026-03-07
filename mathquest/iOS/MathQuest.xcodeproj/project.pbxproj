@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B10000000000000000000027 /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000027 /* CommunityView.swift */; };
 		B10000000000000000000001 /* MathQuestApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* MathQuestApp.swift */; };
 		B10000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* ContentView.swift */; };
 		B10000000000000000000003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* APIClient.swift */; };
@@ -133,6 +134,7 @@
 		F10000000000000000000024 /* UsernameLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsernameLoginView.swift; sourceTree = "<group>"; };
 		F10000000000000000000025 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		F10000000000000000000026 /* KeychainFlag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainFlag.swift; sourceTree = "<group>"; };
+		F10000000000000000000027 /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -255,11 +257,20 @@
 				G1000000000000000000000C /* Home */,
 				G10000000000000000000011 /* Lesson */,
 				G1000000000000000000000D /* Camera */,
+				G10000000000000000000016 /* Community */,
 				G1000000000000000000000E /* Profile */,
 				G1000000000000000000000F /* Store */,
 				G10000000000000000000010 /* Rewards */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000016 /* Community */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000027 /* CommunityView.swift */,
+			);
+			path = Community;
 			sourceTree = "<group>";
 		};
 		G10000000000000000000006 /* Components */ = {
@@ -557,6 +568,7 @@
 				B10000000000000000000022 /* UsernamePasswordAuthView.swift in Sources */,
 				B10000000000000000000023 /* UsernamePasswordRegisterView.swift in Sources */,
 				B10000000000000000000026 /* KeychainFlag.swift in Sources */,
+		B10000000000000000000027 /* CommunityView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
