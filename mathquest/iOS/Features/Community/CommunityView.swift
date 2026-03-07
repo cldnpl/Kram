@@ -2,9 +2,22 @@ import SwiftUI
 
 private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 
+enum FriendStatus {
+    case none
+    case pending
+    case friends
+}
+
 struct CommunityView: View {
     @State private var searchText = ""
     @FocusState private var isSearchFocused: Bool
+
+    /// Stato amicizia per username (sostituire con API quando disponibile)
+    @State private var friendStatuses: [String: FriendStatus] = [
+        "laura_math": .friends  // mock: già amici per mostrare checkmark
+    ]
+    @State private var showPendingAlert = false
+    @State private var pendingUsername: String?
 
     /// Mock utenti per la ricerca (sostituire con API quando disponibile)
     private let mockUsers = ["nomeutete", "mario_rossi", "laura_math", "alex_solver"]
@@ -66,9 +79,10 @@ struct CommunityView: View {
                                 ForEach(filteredUsers, id: \.self) { username in
                                     UserSearchRow(
                                         username: username,
-                                        profileImageURL: avatarURL(for: username)
+                                        profileImageURL: avatarURL(for: username),
+                                        status: friendStatuses[username] ?? .none
                                     ) {
-                                        // TODO: invio richiesta amicizia
+                                        handleFriendAction(username: username)
                                     }
                                     if username != filteredUsers.last {
                                         Divider()
@@ -103,12 +117,32 @@ struct CommunityView: View {
                 .background(Color.clear)
             }
         }
+        .alert("Pending", isPresented: $showPendingAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("Friend request to @\(pendingUsername ?? "") is pending.")
+        }
+    }
+
+    private func handleFriendAction(username: String) {
+        let status = friendStatuses[username] ?? .none
+        switch status {
+        case .none:
+            // TODO: POST /social/friends/request quando API disponibile
+            friendStatuses[username] = .pending
+        case .pending:
+            pendingUsername = username
+            showPendingAlert = true
+        case .friends:
+            break
+        }
     }
 }
 
 private struct UserSearchRow: View {
     let username: String
     let profileImageURL: URL?
+    let status: FriendStatus
     let onTap: () -> Void
 
     var body: some View {
@@ -124,14 +158,31 @@ private struct UserSearchRow: View {
 
                 Spacer()
 
-                Image(systemName: "person.fill.badge.plus")
-                    .font(.title2)
-                    .foregroundStyle(appPurple)
+                statusView
             }
             .padding(.vertical, 12)
             .padding(.horizontal, 16)
         }
         .buttonStyle(.plain)
+    }
+
+    @ViewBuilder
+    private var statusView: some View {
+        switch status {
+        case .none:
+            Image(systemName: "person.fill.badge.plus")
+                .font(.title2)
+                .foregroundStyle(appPurple)
+        case .pending:
+            Text("Pending")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+        case .friends:
+            Image(systemName: "checkmark")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundStyle(appPurple)
+        }
     }
 }
 
