@@ -23,8 +23,7 @@ struct StreakLiveActivity: Widget {
                 }
 
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text(formattedTime(context.state.secondsRemaining))
-                        .font(.title3.monospacedDigit().bold())
+                    countdownText(for: context.state, font: .title3.monospacedDigit().bold())
                         .foregroundStyle(.red)
                 }
 
@@ -49,9 +48,7 @@ struct StreakLiveActivity: Widget {
                         .font(.caption.bold())
                 }
             } compactTrailing: {
-                // Compact trailing (right pill)
-                Text(formattedTimeShort(context.state.secondsRemaining))
-                    .font(.caption.monospacedDigit())
+                countdownText(for: context.state, font: .caption2.monospacedDigit())
                     .foregroundStyle(.red)
             } minimal: {
                 // Minimal (single icon when another Live Activity is also active)
@@ -61,19 +58,16 @@ struct StreakLiveActivity: Widget {
         }
     }
 
-    private func formattedTime(_ seconds: Int) -> String {
-        let h = seconds / 3600
-        let m = (seconds % 3600) / 60
-        return String(format: "%d:%02d", h, m)
-    }
-
-    private func formattedTimeShort(_ seconds: Int) -> String {
-        let h = seconds / 3600
-        let m = (seconds % 3600) / 60
-        if h > 0 {
-            return "\(h)h\(m)m"
+    @ViewBuilder
+    private func countdownText(for state: StreakActivityAttributes.ContentState, font: Font) -> some View {
+        let deadline = Date(timeIntervalSince1970: TimeInterval(state.deadlineTimestamp))
+        if deadline <= Date() {
+            Text("0:00")
+                .font(font)
+        } else {
+            Text(timerInterval: Date()...deadline, countsDown: true)
+                .font(font)
         }
-        return "\(m)m"
     }
 }
 
@@ -87,7 +81,7 @@ private struct StreakLockScreenView: View {
             HStack(spacing: 6) {
                 Image(systemName: "flame.fill")
                     .foregroundStyle(.orange)
-                    .font(.title2)
+                    .font(.title3.monospacedDigit().bold())
                 Text("\(state.streakDays)")
                     .font(.title2.bold())
             }
@@ -104,7 +98,7 @@ private struct StreakLockScreenView: View {
 
             // Countdown
             VStack(spacing: 2) {
-                Text(formattedCountdown(state.secondsRemaining))
+                countdownText
                     .font(.title3.monospacedDigit().bold())
                     .foregroundStyle(.red)
                 Text("remaining")
@@ -116,10 +110,13 @@ private struct StreakLockScreenView: View {
         .background(Color(.systemBackground))
     }
 
-    private func formattedCountdown(_ seconds: Int) -> String {
-        let h = seconds / 3600
-        let m = (seconds % 3600) / 60
-        return String(format: "%d:%02d", h, m)
+    @ViewBuilder
+    private var countdownText: some View {
+        let deadline = Date(timeIntervalSince1970: TimeInterval(state.deadlineTimestamp))
+        if deadline <= Date() {
+            Text("0:00")
+        } else {
+            Text(timerInterval: Date()...deadline, countsDown: true)
+        }
     }
 }
-

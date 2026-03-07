@@ -3,8 +3,8 @@ import Foundation
 
 struct StreakActivityAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
-        /// Seconds remaining until midnight
-        var secondsRemaining: Int
+        /// Unix timestamp for local midnight. The widget derives its own countdown from this.
+        var deadlineTimestamp: Int
         /// Current streak that's at risk
         var streakDays: Int
     }

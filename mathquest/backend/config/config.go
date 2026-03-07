@@ -17,12 +17,21 @@ type Config struct {
 	Env              string
 	ClaudeAPIKey     string
 	CameraDailyLimit int
+	APNSTeamID       string
+	APNSKeyID        string
+	APNSBundleID     string
+	APNSPrivateKey   string
+	APNSEnvironment  string
+	StreakWarnHours  int
+	StreakScanMins   int
 }
 
 func Load() (*Config, error) {
 	loadEnvFiles()
 
 	dailyLimit, _ := strconv.Atoi(getEnv("CAMERA_DAILY_LIMIT", "5"))
+	streakWarnHours, _ := strconv.Atoi(getEnv("STREAK_WARNING_WINDOW_HOURS", "4"))
+	streakScanMins, _ := strconv.Atoi(getEnv("STREAK_WARNING_SCAN_INTERVAL_MINUTES", "15"))
 
 	return &Config{
 		Port:             getEnv("PORT", "8080"),
@@ -33,6 +42,13 @@ func Load() (*Config, error) {
 		Env:              getEnv("ENV", "development"),
 		ClaudeAPIKey:     getEnv("CLAUDE_API_KEY", ""),
 		CameraDailyLimit: dailyLimit,
+		APNSTeamID:       getEnv("APNS_TEAM_ID", ""),
+		APNSKeyID:        getEnv("APNS_KEY_ID", ""),
+		APNSBundleID:     getEnv("APNS_BUNDLE_ID", "com.kram.math"),
+		APNSPrivateKey:   getEnv("APNS_PRIVATE_KEY_PATH", ""),
+		APNSEnvironment:  getEnv("APNS_ENV", "development"),
+		StreakWarnHours:  streakWarnHours,
+		StreakScanMins:   streakScanMins,
 	}, nil
 }
 

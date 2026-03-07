@@ -41,7 +41,7 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	api.Post("/onboarding", middleware.FirebaseAuth(), user.Save)
 
 	// Streak handler
-	streakHandler := streak.NewHandler(db, redisClient)
+	streakHandler := streak.NewHandler(db, redisClient, cfg)
 
 	// Protected routes
 	protected := api.Group("", middleware.FirebaseAuth(), middleware.ResolveUserID(db))
@@ -90,6 +90,7 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	// Streak
 	protected.Get("/streak", streakHandler.GetStreak)
 	protected.Get("/streak/calendar", streakHandler.GetCalendar)
+	protected.Post("/streak/live-activity/device", streakHandler.UpsertLiveActivityDevice)
 
 	// Coins
 	protected.Get("/coins/balance", coins.Balance)

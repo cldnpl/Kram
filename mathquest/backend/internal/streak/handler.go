@@ -11,12 +11,16 @@ import (
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 
+	"mathquest/backend/config"
 	"mathquest/backend/internal/middleware"
 )
 
 type Handler struct {
-	db    *gorm.DB
-	redis *redis.Client
+	db            *gorm.DB
+	redis         *redis.Client
+	notifier      *liveActivityNotifier
+	warningWindow time.Duration
+	scanInterval  time.Duration
 }
 
 type User struct {
@@ -36,8 +40,29 @@ type ActivityLog struct {
 
 func (ActivityLog) TableName() string { return "activity_log" }
 
-func NewHandler(db *gorm.DB, redisClient *redis.Client) *Handler {
-	return &Handler{db: db, redis: redisClient}
+func NewHandler(db *gorm.DB, redisClient *redis.Client, cfg *config.Config) *Handler {
+	handler := &Handler{
+		db:            db,
+		redis:         redisClient,
+		notifier:      newLiveActivityNotifier(cfg),
+		warningWindow: 4 * time.Hour,
+		scanInterval:  15 * time.Minute,
+	}
+
+	if cfg != nil {
+		if cfg.StreakWarnHours > 0 {
+			handler.warningWindow = time.Duration(cfg.StreakWarnHours) * time.Hour
+		}
+		if cfg.StreakScanMins > 0 {
+			handler.scanInterval = time.Duration(cfg.StreakScanMins) * time.Minute
+		}
+	}
+
+	if handler.db != nil && handler.notifier != nil {
+		go handler.startWarningLoop()
+	}
+
+	return handler
 }
 
 // RecordActivity updates the user's streak based on Duolingo logic.

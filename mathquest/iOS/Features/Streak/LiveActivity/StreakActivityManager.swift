@@ -1,17 +1,60 @@
 import ActivityKit
 import Foundation
+import UIKit
+import UserNotifications
 
 /// Manages the streak warning Live Activity / Dynamic Island.
-/// Activates after 21:00 if user hasn't been active today, showing a countdown to midnight.
+/// Activates during the final 4 hours before local midnight if the user hasn't been active today.
 /// When the user completes an activity, or at midnight, the Live Activity is dismissed.
 @MainActor
 final class StreakActivityManager: ObservableObject {
     static let shared = StreakActivityManager()
 
+    private let deviceIDDefaultsKey = "streak_live_activity_device_id"
     private var currentActivity: Activity<StreakActivityAttributes>?
-    private var updateTimer: Timer?
+    private var isObservingPushToStartTokens = false
 
     private init() {}
+
+    func refreshRemoteStartSupport() async {
+        guard #available(iOS 17.2, *) else {
+            await syncPushToStartRegistration(token: nil, enabled: false)
+            return
+        }
+
+        let center = UNUserNotificationCenter.current()
+        let settings = await center.notificationSettings()
+
+        let isAuthorized: Bool
+        switch settings.authorizationStatus {
+        case .authorized, .provisional, .ephemeral:
+            isAuthorized = true
+        case .notDetermined:
+            do {
+                isAuthorized = try await center.requestAuthorization(options: [.alert, .badge, .sound])
+            } catch {
+                print("[StreakActivity] Notification authorization failed: \(error)")
+                isAuthorized = false
+            }
+        default:
+            isAuthorized = false
+        }
+
+        guard isAuthorized else {
+            await syncPushToStartRegistration(token: nil, enabled: false)
+            return
+        }
+
+        UIApplication.shared.registerForRemoteNotifications()
+        startPushToStartObservationIfNeeded()
+
+        if let tokenData = Activity<StreakActivityAttributes>.pushToStartToken {
+            await syncPushToStartRegistration(
+                token: Self.hexString(from: tokenData),
+                enabled: true
+            )
+        }
+    }
 
     /// Call this whenever streak data is fetched (e.g., on app launch, after activity completion).
     /// - Parameters:
@@ -24,15 +67,13 @@ final class StreakActivityManager: ObservableObject {
             return
         }
 
-        // Check if it's after 21:00 local time
-        let now = Date()
-        let calendar = Calendar.current
-        let hour = calendar.component(.hour, from: now)
+        let deadline = nextMidnight()
+        let remaining = deadline.timeIntervalSinceNow
 
-        if hour >= 21 {
+        if remaining > 0 && remaining <= 4 * 60 * 60 {
             startOrUpdateActivity(streakDays: streakDays)
         } else {
-            // Not yet 21:00 — schedule for later (handled by periodic check or background task)
+            // Not yet inside the warning window.
             stopActivity()
         }
     }
@@ -48,18 +89,19 @@ final class StreakActivityManager: ObservableObject {
             return
         }
 
-        let secondsRemaining = secondsUntilMidnight()
-        if secondsRemaining <= 0 {
+        let deadline = nextMidnight()
+        if deadline.timeIntervalSinceNow <= 0 {
             stopActivity()
             return
         }
 
         let state = StreakActivityAttributes.ContentState(
-            secondsRemaining: secondsRemaining,
+            deadlineTimestamp: Int(deadline.timeIntervalSince1970),
             streakDays: streakDays
         )
 
-        if let activity = currentActivity {
+        if let activity = activeActivities().first {
+            currentActivity = activity
             // Update existing activity
             Task {
                 await activity.update(
@@ -79,7 +121,6 @@ final class StreakActivityManager: ObservableObject {
                 )
                 currentActivity = activity
                 print("[StreakActivity] Started live activity: \(activity.id)")
-                startUpdateTimer(streakDays: streakDays)
             } catch {
                 print("[StreakActivity] Failed to start: \(error)")
             }
@@ -87,59 +128,102 @@ final class StreakActivityManager: ObservableObject {
     }
 
     func stopActivity() {
-        updateTimer?.invalidate()
-        updateTimer = nil
-
-        guard let activity = currentActivity else { return }
+        let activities = activeActivities()
         currentActivity = nil
+        guard !activities.isEmpty else { return }
 
         Task {
             let finalState = StreakActivityAttributes.ContentState(
-                secondsRemaining: 0,
+                deadlineTimestamp: Int(Date().timeIntervalSince1970),
                 streakDays: 0
             )
-            await activity.end(
-                ActivityContent(state: finalState, staleDate: nil),
-                dismissalPolicy: .immediate
-            )
+            for activity in activities {
+                await activity.end(
+                    ActivityContent(state: finalState, staleDate: nil),
+                    dismissalPolicy: .immediate
+                )
+            }
             print("[StreakActivity] Stopped live activity")
         }
     }
 
-    /// Update the countdown every 60 seconds
-    private func startUpdateTimer(streakDays: Int) {
-        updateTimer?.invalidate()
-        updateTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            Task { @MainActor in
-                guard let self else { return }
-                let remaining = self.secondsUntilMidnight()
-                if remaining <= 0 {
-                    self.stopActivity()
-                    return
-                }
-                let state = StreakActivityAttributes.ContentState(
-                    secondsRemaining: remaining,
-                    streakDays: streakDays
+    private func activeActivities() -> [Activity<StreakActivityAttributes>] {
+        let activities = Activity<StreakActivityAttributes>.activities
+        currentActivity = activities.first
+        return activities
+    }
+
+    private func nextMidnight() -> Date {
+        let now = Date()
+        let calendar = Calendar.current
+        return calendar.nextDate(
+            after: now,
+            matching: DateComponents(hour: 0, minute: 0, second: 0),
+            matchingPolicy: .nextTime
+        ) ?? now
+    }
+
+    @available(iOS 17.2, *)
+    private func startPushToStartObservationIfNeeded() {
+        guard !isObservingPushToStartTokens else { return }
+        isObservingPushToStartTokens = true
+
+        Task { [weak self] in
+            guard let self else { return }
+            for await tokenData in Activity<StreakActivityAttributes>.pushToStartTokenUpdates {
+                await self.syncPushToStartRegistration(
+                    token: Self.hexString(from: tokenData),
+                    enabled: true
                 )
-                if let activity = self.currentActivity {
-                    await activity.update(
-                        ActivityContent(state: state, staleDate: Date().addingTimeInterval(60))
-                    )
-                }
             }
         }
     }
 
-    private func secondsUntilMidnight() -> Int {
-        let now = Date()
-        let calendar = Calendar.current
-        guard let midnight = calendar.nextDate(
-            after: now,
-            matching: DateComponents(hour: 0, minute: 0, second: 0),
-            matchingPolicy: .strict
-        ) else {
-            return 0
+    private func syncPushToStartRegistration(token: String?, enabled: Bool) async {
+        guard let url = URL(string: "\(APIConfig.baseURLString)/streak/live-activity/device") else {
+            return
         }
-        return max(0, Int(midnight.timeIntervalSince(now)))
+
+        let payload: [String: Any] = [
+            "device_id": deviceID(),
+            "push_to_start_token": token ?? "",
+            "timezone": TimeZone.current.identifier,
+            "enabled": enabled
+        ]
+
+        guard JSONSerialization.isValidJSONObject(payload),
+              let body = try? JSONSerialization.data(withJSONObject: payload) else {
+            return
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer mock-dev-token", forHTTPHeaderField: "Authorization")
+        request.httpBody = body
+
+        do {
+            let (_, response) = try await URLSession.shared.data(for: request)
+            if let http = response as? HTTPURLResponse, !(200...299).contains(http.statusCode) {
+                print("[StreakActivity] push token sync failed with status \(http.statusCode)")
+            }
+        } catch {
+            print("[StreakActivity] push token sync failed: \(error)")
+        }
+    }
+
+    private func deviceID() -> String {
+        if let existing = UserDefaults.standard.string(forKey: deviceIDDefaultsKey),
+           !existing.isEmpty {
+            return existing
+        }
+
+        let generated = UUID().uuidString.lowercased()
+        UserDefaults.standard.set(generated, forKey: deviceIDDefaultsKey)
+        return generated
+    }
+
+    private static func hexString(from data: Data) -> String {
+        data.map { String(format: "%02x", $0) }.joined()
     }
 }
