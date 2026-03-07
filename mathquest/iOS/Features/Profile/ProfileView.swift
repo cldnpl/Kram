@@ -6,6 +6,7 @@ struct ProfileView: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var tabSelection: TabSelection
     @State private var showLogin = false
+    @State private var showStreak = false
     @State private var selectedPhotoItem: PhotosPickerItem?
 
     var body: some View {
@@ -71,12 +72,17 @@ struct ProfileView: View {
 
                 // Stats cards
                 HStack(spacing: 12) {
-                    StatCard(
-                        icon: "flame.fill",
-                        value: "\(viewModel.streakDays)",
-                        label: "Day Streak",
-                        color: .orange
-                    )
+                    Button {
+                        showStreak = true
+                    } label: {
+                        StatCard(
+                            icon: "flame.fill",
+                            value: "\(viewModel.streakDays)",
+                            label: "Day Streak",
+                            color: .orange
+                        )
+                    }
+                    .buttonStyle(.plain)
 
                     StatCard(
                         icon: "book.fill",
@@ -86,6 +92,21 @@ struct ProfileView: View {
                     )
                 }
                 .padding(.horizontal, 20)
+                .sheet(isPresented: $showStreak) {
+                    NavigationStack {
+                        StreakCalendarView()
+                            .toolbar {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    Button {
+                                        showStreak = false
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                    }
+                }
 
                 // Menu items
                 VStack(spacing: 12) {

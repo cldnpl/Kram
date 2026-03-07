@@ -15,6 +15,30 @@ type UsernameRecord struct {
 
 func (UsernameRecord) TableName() string { return "usernames" }
 
+// CheckUsername returns whether a username is available.
+func CheckUsername(db *gorm.DB) fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		if db == nil {
+			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
+				"error": "database_not_available",
+			})
+		}
+		username := strings.TrimSpace(strings.ToLower(c.Query("username")))
+		if username == "" {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username_required"})
+		}
+		var existing UsernameRecord
+		err := db.Where("username = ?", username).First(&existing).Error
+		if err == gorm.ErrRecordNotFound {
+			return c.JSON(fiber.Map{"available": true})
+		}
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
+		}
+		return c.JSON(fiber.Map{"available": false})
+	}
+}
+
 // RegisterUsername registra un username se non esiste; ritorna 409 se già presente.
 func RegisterUsername(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {

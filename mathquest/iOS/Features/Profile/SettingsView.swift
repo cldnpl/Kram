@@ -13,18 +13,53 @@ struct SettingsView: View {
     @AppStorage("settings_difficulty") private var difficulty = "medio"
     @AppStorage("profile_username") private var profileUsername = ""
     @State private var showDeleteConfirmation = false
+    @State private var editingUsername = ""
+    @State private var isUsernameAvailable: Bool?
+    @State private var isCheckingUsername = false
+
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
                 settingsSection(title: L10n.profile) {
-                    HStack(spacing: 12) {
-                        Label(L10n.name, systemImage: "person.fill")
-                            .foregroundStyle(.primary)
-                        TextField(L10n.name, text: $profileName)
-                            .textFieldStyle(.plain)
-                            .font(.system(size: 17))
+                    VStack(spacing: 0) {
+                        HStack(spacing: 12) {
+                            Label(L10n.name, systemImage: "person.fill")
+                                .foregroundStyle(.primary)
+                            TextField(L10n.name, text: $profileName)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 17))
+                        }
+                        .padding(.vertical, 4)
+
+                        Divider()
+                            .padding(.vertical, 8)
+
+                        HStack(spacing: 12) {
+                            Label("Username", systemImage: "at")
+                                .foregroundStyle(.primary)
+                            TextField("Username", text: $editingUsername)
+                                .textFieldStyle(.plain)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                                .font(.system(size: 17))
+                                .onChange(of: editingUsername) { _, newValue in
+                                    checkUsernameDebounced(newValue)
+                                }
+
+                            if isCheckingUsername {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                            } else if let available = isUsernameAvailable {
+                                Image(systemName: available ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                    .foregroundStyle(available ? .green : .red)
+                                    .font(.system(size: 18))
+                            }
+                        }
+                        .padding(.vertical, 4)
                     }
-                    .padding(.vertical, 4)
+                }
+                .onAppear {
+                    editingUsername = profileUsername
                 }
 
                 settingsSection(title: "Math Level") {
@@ -94,6 +129,70 @@ struct SettingsView: View {
             }
         } message: {
             Text("This will permanently delete your account and all data. This action cannot be undone.")
+        }
+    }
+
+    @State private var _usernameCheckTask: Task<Void, Never>?
+
+    private func checkUsernameDebounced(_ newValue: String) {
+        let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        // If same as current saved username, no check needed
+        if trimmed == profileUsername.lowercased() {
+            isUsernameAvailable = nil
+            isCheckingUsername = false
+            return
+        }
+
+        guard !trimmed.isEmpty else {
+            isUsernameAvailable = nil
+            isCheckingUsername = false
+            return
+        }
+
+        isCheckingUsername = true
+        isUsernameAvailable = nil
+
+        _usernameCheckTask?.cancel()
+        _usernameCheckTask = Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            guard !Task.isCancelled else { return }
+
+            guard let url = URL(string: "\(APIConfig.baseURLString)/auth/check-username?username=\(trimmed)") else {
+                await MainActor.run { isCheckingUsername = false }
+                return
+            }
+
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard !Task.isCancelled else { return }
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let available = json["available"] as? Bool {
+                    await MainActor.run {
+                        isUsernameAvailable = available
+                        isCheckingUsername = false
+                        if available {
+                            saveUsername(trimmed)
+                        }
+                    }
+                }
+            } catch {
+                guard !Task.isCancelled else { return }
+                await MainActor.run { isCheckingUsername = false }
+            }
+        }
+    }
+
+    private func saveUsername(_ username: String) {
+        profileUsername = username
+        // Also call the profile update API
+        Task {
+            guard let url = URL(string: "\(APIConfig.baseURLString)/profile") else { return }
+            var request = URLRequest(url: url)
+            request.httpMethod = "PUT"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONSerialization.data(withJSONObject: ["username": username])
+            _ = try? await URLSession.shared.data(for: request)
         }
     }
 

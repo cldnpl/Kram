@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/network/api_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_locale.dart';
 
@@ -19,8 +23,15 @@ class _SettingsPageState extends State<SettingsPage> {
   String _difficulty = 'medio';
   String _language = 'en';
   String _profileLevel = 'Beginner';
+  String _profileUsername = '';
+  bool? _isUsernameAvailable;
+  bool _isCheckingUsername = false;
+  Timer? _usernameDebounce;
   final _nameEditController = TextEditingController();
+  final _usernameEditController = TextEditingController();
+  final _dio = Dio(BaseOptions(baseUrl: kApiBaseUrl));
 
+  static const _keyProfileUsername = 'profile_username';
   static const _keyNotifications = 'settings_notifications';
   static const _keySound = 'settings_sound';
   static const _keyDarkMode = 'settings_dark_mode';
@@ -38,6 +49,8 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void dispose() {
     _nameEditController.dispose();
+    _usernameEditController.dispose();
+    _usernameDebounce?.cancel();
     super.dispose();
   }
 
@@ -46,6 +59,8 @@ class _SettingsPageState extends State<SettingsPage> {
     setState(() {
       _profileName = prefs.getString(_keyProfileName) ?? '';
       _nameEditController.text = _profileName;
+      _profileUsername = prefs.getString(_keyProfileUsername) ?? '';
+      _usernameEditController.text = _profileUsername;
       _notificationsEnabled = prefs.getBool(_keyNotifications) ?? true;
       _soundEnabled = prefs.getBool(_keySound) ?? true;
       _darkMode = prefs.getBool(_keyDarkMode) ?? false;
@@ -78,6 +93,63 @@ class _SettingsPageState extends State<SettingsPage> {
         return Icons.bolt;
       default:
         return Icons.star;
+    }
+  }
+
+  void _onUsernameChanged(String value) {
+    final trimmed = value.trim().toLowerCase();
+
+    // Same as saved — no check needed
+    if (trimmed == _profileUsername.toLowerCase()) {
+      setState(() {
+        _isUsernameAvailable = null;
+        _isCheckingUsername = false;
+      });
+      _usernameDebounce?.cancel();
+      return;
+    }
+
+    if (trimmed.isEmpty) {
+      setState(() {
+        _isUsernameAvailable = null;
+        _isCheckingUsername = false;
+      });
+      _usernameDebounce?.cancel();
+      return;
+    }
+
+    setState(() {
+      _isCheckingUsername = true;
+      _isUsernameAvailable = null;
+    });
+
+    _usernameDebounce?.cancel();
+    _usernameDebounce = Timer(const Duration(milliseconds: 500), () {
+      _checkAndSaveUsername(trimmed);
+    });
+  }
+
+  Future<void> _checkAndSaveUsername(String username) async {
+    try {
+      final response = await _dio.get('/auth/check-username', queryParameters: {'username': username});
+      if (!mounted) return;
+
+      final available = response.data['available'] == true;
+      setState(() {
+        _isUsernameAvailable = available;
+        _isCheckingUsername = false;
+      });
+
+      if (available) {
+        _profileUsername = username;
+        await _setString(_keyProfileUsername, username);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isUsernameAvailable = null;
+        _isCheckingUsername = false;
+      });
     }
   }
 
@@ -121,33 +193,78 @@ class _SettingsPageState extends State<SettingsPage> {
             context,
             backgroundColor: cardBg,
             borderColor: borderColor,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Icon(Icons.person, color: AppColors.appPurple, size: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _nameEditController,
-                      decoration: InputDecoration(
-                        hintText: AppLocale.tr('name'),
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.person, color: AppColors.appPurple, size: 22),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _nameEditController,
+                          decoration: InputDecoration(
+                            hintText: AppLocale.tr('name'),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                          onChanged: (v) async {
+                            _profileName = v;
+                            await _setString(_keyProfileName, v);
+                          },
+                        ),
                       ),
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Theme.of(context).textTheme.bodyLarge?.color,
-                      ),
-                      onChanged: (v) async {
-                        _profileName = v;
-                        await _setString(_keyProfileName, v);
-                      },
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                Divider(height: 1, color: borderColor),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.alternate_email, color: AppColors.appPurple, size: 22),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _usernameEditController,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          textCapitalization: TextCapitalization.none,
+                          decoration: const InputDecoration(
+                            hintText: 'Username',
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                          onChanged: _onUsernameChanged,
+                        ),
+                      ),
+                      if (_isCheckingUsername)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else if (_isUsernameAvailable != null)
+                        Icon(
+                          _isUsernameAvailable! ? Icons.check_circle : Icons.cancel,
+                          color: _isUsernameAvailable! ? Colors.green : Colors.red,
+                          size: 20,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 24),

@@ -14,6 +14,7 @@ import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
 import '../../features/camera/presentation/pages/camera_page.dart';
 import '../../features/shop/presentation/pages/shop_page.dart';
+import '../../features/streak/presentation/pages/streak_calendar_page.dart';
 import 'main_shell_scaffold.dart';
 
 const _carouselSeenKey = 'carousel_seen';
@@ -38,9 +39,11 @@ final appRouter = GoRouter(
     final hasCompletedProfile = prefs.getBool(_profileSetupDoneKey) ?? false;
     final profileName = prefs.getString('profile_name') ?? '';
     final profileLevel = prefs.getString('profile_level') ?? '';
+    final profileUsername = prefs.getString('profile_username') ?? '';
     final isProfileComplete = hasCompletedProfile &&
         profileName.isNotEmpty &&
-        profileLevel.isNotEmpty;
+        profileLevel.isNotEmpty &&
+        profileUsername.isNotEmpty;
     final isFirebaseAuth = FirebaseAuth.instance.currentUser != null;
     final hasUsername = (prefs.getString('profile_username') ?? '').isNotEmpty;
     final isLoggedIn = isFirebaseAuth || hasUsername;
@@ -121,6 +124,7 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(path: '/shop', builder: (_, __) => const ShopPage()),
+    GoRoute(path: '/streak', builder: (_, __) => const StreakCalendarPage()),
     GoRoute(path: '/camera', builder: (_, __) => const CameraPage()),
   ],
 );

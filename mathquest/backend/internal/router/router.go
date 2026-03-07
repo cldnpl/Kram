@@ -34,6 +34,7 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	authGroup.Post("/google", auth.Google)
 	authGroup.Post("/apple", auth.Apple)
 	authGroup.Post("/register-username", auth.RegisterUsername(db))
+	authGroup.Get("/check-username", auth.CheckUsername(db))
 	authGroup.Get("/me", middleware.FirebaseAuth(), auth.Me)
 
 	// Onboarding
@@ -88,6 +89,7 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 
 	// Streak
 	protected.Get("/streak", streakHandler.GetStreak)
+	protected.Get("/streak/calendar", streakHandler.GetCalendar)
 
 	// Coins
 	protected.Get("/coins/balance", coins.Balance)
@@ -106,8 +108,8 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	protected.Post("/invite/redeem", invite.Redeem)
 
 	// Profile
-	protected.Get("/profile", user.Get)
-	protected.Put("/profile", user.Update)
+	protected.Get("/profile", user.NewGet(db))
+	protected.Put("/profile", user.NewUpdate(db))
 	protected.Get("/profile/stats", user.Stats)
 }
 

@@ -9,10 +9,17 @@ struct ContentView: View {
     @StateObject private var tabSelection = TabSelection()
     @EnvironmentObject private var authManager: AuthManager
     @AppStorage("profile_username") private var profileUsername = ""
+    @AppStorage("profile_name") private var profileName = ""
     @State private var cameraTrialUsed = KeychainFlag.isSet("camera_trial_used")
+    @State private var showProfileSetup = false
 
     private var isLoggedIn: Bool {
         authManager.isAuthenticated || !profileUsername.isEmpty
+    }
+
+    /// Show profile setup after Google/Apple sign-in if name or username is missing
+    private var needsProfileSetup: Bool {
+        authManager.isAuthenticated && (profileName.isEmpty || profileUsername.isEmpty)
     }
 
     /// Camera available if logged in, OR free trial not yet used.
@@ -41,6 +48,21 @@ struct ContentView: View {
             .tag(2)
         }
         .environmentObject(tabSelection)
+        .fullScreenCover(isPresented: $showProfileSetup) {
+            ProfileSetupView {
+                showProfileSetup = false
+            }
+        }
+        .onChange(of: authManager.isAuthenticated) { _, isAuth in
+            if isAuth && (profileName.isEmpty || profileUsername.isEmpty) {
+                showProfileSetup = true
+            }
+        }
+        .onAppear {
+            if needsProfileSetup {
+                showProfileSetup = true
+            }
+        }
     }
 
     private func markTrialUsed() {

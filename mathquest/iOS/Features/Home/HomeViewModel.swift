@@ -106,6 +106,12 @@ final class HomeViewModel: ObservableObject {
             streakDays = streakRes.streak_days
             activeToday = streakRes.active_today
             print("[Home] streak = \(streakDays), activeToday = \(activeToday)")
+
+            // Evaluate Live Activity for streak warning
+            StreakActivityManager.shared.evaluate(
+                streakDays: streakDays,
+                activeToday: activeToday
+            )
         } catch {
             print("[Home] ERROR: \(error)")
             errorMessage = error.localizedDescription

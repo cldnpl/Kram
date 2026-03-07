@@ -296,11 +296,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 Row(
                   children: [
                     Expanded(
-                      child: _StatCard(
-                        icon: Icons.local_fire_department,
-                        iconColor: Colors.orange,
-                        value: '$_streakDays',
-                        label: 'Day Streak',
+                      child: GestureDetector(
+                        onTap: () => context.push('/streak'),
+                        child: _StatCard(
+                          icon: Icons.local_fire_department,
+                          iconColor: Colors.orange,
+                          value: '$_streakDays',
+                          label: 'Day Streak',
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),

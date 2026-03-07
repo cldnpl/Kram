@@ -5,6 +5,7 @@ private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @State private var showShop = false
+    @State private var showStreak = false
     @AppStorage("profile_name") private var profileName = ""
 
     var body: some View {
@@ -33,19 +34,24 @@ struct HomeView: View {
                         Spacer()
 
                         HStack(spacing: 8) {
-                            // Streak badge
-                            HStack(spacing: 4) {
-                                Image(systemName: "flame.fill")
-                                    .foregroundStyle(viewModel.streakDays > 0 ? .orange : .gray)
-                                    .font(.system(size: 18))
+                            // Streak badge (tap to open calendar)
+                            Button {
+                                showStreak = true
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "flame.fill")
+                                        .foregroundStyle(viewModel.streakDays > 0 ? .orange : .gray)
+                                        .font(.system(size: 18))
 
-                                Text("\(viewModel.streakDays)")
-                                    .fontWeight(.semibold)
+                                    Text("\(viewModel.streakDays)")
+                                        .fontWeight(.semibold)
+                                }
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 8)
+                                .background(.thinMaterial)
+                                .clipShape(Capsule())
                             }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 8)
-                            .background(.thinMaterial)
-                            .clipShape(Capsule())
+                            .buttonStyle(.plain)
 
                             // Coin badge
                             Button {
@@ -118,6 +124,21 @@ struct HomeView: View {
                 .navigationBarHidden(true)
                 .sheet(isPresented: $showShop) {
                     StoreView()
+                }
+                .sheet(isPresented: $showStreak) {
+                    NavigationStack {
+                        StreakCalendarView()
+                            .toolbar {
+                                ToolbarItem(placement: .topBarTrailing) {
+                                    Button {
+                                        showStreak = false
+                                    } label: {
+                                        Image(systemName: "xmark.circle.fill")
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
+                            }
+                    }
                 }
                 .task {
                     print("[Home] view appeared, loading data")

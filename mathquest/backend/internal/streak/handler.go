@@ -3,11 +3,13 @@ package streak
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 
 	"mathquest/backend/internal/middleware"
 )
@@ -24,6 +26,15 @@ type User struct {
 }
 
 func (User) TableName() string { return "users" }
+
+type ActivityLog struct {
+	ID         uint      `gorm:"column:id;primaryKey"`
+	UserID     uint      `gorm:"column:user_id"`
+	ActiveDate time.Time `gorm:"column:active_date;type:date"`
+	CreatedAt  time.Time `gorm:"column:created_at"`
+}
+
+func (ActivityLog) TableName() string { return "activity_log" }
 
 func NewHandler(db *gorm.DB, redisClient *redis.Client) *Handler {
 	return &Handler{db: db, redis: redisClient}
@@ -83,6 +94,13 @@ func (h *Handler) RecordActivity(userID uint) {
 		"last_active": user.LastActive,
 	})
 
+	// Log this day in activity_log for calendar
+	h.db.Clauses(clause.OnConflict{DoNothing: true}).Create(&ActivityLog{
+		UserID:     userID,
+		ActiveDate: todayDate,
+		CreatedAt:  now,
+	})
+
 	h.markRecordedInRedis(ctx, userID, today)
 }
 
@@ -135,5 +153,44 @@ func (h *Handler) GetStreak(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"streak_days":  streakDays,
 		"active_today": activeToday,
+	})
+}
+
+// GetCalendar handles GET /api/streak/calendar?year=2026&month=3
+// Returns list of active dates for the given month.
+func (h *Handler) GetCalendar(c *fiber.Ctx) error {
+	userID, _ := c.Locals(middleware.UserIDKey).(uint)
+	if h.db == nil || userID == 0 {
+		return c.JSON(fiber.Map{"active_dates": []string{}})
+	}
+
+	now := time.Now().UTC()
+	year, _ := strconv.Atoi(c.Query("year", strconv.Itoa(now.Year())))
+	month, _ := strconv.Atoi(c.Query("month", strconv.Itoa(int(now.Month()))))
+
+	if month < 1 || month > 12 {
+		month = int(now.Month())
+	}
+	if year < 2020 || year > 2100 {
+		year = now.Year()
+	}
+
+	startDate := time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.UTC)
+	endDate := startDate.AddDate(0, 1, 0)
+
+	var logs []ActivityLog
+	h.db.Where("user_id = ? AND active_date >= ? AND active_date < ?", userID, startDate, endDate).
+		Order("active_date ASC").
+		Find(&logs)
+
+	dates := make([]string, len(logs))
+	for i, log := range logs {
+		dates[i] = log.ActiveDate.Format("2006-01-02")
+	}
+
+	return c.JSON(fiber.Map{
+		"active_dates": dates,
+		"year":         year,
+		"month":        month,
 	})
 }

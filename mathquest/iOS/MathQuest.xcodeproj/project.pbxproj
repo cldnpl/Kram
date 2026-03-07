@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -49,13 +49,52 @@
 		B20000000000000000000002 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000002 /* GoogleSignIn */; };
 		E349E3B42F57B0EE000B1E48 /* Kram.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E349E3B32F57B0EE000B1E48 /* Kram.storekit */; };
 		E37D5ED92F572CAB0024821A /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = E37D5ED82F572CAB0024821A /* GoogleService-Info.plist */; };
+		E38C4FCD2F5BB2CA00A302DA /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E38C4FCC2F5BB2CA00A302DA /* WidgetKit.framework */; };
+		E38C4FCF2F5BB2CA00A302DA /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E38C4FCE2F5BB2CA00A302DA /* SwiftUI.framework */; };
+		E38C4FE02F5BB2CB00A302DA /* StreakWidgetExtensionExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E38C4FCA2F5BB2CA00A302DA /* StreakWidgetExtensionExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E38C4FEE2F5BB31700A302DA /* StreakActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38C4FE92F5BB31700A302DA /* StreakActivityManager.swift */; };
+		E38C4FEF2F5BB31700A302DA /* StreakActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38C4FE82F5BB31700A302DA /* StreakActivityAttributes.swift */; };
+		E38C4FF02F5BB31700A302DA /* StreakCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38C4FEB2F5BB31700A302DA /* StreakCalendarView.swift */; };
+		E38C4FF12F5BB31700A302DA /* StreakCalendarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38C4FEC2F5BB31700A302DA /* StreakCalendarViewModel.swift */; };
+		E38C4FF22F5BB32100A302DA /* StreakActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38C4FE82F5BB31700A302DA /* StreakActivityAttributes.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E38C4FDE2F5BB2CB00A302DA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A10000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = E38C4FC92F5BB2CA00A302DA;
+			remoteInfo = StreakWidgetExtensionExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		E38C4FE12F5BB2CB00A302DA /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E38C4FE02F5BB2CB00A302DA /* StreakWidgetExtensionExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		E10000000000000000000001 /* MathQuest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MathQuest.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E349E3B32F57B0EE000B1E48 /* Kram.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Kram.storekit; sourceTree = "<group>"; };
 		E37D5ED72F572BF40024821A /* MathQuest.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MathQuest.entitlements; sourceTree = "<group>"; };
 		E37D5ED82F572CAB0024821A /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		E38C4FCA2F5BB2CA00A302DA /* StreakWidgetExtensionExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = StreakWidgetExtensionExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E38C4FCC2F5BB2CA00A302DA /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
+		E38C4FCE2F5BB2CA00A302DA /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
+		E38C4FE82F5BB31700A302DA /* StreakActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakActivityAttributes.swift; sourceTree = "<group>"; };
+		E38C4FE92F5BB31700A302DA /* StreakActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakActivityManager.swift; sourceTree = "<group>"; };
+		E38C4FEB2F5BB31700A302DA /* StreakCalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakCalendarView.swift; sourceTree = "<group>"; };
+		E38C4FEC2F5BB31700A302DA /* StreakCalendarViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakCalendarViewModel.swift; sourceTree = "<group>"; };
 		F10000000000000000000001 /* MathQuestApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathQuestApp.swift; sourceTree = "<group>"; };
 		F10000000000000000000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		F10000000000000000000003 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
@@ -96,6 +135,20 @@
 		F10000000000000000000026 /* KeychainFlag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainFlag.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		E38C4FE42F5BB2CB00A302DA /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = E38C4FC92F5BB2CA00A302DA /* StreakWidgetExtensionExtension */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		E38C4FD02F5BB2CA00A302DA /* StreakWidgetExtension */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (E38C4FE42F5BB2CB00A302DA /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = StreakWidgetExtension; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
+
 /* Begin PBXFrameworksBuildPhase section */
 		C10000000000000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
@@ -106,15 +159,54 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E38C4FC72F5BB2CA00A302DA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E38C4FCF2F5BB2CA00A302DA /* SwiftUI.framework in Frameworks */,
+				E38C4FCD2F5BB2CA00A302DA /* WidgetKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E38C4FCB2F5BB2CA00A302DA /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				E38C4FCC2F5BB2CA00A302DA /* WidgetKit.framework */,
+				E38C4FCE2F5BB2CA00A302DA /* SwiftUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E38C4FEA2F5BB31700A302DA /* LiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				E38C4FE82F5BB31700A302DA /* StreakActivityAttributes.swift */,
+				E38C4FE92F5BB31700A302DA /* StreakActivityManager.swift */,
+			);
+			path = LiveActivity;
+			sourceTree = "<group>";
+		};
+		E38C4FED2F5BB31700A302DA /* Streak */ = {
+			isa = PBXGroup;
+			children = (
+				E38C4FEA2F5BB31700A302DA /* LiveActivity */,
+				E38C4FEB2F5BB31700A302DA /* StreakCalendarView.swift */,
+				E38C4FEC2F5BB31700A302DA /* StreakCalendarViewModel.swift */,
+			);
+			path = Streak;
+			sourceTree = "<group>";
+		};
 		G10000000000000000000001 = {
 			isa = PBXGroup;
 			children = (
 				E349E3B32F57B0EE000B1E48 /* Kram.storekit */,
 				E37D5ED72F572BF40024821A /* MathQuest.entitlements */,
 				G10000000000000000000002,
+				E38C4FD02F5BB2CA00A302DA /* StreakWidgetExtension */,
+				E38C4FCB2F5BB2CA00A302DA /* Frameworks */,
 				G10000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -136,6 +228,7 @@
 			isa = PBXGroup;
 			children = (
 				E10000000000000000000001 /* MathQuest.app */,
+				E38C4FCA2F5BB2CA00A302DA /* StreakWidgetExtensionExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -153,17 +246,10 @@
 			path = Core;
 			sourceTree = "<group>";
 		};
-		G10000000000000000000014 /* L10n */ = {
-			isa = PBXGroup;
-			children = (
-				F10000000000000000000025 /* L10n.swift */,
-			);
-			path = L10n;
-			sourceTree = "<group>";
-		};
 		G10000000000000000000005 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				E38C4FED2F5BB31700A302DA /* Streak */,
 				G1000000000000000000000A /* Auth */,
 				G1000000000000000000000B /* Onboarding */,
 				G1000000000000000000000C /* Home */,
@@ -308,6 +394,14 @@
 			path = Wallet;
 			sourceTree = "<group>";
 		};
+		G10000000000000000000014 /* L10n */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000025 /* L10n.swift */,
+			);
+			path = L10n;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -318,10 +412,12 @@
 				C10000000000000000000002 /* Sources */,
 				C10000000000000000000003 /* Resources */,
 				C10000000000000000000001 /* Frameworks */,
+				E38C4FE12F5BB2CB00A302DA /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				E38C4FDF2F5BB2CB00A302DA /* PBXTargetDependency */,
 			);
 			name = MathQuest;
 			packageProductDependencies = (
@@ -332,6 +428,28 @@
 			productReference = E10000000000000000000001 /* MathQuest.app */;
 			productType = "com.apple.product-type.application";
 		};
+		E38C4FC92F5BB2CA00A302DA /* StreakWidgetExtensionExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E38C4FE52F5BB2CB00A302DA /* Build configuration list for PBXNativeTarget "StreakWidgetExtensionExtension" */;
+			buildPhases = (
+				E38C4FC62F5BB2CA00A302DA /* Sources */,
+				E38C4FC72F5BB2CA00A302DA /* Frameworks */,
+				E38C4FC82F5BB2CA00A302DA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				E38C4FD02F5BB2CA00A302DA /* StreakWidgetExtension */,
+			);
+			name = StreakWidgetExtensionExtension;
+			packageProductDependencies = (
+			);
+			productName = StreakWidgetExtensionExtension;
+			productReference = E38C4FCA2F5BB2CA00A302DA /* StreakWidgetExtensionExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -339,11 +457,14 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1500;
+				LastSwiftUpdateCheck = 2620;
 				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					D10000000000000000000001 = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					E38C4FC92F5BB2CA00A302DA = {
+						CreatedOnToolsVersion = 26.2;
 					};
 				};
 			};
@@ -365,6 +486,7 @@
 			projectRoot = "";
 			targets = (
 				D10000000000000000000001 /* MathQuest */,
+				E38C4FC92F5BB2CA00A302DA /* StreakWidgetExtensionExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -377,6 +499,13 @@
 				E349E3B42F57B0EE000B1E48 /* Kram.storekit in Resources */,
 				B10000000000000000000013 /* Assets.xcassets in Resources */,
 				E37D5ED92F572CAB0024821A /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E38C4FC82F5BB2CA00A302DA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -408,6 +537,10 @@
 				B10000000000000000000011 /* RewardsView.swift in Sources */,
 				B10000000000000000000012 /* CoinBadgeView.swift in Sources */,
 				B10000000000000000000014 /* APIConfig.swift in Sources */,
+				E38C4FEE2F5BB31700A302DA /* StreakActivityManager.swift in Sources */,
+				E38C4FEF2F5BB31700A302DA /* StreakActivityAttributes.swift in Sources */,
+				E38C4FF02F5BB31700A302DA /* StreakCalendarView.swift in Sources */,
+				E38C4FF12F5BB31700A302DA /* StreakCalendarViewModel.swift in Sources */,
 				B10000000000000000000015 /* LessonDetailView.swift in Sources */,
 				B10000000000000000000016 /* CameraHistoryView.swift in Sources */,
 				B10000000000000000000017 /* CameraModels.swift in Sources */,
@@ -427,9 +560,89 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E38C4FC62F5BB2CA00A302DA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E38C4FF22F5BB32100A302DA /* StreakActivityAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		E38C4FDF2F5BB2CB00A302DA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = E38C4FC92F5BB2CA00A302DA /* StreakWidgetExtensionExtension */;
+			targetProxy = E38C4FDE2F5BB2CB00A302DA /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		E38C4FE22F5BB2CB00A302DA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = H4M7KJL5DT;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StreakWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = StreakWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kram.math.StreakWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		E38C4FE32F5BB2CB00A302DA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = H4M7KJL5DT;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = StreakWidgetExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = StreakWidgetExtension;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 26.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				PRODUCT_BUNDLE_IDENTIFIER = com.kram.math.StreakWidgetExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		X10000000000000000000001 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -634,6 +847,15 @@
 			buildConfigurations = (
 				X10000000000000000000003 /* Debug */,
 				X10000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		E38C4FE52F5BB2CB00A302DA /* Build configuration list for PBXNativeTarget "StreakWidgetExtensionExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E38C4FE22F5BB2CB00A302DA /* Debug */,
+				E38C4FE32F5BB2CB00A302DA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
