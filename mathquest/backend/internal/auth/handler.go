@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -18,23 +19,31 @@ func (UsernameRecord) TableName() string { return "usernames" }
 // CheckUsername returns whether a username is available.
 func CheckUsername(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		fmt.Printf("[CheckUsername] called with query: %s\n", c.OriginalURL())
 		if db == nil {
+			fmt.Println("[CheckUsername] db is nil — returning 503")
 			return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{
 				"error": "database_not_available",
 			})
 		}
 		username := strings.TrimSpace(strings.ToLower(c.Query("username")))
+		fmt.Printf("[CheckUsername] parsed username=%q\n", username)
 		if username == "" {
+			fmt.Println("[CheckUsername] empty username — returning 400")
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username_required"})
 		}
 		var existing UsernameRecord
 		err := db.Where("username = ?", username).First(&existing).Error
+		fmt.Printf("[CheckUsername] db lookup err=%v\n", err)
 		if err == gorm.ErrRecordNotFound {
+			fmt.Printf("[CheckUsername] username=%q is available\n", username)
 			return c.JSON(fiber.Map{"available": true})
 		}
 		if err != nil {
+			fmt.Printf("[CheckUsername] db error: %v\n", err)
 			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "db_error"})
 		}
+		fmt.Printf("[CheckUsername] username=%q is taken\n", username)
 		return c.JSON(fiber.Map{"available": false})
 	}
 }
