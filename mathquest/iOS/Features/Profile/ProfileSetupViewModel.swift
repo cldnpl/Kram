@@ -49,7 +49,9 @@ final class ProfileSetupViewModel: ObservableObject {
 
     func onUsernameChanged() {
         let trimmed = username.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        print("[ProfileSetup] onUsernameChanged: raw='\(username)' trimmed='\(trimmed)'")
         guard !trimmed.isEmpty else {
+            print("[ProfileSetup] username empty — resetting state")
             isUsernameAvailable = nil
             isCheckingUsername = false
             usernameCheckTask?.cancel()
@@ -62,29 +64,44 @@ final class ProfileSetupViewModel: ObservableObject {
         usernameCheckTask?.cancel()
         usernameCheckTask = Task {
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5s debounce
-            guard !Task.isCancelled else { return }
+            guard !Task.isCancelled else {
+                print("[ProfileSetup] debounce task cancelled for '\(trimmed)'")
+                return
+            }
             await checkUsernameAvailability(trimmed)
         }
     }
 
     private func checkUsernameAvailability(_ username: String) async {
-        guard let url = URL(string: "\(APIConfig.baseURLString)/auth/check-username?username=\(username)") else {
+        let urlString = "\(APIConfig.baseURLString)/auth/check-username?username=\(username)"
+        print("[ProfileSetup] checking availability: \(urlString)")
+        guard let url = URL(string: urlString) else {
+            print("[ProfileSetup] invalid URL")
             isCheckingUsername = false
             return
         }
 
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            let (data, response) = try await URLSession.shared.data(from: url)
+            let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+            let body = String(data: data, encoding: .utf8) ?? "<non-utf8>"
+            print("[ProfileSetup] response status=\(statusCode) body=\(body)")
             guard !Task.isCancelled else { return }
             if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                let available = json["available"] as? Bool {
+                print("[ProfileSetup] available=\(available)")
                 isUsernameAvailable = available
+            } else {
+                print("[ProfileSetup] failed to parse 'available' from response")
+                isUsernameAvailable = nil
             }
         } catch {
+            print("[ProfileSetup] network error: \(error)")
             guard !Task.isCancelled else { return }
             isUsernameAvailable = nil
         }
         isCheckingUsername = false
+        print("[ProfileSetup] canSubmit=\(canSubmit) name='\(name)' username='\(username)' isUsernameAvailable=\(String(describing: isUsernameAvailable))")
     }
 
     func submit(onComplete: () -> Void) async {

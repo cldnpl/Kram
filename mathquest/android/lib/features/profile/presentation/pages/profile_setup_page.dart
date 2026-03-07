@@ -65,7 +65,9 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
 
   void _onUsernameChanged(String value) {
     final trimmed = value.trim().toLowerCase();
+    debugPrint('[ProfileSetup] onUsernameChanged: raw="$value" trimmed="$trimmed"');
     if (trimmed.isEmpty) {
+      debugPrint('[ProfileSetup] username empty — resetting state');
       setState(() {
         _isUsernameAvailable = null;
         _isCheckingUsername = false;
@@ -86,15 +88,21 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
   }
 
   Future<void> _checkUsernameAvailability(String username) async {
+    debugPrint('[ProfileSetup] checking availability for "$username"');
     try {
       final response = await _dio.get('/auth/check-username', queryParameters: {'username': username});
+      debugPrint('[ProfileSetup] response: ${response.statusCode} ${response.data}');
       if (!mounted) return;
 
+      final available = response.data['available'] == true;
+      debugPrint('[ProfileSetup] available=$available');
       setState(() {
-        _isUsernameAvailable = response.data['available'] == true;
+        _isUsernameAvailable = available;
         _isCheckingUsername = false;
       });
-    } catch (_) {
+      debugPrint('[ProfileSetup] canSubmit=$_canSubmit name="${_nameController.text}" username="$username" isUsernameAvailable=$_isUsernameAvailable');
+    } catch (e) {
+      debugPrint('[ProfileSetup] error checking username: $e');
       if (!mounted) return;
       setState(() {
         _isUsernameAvailable = null;
