@@ -33,10 +33,11 @@ func Update(c *fiber.Ctx) error {
 }
 
 func Stats(c *fiber.Ctx) error {
+	// TODO: fetch real lessons_completed, coins_earned, exercises_correct from DB
 	return c.JSON(fiber.Map{
-		"streak_days":        5,
-		"lessons_completed":  12,
-		"coins_earned":       320,
-		"exercises_correct":  48,
+		"streak_days":       0,
+		"lessons_completed": 0,
+		"coins_earned":      0,
+		"exercises_correct": 0,
 	})
 }

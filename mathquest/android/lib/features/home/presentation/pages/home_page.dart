@@ -18,6 +18,8 @@ class _HomePageState extends State<HomePage> {
   final DioClient _dio = DioClient();
   List<Map<String, dynamic>> _categories = [];
   int _coinBalance = 0;
+  int _streakDays = 0;
+  bool _activeToday = false;
   bool _loading = true;
   String? _error;
   String _profileName = '';
@@ -55,6 +57,14 @@ class _HomePageState extends State<HomePage> {
       final balanceData = balanceRes.data as Map<String, dynamic>;
       _coinBalance = (balanceData['balance'] as num?)?.toInt() ?? 0;
       debugPrint('[Home] balance = $_coinBalance');
+
+      debugPrint('[Home] fetching streak...');
+      final streakRes =
+          await _dio.dio.get('streak', options: _authOptions());
+      final streakData = streakRes.data as Map<String, dynamic>;
+      _streakDays = (streakData['streak_days'] as num?)?.toInt() ?? 0;
+      _activeToday = streakData['active_today'] as bool? ?? false;
+      debugPrint('[Home] streak = $_streakDays, activeToday = $_activeToday');
 
       setState(() {
         _loading = false;
@@ -129,10 +139,42 @@ class _HomePageState extends State<HomePage> {
                       ),
                       Padding(
                         padding: const EdgeInsets.only(top: 52, right: 16),
-                        child: CoinBadge(
-                          coins: _coinBalance,
-                          onTap: () => context.push('/shop'),
-                          pillStyle: true,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Streak badge
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    Icons.local_fire_department,
+                                    size: 18,
+                                    color: _streakDays > 0 ? Colors.orange : Colors.grey,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '$_streakDays',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            CoinBadge(
+                              coins: _coinBalance,
+                              onTap: () => context.push('/shop'),
+                              pillStyle: true,
+                            ),
+                          ],
                         ),
                       ),
                     ],

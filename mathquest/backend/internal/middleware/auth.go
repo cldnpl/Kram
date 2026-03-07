@@ -1,10 +1,12 @@
 package middleware
 
 import (
+	"errors"
 	"log"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 const UserIDKey = "user_id"
@@ -28,6 +30,31 @@ func FirebaseAuth() fiber.Handler {
 		// Placeholder for now; integrate pkg/firebase
 		c.Locals(FirebaseUIDKey, token)
 		c.Locals(UserIDKey, uint(0)) // will be replaced with ID from DB after lookup
+		return c.Next()
+	}
+}
+
+// ResolveUserID looks up the user's DB ID from firebase_uid and stores it in locals.
+func ResolveUserID(db *gorm.DB) fiber.Handler {
+	type userRow struct {
+		ID uint `gorm:"column:id"`
+	}
+	return func(c *fiber.Ctx) error {
+		if db == nil {
+			return c.Next()
+		}
+		firebaseUID, _ := c.Locals(FirebaseUIDKey).(string)
+		if firebaseUID == "" {
+			return c.Next()
+		}
+		var u userRow
+		err := db.Table("users").Select("id").Where("firebase_uid = ?", firebaseUID).First(&u).Error
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Printf("[AUTH] failed to resolve user ID: %v", err)
+		}
+		if u.ID > 0 {
+			c.Locals(UserIDKey, u.ID)
+		}
 		return c.Next()
 	}
 }

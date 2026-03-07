@@ -5,6 +5,11 @@ import UIKit
 private let profilePhotoFilename = "profile_photo.jpg"
 private let profilePhotoPathKey = "profile_photo_path"
 
+private struct StreakResponse: Decodable {
+    let streak_days: Int
+    let active_today: Bool
+}
+
 @MainActor
 final class ProfileViewModel: ObservableObject {
     @Published var userName: String = ""
@@ -15,6 +20,8 @@ final class ProfileViewModel: ObservableObject {
     @Published var mathLevel: String = ""
     @Published var streakDays = 0
     @Published var lessonsCompleted = 0
+
+    private let client = APIClient()
 
     var userInitials: String {
         let components = userName.split(separator: " ")
@@ -46,6 +53,20 @@ final class ProfileViewModel: ObservableObject {
             }
             userEmail = currentUser.email ?? ""
             userPhotoURL = currentUser.photoURL
+        }
+
+        Task {
+            await fetchStreak()
+        }
+    }
+
+    private func fetchStreak() async {
+        do {
+            await client.setToken("mock-dev-token")
+            let res: StreakResponse = try await client.request("streak")
+            streakDays = res.streak_days
+        } catch {
+            print("[Profile] streak fetch error: \(error)")
         }
     }
 

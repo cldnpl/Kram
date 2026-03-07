@@ -32,26 +32,43 @@ struct HomeView: View {
 
                         Spacer()
 
-                        Button {
-                            showShop = true
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image("coin")
-                                    .resizable()
-                                    .renderingMode(.original)
-                                    .scaledToFit()
-                                    .frame(width: 24, height: 24)
-                                    .scaleEffect(2.3)
+                        HStack(spacing: 8) {
+                            // Streak badge
+                            HStack(spacing: 4) {
+                                Image(systemName: "flame.fill")
+                                    .foregroundStyle(viewModel.streakDays > 0 ? .orange : .gray)
+                                    .font(.system(size: 18))
 
-                                Text("\(viewModel.coinBalance)")
+                                Text("\(viewModel.streakDays)")
                                     .fontWeight(.semibold)
                             }
-                            .padding(.horizontal, 12)
+                            .padding(.horizontal, 10)
                             .padding(.vertical, 8)
                             .background(.thinMaterial)
                             .clipShape(Capsule())
+
+                            // Coin badge
+                            Button {
+                                showShop = true
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image("coin")
+                                        .resizable()
+                                        .renderingMode(.original)
+                                        .scaledToFit()
+                                        .frame(width: 24, height: 24)
+                                        .scaleEffect(2.3)
+
+                                    Text("\(viewModel.coinBalance)")
+                                        .fontWeight(.semibold)
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(.thinMaterial)
+                                .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 56)

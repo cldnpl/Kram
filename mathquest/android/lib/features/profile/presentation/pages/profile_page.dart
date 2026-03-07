@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/l10n/app_locale.dart';
+import '../../../../core/network/dio_client.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -19,6 +21,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final DioClient _dio = DioClient();
   String _userName = '';
   String _profileUsername = '';
   String _mathLevel = 'Beginner';
@@ -33,6 +36,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     _loadProfileData();
+    _fetchStreak();
   }
 
   Future<void> _loadProfileData() async {
@@ -43,6 +47,23 @@ class _ProfilePageState extends State<ProfilePage> {
       _mathLevel = prefs.getString('profile_level') ?? 'Beginner';
       _profilePhotoPath = prefs.getString(_keyProfilePhoto) ?? '';
     });
+  }
+
+  Future<void> _fetchStreak() async {
+    try {
+      final res = await _dio.dio.get(
+        'streak',
+        options: Options(headers: {'Authorization': 'Bearer mock-dev-token'}),
+      );
+      final data = res.data as Map<String, dynamic>;
+      if (mounted) {
+        setState(() {
+          _streakDays = (data['streak_days'] as num?)?.toInt() ?? 0;
+        });
+      }
+    } catch (e) {
+      debugPrint('[Profile] streak fetch error: $e');
+    }
   }
 
   Future<void> _pickProfilePhoto() async {
