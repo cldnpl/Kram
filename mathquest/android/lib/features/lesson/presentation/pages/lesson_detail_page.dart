@@ -113,12 +113,18 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     );
   }
 
+  // Dark purple (same as gradient) for formula boxes (1st, 3rd, …)
+  static const _formulaBoxColor = Color(0xFF6650A4);
+  // Light purple for example boxes (2nd, 4th, …)
+  static const _exampleBoxColor = Color(0xFF9980F0);
+
   List<Widget> _buildIntroBlocks(String intro) {
     const boxStart = '[BOX]';
     const boxEnd = '[/BOX]';
     const diagramPrefix = '[DIAGRAM:';
     final blocks = <Widget>[];
     var remaining = intro;
+    int boxIndex = 0; // 0-based counter across ALL boxes in this lesson
 
     while (true) {
       final diagramIdx = remaining.indexOf(diagramPrefix);
@@ -195,48 +201,63 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
 
       final boxContent = remaining.substring(0, boxEndIdx).trim();
       if (boxContent.isNotEmpty) {
+        // Alternate colors: even index (0,2,4…) → formula (dark purple),
+        //                   odd  index (1,3,5…) → example (light purple)
+        final isFormulaBox = boxIndex.isEven;
+        final bgColor = isFormulaBox
+            ? _formulaBoxColor.withOpacity(0.15)
+            : _exampleBoxColor.withOpacity(0.15);
+        final borderColor = isFormulaBox
+            ? _formulaBoxColor.withOpacity(0.5)
+            : _exampleBoxColor.withOpacity(0.5);
+        final textColor = isFormulaBox
+            ? _formulaBoxColor
+            : _exampleBoxColor;
+
         blocks.add(
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Card(
-              elevation: 0,
-              shape: RoundedRectangleBorder(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: bgColor,
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+                border: Border.all(color: borderColor, width: 1.2),
               ),
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: boxContent
-                      .split('\n')
-                      .map((line) => line.trim())
-                      .where((line) => line.isNotEmpty)
-                      .map((line) {
-                        final baseStyle = Theme.of(context).textTheme.bodyLarge!;
-                        final isFormula = _isFormulaLine(line);
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 4),
-                          child: isFormula
-                              ? Text(
-                                  line,
-                                  style: baseStyle.copyWith(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    fontFamily: 'monospace',
-                                  ),
-                                )
-                              : _buildTextWithBold(context, line, baseStyle),
-                        );
-                      })
-                      .toList(),
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: boxContent
+                    .split('\n')
+                    .map((line) => line.trim())
+                    .where((line) => line.isNotEmpty)
+                    .map((line) {
+                      final baseStyle = Theme.of(context).textTheme.bodyLarge!.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                      );
+                      final isFormula = _isFormulaLine(line);
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 4),
+                        child: isFormula
+                            ? Text(
+                                line,
+                                style: baseStyle.copyWith(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'monospace',
+                                  color: textColor,
+                                ),
+                              )
+                            : _buildTextWithBold(context, line, baseStyle),
+                      );
+                    })
+                    .toList(),
               ),
             ),
           ),
         );
+        boxIndex++;
       }
 
       remaining = remaining.substring(boxEndIdx + boxEnd.length);

@@ -1,6 +1,11 @@
 import SwiftUI
 import WebKit
 
+// Dark purple (same as app gradient) for formula boxes (1st, 3rd, …)
+private let formulaBoxColor = Color(red: 102/255, green: 80/255, blue: 164/255)  // #6650A4
+// Light purple for example boxes (2nd, 4th, …)
+private let exampleBoxColor = Color(red: 153/255, green: 128/255, blue: 240/255) // #9980F0
+
 struct LessonDetailView: View {
     let lesson: LessonItem
     @StateObject private var viewModel = LessonDetailViewModel()
@@ -20,7 +25,11 @@ struct LessonDetailView: View {
                     VStack(alignment: .leading, spacing: 16) {
                         Text(L10n.lesson)
                             .font(.headline)
-                        ForEach(Array(parseContentBlocks(detail.intro).enumerated()), id: \.offset) { _, block in
+
+                        let blocks = parseContentBlocks(detail.intro)
+                        let boxIndices = computeBoxIndices(blocks)
+
+                        ForEach(Array(blocks.enumerated()), id: \.offset) { idx, block in
                             switch block {
                             case .text(let text):
                                 ForEach(paragraphs(from: text), id: \.self) { paragraph in
@@ -29,11 +38,16 @@ struct LessonDetailView: View {
                                         .padding(.bottom, 8)
                                 }
                             case .box(let content):
+                                let boxIdx = boxIndices[idx] ?? 0
+                                let isFormulaBox = boxIdx % 2 == 0
+                                let accentColor = isFormulaBox ? formulaBoxColor : exampleBoxColor
+
                                 VStack(alignment: .leading, spacing: 8) {
                                     ForEach(boxLines(from: content), id: \.self) { line in
                                         if isFormulaLine(line) {
                                             Text(line)
                                                 .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                                                .foregroundColor(accentColor)
                                         } else {
                                             renderInlineBold(line)
                                                 .font(.body)
@@ -42,11 +56,11 @@ struct LessonDetailView: View {
                                 }
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(14)
-                                .background(Color(.secondarySystemBackground))
+                                .background(accentColor.opacity(0.15))
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 12)
-                                        .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
+                                        .stroke(accentColor.opacity(0.5), lineWidth: 1.2)
                                 )
                                 .padding(.vertical, 4)
                             case .diagram(let diagramID):
@@ -272,6 +286,20 @@ private func parseContentBlocks(_ intro: String) -> [ContentBlock] {
         }
     }
     return result
+}
+
+/// Maps each block's position to a zero-based box counter (only for .box entries).
+/// Even counter = formula box (dark purple), odd = example box (light purple).
+private func computeBoxIndices(_ blocks: [ContentBlock]) -> [Int: Int] {
+    var map: [Int: Int] = [:]
+    var boxCounter = 0
+    for (idx, block) in blocks.enumerated() {
+        if case .box = block {
+            map[idx] = boxCounter
+            boxCounter += 1
+        }
+    }
+    return map
 }
 
 private func boxLines(from content: String) -> [String] {
