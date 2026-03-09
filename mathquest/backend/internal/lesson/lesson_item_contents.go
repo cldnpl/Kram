@@ -27,17 +27,61 @@ func parseItemID(id string) (sectionID string, itemIndex int, ok bool) {
 	return sectionID, n, true
 }
 
-// getContentByID returns content for both section ids ("1".."27") and item ids ("1-0"..).
-func getContentByID(id string) (lessonContent, bool) {
-	if c, ok := lessonContentByID[id]; ok {
+// contentByLang maps language code -> lesson id -> content.
+// English ("en") is the default and lives in lessonContentByID.
+var contentByLang = map[string]map[string]lessonContent{
+	"en": lessonContentByID,
+	"it": lessonContentByID_it,
+	"fr": lessonContentByID_fr,
+	"es": lessonContentByID_es,
+	"uz": lessonContentByID_uz,
+}
+
+func normalizeLessonLang(lang string) string {
+	switch strings.ToLower(strings.TrimSpace(lang)) {
+	case "it":
+		return "it"
+	case "fr":
+		return "fr"
+	case "es":
+		return "es"
+	case "uz":
+		return "uz"
+	default:
+		return "en"
+	}
+}
+
+// getContentByID returns content for both section ids ("1".."27") and item ids ("1-0"..),
+// in the requested language (falls back to English).
+func getContentByID(id, lang string) (lessonContent, bool) {
+	id = strings.TrimSpace(id)
+	if id == "" {
+		return lessonContent{}, false
+	}
+
+	normalizedLang := normalizeLessonLang(lang)
+	m := lessonContentByID
+	if lm, ok := contentByLang[normalizedLang]; ok {
+		m = lm
+	}
+
+	if c, ok := m[id]; ok {
 		return c, true
 	}
+
 	// Fallback: if an item id is requested but missing, use the section overview.
 	if sectionID, _, ok := parseItemID(id); ok {
-		if c, ok := lessonContentByID[sectionID]; ok {
+		if c, ok := m[sectionID]; ok {
 			return c, true
 		}
 	}
+
+	// Final fallback: English
+	if normalizedLang != "en" {
+		return getContentByID(id, "en")
+	}
+
 	return lessonContent{}, false
 }
 
@@ -335,6 +379,18 @@ At same level, go **left to right**.
 
 **What you will see:** **Multiples** and the notation b | a (“b divides a”); **divisors** of a number; **GCD** (how to find it by prime factorization or the **Euclidean algorithm**); **LCM** and the relation GCD·LCM = a·b for two positive integers.
 
+[BOX]
+**Formulas**
+b | a ⇔ a = b·k (k integer)
+GCD·LCM = a·b
+[/BOX]
+
+[BOX]
+**Examples**
+GCD(12,18) = 6
+LCM(12,18) = 36
+[/BOX]
+
 [DIAGRAM:prime-factorization-tree]`,
 	},
 	"4-0": {
@@ -442,6 +498,20 @@ Check: GCD·LCM = 12·72 = 864 = 24·36
 		Intro: `Fractions represent parts of a whole and ratios compare quantities.
 
 You’ll use equivalent fractions, operations, percentages, and proportions.
+
+[BOX]
+**Formulas**
+a/b + c/d = (ad+bc)/(bd)
+a/b · c/d = ac/(bd)
+percentage = (part/whole)·100
+[/BOX]
+
+[BOX]
+**Examples**
+1/2 + 1/3 = 5/6
+2/3 · 3/4 = 1/2
+25% of 80 = 20
+[/BOX]
 
 [DIAGRAM:fraction]`,
 	},
@@ -557,6 +627,19 @@ Check: 3/4 = 9/12  ✓
 		Category: "Algebra",
 		Intro: `This section introduces **monomials** (products of a coefficient and powers of variables) and **polynomials** (sums of monomials). You will learn **operations** (add, subtract, multiply), the **degree** of a polynomial, and **special products** such as the square of a binomial and the difference of two squares. These are the basis for factoring and solving equations.
 
+[BOX]
+**Summary**
+(a+b)² = a²+2ab+b²
+(a−b)² = a²−2ab+b²
+(a+b)(a−b) = a²−b²
+[/BOX]
+
+[BOX]
+**Examples**
+(x+3)² = x²+6x+9
+(2x−1)(2x+1) = 4x²−1
+[/BOX]
+
 [DIAGRAM:square-binomial]`,
 	},
 	"6-0": {
@@ -635,6 +718,18 @@ Q(x, y) = 3x²y + 7y⁴ has degree 4 (because of y⁴)
 		Category: "Algebra",
 		Intro: `**Factoring** is writing a polynomial as a **product** of simpler factors. It is the reverse of expanding and is essential for **solving equations** (setting each factor to zero), simplifying rational expressions, and finding roots. You will see **common factoring** (GCF), **Ruffini's rule** (synthetic division) to find linear factors, and **difference of squares** (and other special forms).
 
+[BOX]
+**Summary**
+Common factor: ab+ac = a(b+c)
+Difference of squares: a²−b² = (a+b)(a−b)
+[/BOX]
+
+[BOX]
+**Examples**
+3x²+6x = 3x(x+2)
+x²−9 = (x+3)(x−3)
+[/BOX]
+
 [DIAGRAM:ruffini-flow]`,
 	},
 	"7-0": {
@@ -705,6 +800,17 @@ x⁴ − 16 = (x²)² − 4² = (x² − 4)(x² + 4) = (x−2)(x+2)(x²+4)
 		Category: "Algebra",
 		Intro: `**Linear equations** (first-degree equations) have the form ax + b = 0 with a ≠ 0; their solution is **x = −b/a**. **Literal equations** contain letters as parameters; you solve for one variable in terms of the others. These are the foundation for all algebraic problem solving and for systems of equations.
 
+[BOX]
+**Formulas**
+ax + b = 0 ⇒ x = −b/a (a≠0)
+[/BOX]
+
+[BOX]
+**Examples**
+2x+6=0 ⇒ x=−3
+3x−1>5 ⇒ x>2
+[/BOX]
+
 [DIAGRAM:linear-line]`,
 	},
 	"8-0": {
@@ -757,6 +863,18 @@ x = (4 − a)/2
 		Title:    "Quadratic Equations",
 		Category: "Algebra",
 		Intro: `**Quadratic equations** have the form **ax² + bx + c = 0** with **a ≠ 0**. They have at most **two** real solutions. You will learn **complete** and **incomplete** quadratics (missing b or c), the **discriminant** Δ = b² − 4ac (which tells how many real roots there are), the **quadratic formula**, and **factoring** trinomials to solve quickly when possible.
+
+[BOX]
+**Formulas**
+ax²+bx+c=0
+Δ=b²−4ac
+x=(−b±√Δ)/(2a)
+[/BOX]
+
+[BOX]
+**Examples**
+x²−5x+6=0 ⇒ Δ=1, x=2 or x=3
+[/BOX]
 
 [DIAGRAM:parabola]`,
 	},
@@ -834,6 +952,17 @@ x² + 5x + 6 = 0. Need α+β = 5, αβ = 6 → α=2, β=3.
 		Title:    "Systems of Equations",
 		Category: "Algebra",
 		Intro: `A **system of equations** is a set of equations that must be satisfied **at the same time**. You look for values of the unknowns (e.g. x and y) that satisfy **every** equation. For **linear** systems of two equations in two unknowns there are three main methods: **substitution**, **comparison**, and **Cramer's rule** (determinants). The solution (if unique) is the intersection of two lines in the plane.
+
+[BOX]
+**Summary**
+Substitution: isolate one variable, substitute
+Cramer: x=Dx/D, y=Dy/D
+[/BOX]
+
+[BOX]
+**Examples**
+{x+y=5, x−y=1} ⇒ x=3, y=2
+[/BOX]
 
 [DIAGRAM:two-lines]`,
 	},
@@ -913,6 +1042,19 @@ x = (8·(−1)−1·1)/(−3) = 3,  y = (2·1−1·8)/(−3) = 2
 		Title:    "Plane Geometry",
 		Category: "Geometry & Trigonometry",
 		Intro: `**Plane geometry** studies figures in **two dimensions**: **segments** (length, midpoint), **angles** (complementary, supplementary, vertical, bisector), **triangles** (angle sum 180°, inequality, area), **quadrilaterals** (trapezoid, parallelogram, rectangle, rhombus, square), and **polygons** (sum of interior angles, regular polygons). These are the basis for congruence, similarity, and trigonometry.
+
+[BOX]
+**Formulas**
+Triangle area = (1/2)·b·h
+Sum of angles in a triangle = 180°
+Regular polygon interior angle = (n−2)·180°/n
+[/BOX]
+
+[BOX]
+**Examples**
+Triangle b=6 h=4 ⇒ A=12
+Hexagon interior angle = 120°
+[/BOX]
 
 [DIAGRAM:geometry-formulary]`,
 	},
@@ -1028,6 +1170,17 @@ Hexagon (n=6): sum = 4·180° = 720°. Regular hexagon: each angle = 120°.
 	},
 	"12": { Title: "Congruence & Similarity", Category: "Geometry & Trigonometry", Intro: `Congruence is “same shape and same size”. Similarity is “same shape, scaled”.
 
+[BOX]
+**Summary**
+Pythagoras: a²+b²=c²
+Similar triangles: corresponding sides proportional
+[/BOX]
+
+[BOX]
+**Examples**
+Right triangle legs 3,4 ⇒ hypotenuse=5
+[/BOX]
+
 [DIAGRAM:triangle-criteria]` },
 	"12-0": {
 		Title:    "Criteria for triangles",
@@ -1072,6 +1225,17 @@ If a = 3 and b = 4, then c = 5 because 3² + 4² = 25.
 		Title:    "Circle & Pi",
 		Category: "Geometry & Trigonometry",
 		Intro: `The **circle** is the set of points at a fixed distance **r** (the **radius**) from a point **O** (the **center**). You will use **circumference** C = 2πr, **area** A = πr², **tangents** (line touching the circle at one point, perpendicular to radius), and **secants** (line cutting the circle in two points) with the **power of a point**.
+
+[BOX]
+**Formulas**
+C=2πr
+A=πr²
+[/BOX]
+
+[BOX]
+**Examples**
+r=5 ⇒ C=10π≈31.4, A=25π≈78.5
+[/BOX]
 
 [DIAGRAM:circle]`,
 	},
@@ -1155,6 +1319,20 @@ Secant through P: PA = 3, PB = 12  ⇒  PA·PB = 36. Any other secant through P 
 		Title:    "Solid Geometry",
 		Category: "Geometry & Trigonometry",
 		Intro: `**Solid geometry** studies **three-dimensional** figures: **prisms** (two parallel congruent bases, volume = base area × height), **pyramids** (one base, vertex, volume = (1/3)×base×height), **cylinders** (circular bases, V = πr²h), **cones** (circular base, V = (1/3)πr²h), and **spheres** (V = (4/3)πr³, surface area = 4πr²). You will use these formulas for volume and lateral/total surface area.
+
+[BOX]
+**Formulas**
+Prism V=B·h
+Pyramid V=(1/3)B·h
+Cylinder V=πr²h
+Cone V=(1/3)πr²h
+Sphere V=(4/3)πr³
+[/BOX]
+
+[BOX]
+**Examples**
+Cylinder r=3 h=10 ⇒ V=90π≈283
+[/BOX]
 
 [DIAGRAM:geometry-formulary]`,
 	},
@@ -1262,6 +1440,19 @@ r = 3  ⇒  S = 4π·9 = 36π,  V = (4/3)π·27 = 36π
 		Category: "Geometry & Trigonometry",
 		Intro: `**Trigonometry** studies the link between **angles** and **ratios** of sides in right triangles, and the **unit circle** (radius 1) where each angle corresponds to a point (cos θ, sin θ). You will use the **unit circle**, **radians** (180° = π rad), **sine**, **cosine**, **tangent**, the identity sin²θ + cos²θ = 1, and the **law of sines** and **law of cosines** for non-right triangles.
 
+[BOX]
+**Formulas**
+sin²θ+cos²θ=1
+Law of sines: a/sinA=b/sinB=c/sinC
+Law of cosines: c²=a²+b²−2ab·cosC
+[/BOX]
+
+[BOX]
+**Examples**
+sin(30°)=1/2
+cos(60°)=1/2
+[/BOX]
+
 [DIAGRAM:unit-circle]`,
 	},
 	"15-0": {
@@ -1328,6 +1519,17 @@ b=5, c=7, A=60°: a² = 25+49−2·5·7·(1/2) = 74−35 = 39  ⇒  a = √39
 		Category: "Pre-Calculus & Analysis",
 		Intro: `**Functions** assign to each input (e.g. x) exactly one output (e.g. y = f(x)). The **domain** is the set of allowed inputs; the **range** is the set of possible outputs. You will study **real functions of a real variable**, **classification** (injective, surjective, even/odd), and **how to find the domain** (denominators ≠ 0, even roots ≥ 0, log argument > 0).
 
+[BOX]
+**Summary**
+Domain restrictions: denominator≠0, even root≥0, log argument>0
+[/BOX]
+
+[BOX]
+**Examples**
+f(x)=1/(x−2) ⇒ domain: x≠2
+f(x)=√(x−1) ⇒ domain: x≥1
+[/BOX]
+
 [DIAGRAM:graph-transformations]`,
 	},
 	"16-0": {
@@ -1392,6 +1594,18 @@ f(x)=1/(x−2) ⇒ domain x ≠ 2.  f(x)=√(x+1) ⇒ x ≥ −1.  f(x)=ln(x−3
 		Title:    "Properties of Functions",
 		Category: "Pre-Calculus & Analysis",
 		Intro: `Beyond domain and range, we study **symmetries** (even/odd), **intercepts** (where the graph crosses the axes), and **sign** (where f(x) > 0, < 0, or = 0). These help sketch the graph and solve inequalities.
+
+[BOX]
+**Summary**
+Even: f(−x)=f(x); Odd: f(−x)=−f(x)
+Intercepts: y-intercept f(0), x-intercepts f(x)=0
+[/BOX]
+
+[BOX]
+**Examples**
+f(x)=x² is even
+f(x)=x³ is odd
+[/BOX]
 
 [DIAGRAM:graph-transformations]`,
 	},
@@ -1458,6 +1672,19 @@ f(x)=x²−4=(x−2)(x+2). Zeros: x=±2.  f>0 for x<−2 or x>2;  f<0 for −2<x
 		Title:    "Exponential & Logarithms",
 		Category: "Pre-Calculus & Analysis",
 		Intro: `**Exponential** (eˣ, aˣ) and **logarithmic** (ln x, log x) functions are **inverses**: ln(eˣ)=x and e^(ln x)=x for x>0. Both are **strictly monotone**, so you can solve equations and inequalities by “taking ln” or “taking exp” on both sides. You will solve **equations and inequalities** involving eˣ and ln x.
+
+[BOX]
+**Formulas**
+ln(eˣ)=x; e^(ln x)=x
+log_a(x·y)=log_a(x)+log_a(y)
+log_a(xⁿ)=n·log_a(x)
+[/BOX]
+
+[BOX]
+**Examples**
+eˣ=5 ⇒ x=ln 5≈1.61
+ln(x)=3 ⇒ x=e³≈20.09
+[/BOX]
 
 [DIAGRAM:exp-log-graphs]`,
 	},
@@ -2010,3 +2237,31 @@ Area between y = x and y = x² on [0,1]: ∫_0^1 (x − x²) dx = 1/6
 	},
 }
 
+func buildLessonContentForLang(lang string) map[string]lessonContent {
+	normalizedLang := normalizeLessonLang(lang)
+	if normalizedLang == "en" {
+		return lessonContentByID
+	}
+
+	translations := translationMap(normalizedLang)
+	if len(translations) == 0 {
+		return lessonContentByID
+	}
+
+	localized := make(map[string]lessonContent, len(lessonContentByID))
+	for id, content := range lessonContentByID {
+		if t, ok := translations[content.Title]; ok {
+			content.Title = t
+		}
+		if t, ok := translations[content.Category]; ok {
+			content.Category = t
+		}
+		localized[id] = content
+	}
+	return localized
+}
+
+var lessonContentByID_it = buildLessonContentForLang("it")
+var lessonContentByID_fr = buildLessonContentForLang("fr")
+var lessonContentByID_es = buildLessonContentForLang("es")
+var lessonContentByID_uz = buildLessonContentForLang("uz")
