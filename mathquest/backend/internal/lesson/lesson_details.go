@@ -1,8 +1,6 @@
 package lesson
 
 import (
-	"strings"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -11,30 +9,7 @@ import (
 // - section ids: "1".."27"
 // - item ids: "1-0", "1-1", ...
 func getLessonDetail(id, lang string) (title, category string, content fiber.Map, exercises []fiber.Map) {
-	normalizedLang := normalizeLessonLang(lang)
-	if lesson, ok := lessonFromJSON(id, normalizedLang); ok {
-		if normalizedLang != "en" {
-			if english, ok := lessonFromJSON(id, "en"); ok {
-				if tr := translationMap(normalizedLang); len(tr) > 0 {
-					if v, ok := tr[english.Title]; ok && strings.TrimSpace(v) != "" {
-						lesson.Title = v
-					}
-					if v, ok := tr[english.Category]; ok && strings.TrimSpace(v) != "" {
-						lesson.Category = v
-					}
-				}
-
-				translatedIntro := localizeLessonIntro(id, english.Intro, normalizedLang)
-				if strings.TrimSpace(translatedIntro) != "" && translatedIntro != english.Intro {
-					lesson.Intro = translatedIntro
-				}
-
-				if len(english.Exercises) > 0 {
-					lesson.Exercises = localizeLessonExercises(id, english.Exercises, lesson.Exercises, normalizedLang)
-				}
-			}
-		}
-
+	if lesson, ok := lessonFromJSON(id, lang); ok {
 		title = lesson.Title
 		category = lesson.Category
 		content = fiber.Map{"intro": lesson.Intro}
