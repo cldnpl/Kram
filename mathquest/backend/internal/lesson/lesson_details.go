@@ -8,8 +8,8 @@ import (
 // Supported ids:
 // - section ids: "1".."27"
 // - item ids: "1-0", "1-1", ...
-func getLessonDetail(id string) (title, category string, content fiber.Map, exercises []fiber.Map) {
-	if c, ok := getContentByID(id); ok {
+func getLessonDetail(id, lang string) (title, category string, content fiber.Map, exercises []fiber.Map) {
+	if c, ok := getContentByID(id, lang); ok {
 		title, category = c.Title, c.Category
 		content = fiber.Map{"intro": c.Intro}
 	} else {
