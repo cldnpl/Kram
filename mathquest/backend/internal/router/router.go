@@ -24,10 +24,18 @@ import (
 )
 
 func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.Client) {
+	// Public health endpoints for deploy probes and load balancers.
+	app.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"ok": true})
+	})
+
 	// Diagrammi SVG pubblici (senza auth, fuori da /api così non passano dal middleware)
 	app.Get("/diagrams/:id", serveDiagram)
 
 	api := app.Group("/api")
+	api.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{"ok": true})
+	})
 
 	// Auth (public)
 	authGroup := api.Group("/auth")
