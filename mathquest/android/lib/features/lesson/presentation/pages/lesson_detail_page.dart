@@ -136,9 +136,16 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
         final textBefore = remaining.substring(0, diagramIdx).trim();
         if (textBefore.isNotEmpty) {
           for (final paragraph in _paragraphsFromText(textBefore)) {
+            final baseStyle = Theme.of(context).textTheme.bodyLarge!;
             blocks.add(Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+              child: _isFormulaLine(paragraph)
+                  ? _buildFormulaLineWidget(
+                      paragraph,
+                      _formulaBoxColor,
+                      baseStyle,
+                    )
+                  : _buildTextWithBold(context, paragraph, baseStyle),
             ));
           }
         }
@@ -161,9 +168,16 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
         final text = remaining.trim();
         if (text.isNotEmpty) {
           for (final paragraph in _paragraphsFromText(text)) {
+            final baseStyle = Theme.of(context).textTheme.bodyLarge!;
             blocks.add(Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+              child: _isFormulaLine(paragraph)
+                  ? _buildFormulaLineWidget(
+                      paragraph,
+                      _formulaBoxColor,
+                      baseStyle,
+                    )
+                  : _buildTextWithBold(context, paragraph, baseStyle),
             ));
           }
         }
@@ -173,9 +187,16 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       final textBefore = remaining.substring(0, boxStartIdx).trim();
       if (textBefore.isNotEmpty) {
         for (final paragraph in _paragraphsFromText(textBefore)) {
+          final baseStyle = Theme.of(context).textTheme.bodyLarge!;
           blocks.add(Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+            child: _isFormulaLine(paragraph)
+                ? _buildFormulaLineWidget(
+                    paragraph,
+                    _formulaBoxColor,
+                    baseStyle,
+                  )
+                : _buildTextWithBold(context, paragraph, baseStyle),
           ));
         }
       }
@@ -232,9 +253,10 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: isFormula
-                            ? Text(
+                            ? _buildFormulaLineWidget(
                                 line,
-                                style: baseStyle.copyWith(
+                                textColor,
+                                baseStyle.copyWith(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w600,
                                   fontFamily: 'monospace',
@@ -379,6 +401,47 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     return out;
   }
 
+  static final RegExp _fractionRegex = RegExp(r'([A-Za-z0-9]+)\s*/\s*([A-Za-z0-9]+)');
+
+  Widget _buildFormulaLineWidget(String line, Color formulaColor, TextStyle baseStyle) {
+    final formulaStyle = baseStyle.copyWith(
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      fontFamily: 'monospace',
+      color: formulaColor,
+      height: 1.2,
+    );
+
+    final spans = <InlineSpan>[];
+    var last = 0;
+    for (final match in _fractionRegex.allMatches(line)) {
+      if (match.start > last) {
+        spans.add(TextSpan(text: line.substring(last, match.start), style: formulaStyle));
+      }
+      final numerator = match.group(1) ?? '';
+      final denominator = match.group(2) ?? '';
+      spans.add(
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: _FractionInline(
+            numerator: numerator,
+            denominator: denominator,
+            color: formulaColor,
+          ),
+        ),
+      );
+      last = match.end;
+    }
+    if (last < line.length) {
+      spans.add(TextSpan(text: line.substring(last), style: formulaStyle));
+    }
+    if (spans.isEmpty) {
+      spans.add(TextSpan(text: line, style: formulaStyle));
+    }
+
+    return RichText(text: TextSpan(children: spans, style: formulaStyle));
+  }
+
   Widget _buildTextWithBold(BuildContext context, String text, TextStyle baseStyle) {
     final spans = <TextSpan>[];
     final parts = text.split('**');
@@ -392,6 +455,46 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     final color = Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface;
     return RichText(
       text: TextSpan(style: baseStyle.copyWith(color: color), children: spans),
+    );
+  }
+}
+
+class _FractionInline extends StatelessWidget {
+  const _FractionInline({
+    required this.numerator,
+    required this.denominator,
+    required this.color,
+  });
+
+  final String numerator;
+  final String denominator;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final textStyle = TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w700,
+      fontFamily: 'monospace',
+      color: color,
+      height: 1.0,
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 1),
+      child: IntrinsicWidth(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(numerator, style: textStyle, textAlign: TextAlign.center),
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 1),
+              height: 1.2,
+              color: color,
+            ),
+            Text(denominator, style: textStyle, textAlign: TextAlign.center),
+          ],
+        ),
+      ),
     );
   }
 }
