@@ -67,12 +67,14 @@ func getContentByID(id, lang string) (lessonContent, bool) {
 	}
 
 	if c, ok := m[id]; ok {
+		c.Intro = localizeLessonIntro(id, c.Intro, normalizedLang)
 		return c, true
 	}
 
 	// Fallback: if an item id is requested but missing, use the section overview.
 	if sectionID, _, ok := parseItemID(id); ok {
 		if c, ok := m[sectionID]; ok {
+			c.Intro = localizeLessonIntro(sectionID, c.Intro, normalizedLang)
 			return c, true
 		}
 	}
