@@ -4,6 +4,7 @@ from datasets import load_dataset
 import os
 
 # 1. Setup modello ultraleggero
+# 1. Setup modello ultraleggero
 device = "mps" if torch.backends.mps.is_available() else "cpu"
 processor = DonutProcessor.from_pretrained("naver-clova-ix/donut-base")
 model = VisionEncoderDecoderModel.from_pretrained("naver-clova-ix/donut-base")
