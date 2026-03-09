@@ -171,7 +171,8 @@ final class LessonDetailViewModel: ObservableObject {
         defer { isLoading = false }
         do {
             await client.setToken("mock-dev-token")
-            let response: LessonDetailResponse = try await client.request("lessons/\(lessonId)")
+            let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
+            let response: LessonDetailResponse = try await client.request("lessons/\(lessonId)?lang=\(lang)")
             let exercises = (response.exercises ?? []).map { ex in
                 LessonDetailExercise(
                     id: ex.id ?? "",

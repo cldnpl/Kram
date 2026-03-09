@@ -28,8 +28,20 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     debugPrint('[Home] initState - loading data');
+    AppLocale.localeNotifier.addListener(_handleLocaleChanged);
     _load();
     _loadProfileName();
+  }
+
+  @override
+  void dispose() {
+    AppLocale.localeNotifier.removeListener(_handleLocaleChanged);
+    super.dispose();
+  }
+
+  void _handleLocaleChanged() {
+    if (!mounted) return;
+    _load();
   }
 
   Future<void> _loadProfileName() async {
@@ -42,9 +54,12 @@ class _HomePageState extends State<HomePage> {
       _loading = true;
       _error = null;
     });
+    final prefs = await SharedPreferences.getInstance();
+    final lang = prefs.getString('settings_language') ?? 'en';
+
     try {
       debugPrint('[Home] fetching lessons...');
-      final res = await _dio.dio.get('lessons', options: _authOptions());
+      final res = await _dio.dio.get('lessons?lang=$lang', options: _authOptions());
       final data = res.data as Map<String, dynamic>;
       final list = data['categories'] as List<dynamic>? ?? [];
       _categories =

@@ -91,8 +91,9 @@ final class HomeViewModel: ObservableObject {
 
         do {
             await client.setToken("mock-dev-token")
-            print("[Home] fetching lessons from: \(APIConfig.baseURLString)/lessons")
-            let res: CategoriesResponse = try await client.request("lessons")
+            let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
+            print("[Home] fetching lessons from: \(APIConfig.baseURLString)/lessons?lang=\(lang)")
+            let res: CategoriesResponse = try await client.request("lessons?lang=\(lang)")
             categories = res.categories.map(\.toItem)
             print("[Home] got \(categories.count) categories")
 

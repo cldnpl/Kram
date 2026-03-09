@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/network/api_config.dart';
@@ -35,8 +36,10 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       _error = null;
     });
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final lang = prefs.getString('settings_language') ?? 'en';
       final res = await _dio.dio.get(
-        'lessons/${widget.lessonId}',
+        'lessons/${widget.lessonId}?lang=$lang',
         options: Options(headers: {'Authorization': 'Bearer mock-dev-token'}),
       );
       setState(() {

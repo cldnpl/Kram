@@ -7,6 +7,7 @@ struct HomeView: View {
     @State private var showShop = false
     @State private var showStreak = false
     @AppStorage("profile_name") private var profileName = ""
+    @AppStorage("settings_language") private var language = "en"
 
     var body: some View {
         NavigationStack {
@@ -143,6 +144,9 @@ struct HomeView: View {
                 .task {
                     print("[Home] view appeared, loading data")
                     await viewModel.load()
+                }
+                .onChange(of: language) { _, _ in
+                    Task { await viewModel.load() }
                 }
             }
         }
