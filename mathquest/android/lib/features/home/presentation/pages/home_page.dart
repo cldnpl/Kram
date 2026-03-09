@@ -28,8 +28,20 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     debugPrint('[Home] initState - loading data');
+    AppLocale.localeNotifier.addListener(_handleLocaleChanged);
     _load();
     _loadProfileName();
+  }
+
+  @override
+  void dispose() {
+    AppLocale.localeNotifier.removeListener(_handleLocaleChanged);
+    super.dispose();
+  }
+
+  void _handleLocaleChanged() {
+    if (!mounted) return;
+    _load();
   }
 
   Future<void> _loadProfileName() async {
@@ -42,22 +54,41 @@ class _HomePageState extends State<HomePage> {
       _loading = true;
       _error = null;
     });
+    final prefs = await SharedPreferences.getInstance();
+    final lang = prefs.getString('settings_language') ?? 'en';
+
     try {
       debugPrint('[Home] fetching lessons...');
-      final res = await _dio.dio.get('lessons', options: _authOptions());
+      final res = await _dio.dio.get('lessons?lang=$lang', options: _authOptions());
       final data = res.data as Map<String, dynamic>;
       final list = data['categories'] as List<dynamic>? ?? [];
       _categories =
           list.map((e) => Map<String, dynamic>.from(e as Map)).toList();
       debugPrint('[Home] got ${_categories.length} categories');
+    } catch (e, st) {
+      debugPrint('[Home] ERROR loading lessons: $e');
+      debugPrint('[Home] stack: $st');
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+      });
+      return;
+    }
 
+    try {
       debugPrint('[Home] fetching balance...');
       final balanceRes =
           await _dio.dio.get('coins/balance', options: _authOptions());
       final balanceData = balanceRes.data as Map<String, dynamic>;
       _coinBalance = (balanceData['balance'] as num?)?.toInt() ?? 0;
       debugPrint('[Home] balance = $_coinBalance');
+    } catch (e, st) {
+      debugPrint('[Home] balance fetch failed: $e');
+      debugPrint('[Home] stack: $st');
+    }
 
+    try {
       debugPrint('[Home] fetching streak...');
       final streakRes =
           await _dio.dio.get('streak', options: _authOptions());
@@ -65,18 +96,15 @@ class _HomePageState extends State<HomePage> {
       _streakDays = (streakData['streak_days'] as num?)?.toInt() ?? 0;
       _activeToday = streakData['active_today'] as bool? ?? false;
       debugPrint('[Home] streak = $_streakDays, activeToday = $_activeToday');
-
-      setState(() {
-        _loading = false;
-      });
     } catch (e, st) {
-      debugPrint('[Home] ERROR: $e');
+      debugPrint('[Home] streak fetch failed: $e');
       debugPrint('[Home] stack: $st');
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-      });
     }
+
+    if (!mounted) return;
+    setState(() {
+      _loading = false;
+    });
   }
 
   dynamic _authOptions() {

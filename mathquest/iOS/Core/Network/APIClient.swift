@@ -34,12 +34,46 @@ actor APIClient {
         self.baseURL = baseURL
     }
 
+    private func makeURL(for path: String) throws -> URL {
+        if let absoluteURL = URL(string: path), absoluteURL.scheme != nil {
+            return absoluteURL
+        }
+
+        let trimmed = path.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            return baseURL
+        }
+
+        let parts = trimmed.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)
+        let rawPath = String(parts[0])
+        let normalizedPath = rawPath.hasPrefix("/") ? String(rawPath.dropFirst()) : rawPath
+        let query = parts.count > 1 ? String(parts[1]) : nil
+
+        var url = baseURL
+        if !normalizedPath.isEmpty {
+            url = baseURL.appendingPathComponent(normalizedPath)
+        }
+
+        guard let query, !query.isEmpty else {
+            return url
+        }
+
+        guard var components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
+            throw URLError(.badURL)
+        }
+        components.percentEncodedQuery = query
+        guard let resolvedURL = components.url else {
+            throw URLError(.badURL)
+        }
+        return resolvedURL
+    }
+
     func setToken(_ token: String?) {
         self.token = token
     }
 
     func request<T: Decodable>(_ path: String, method: String = "GET", body: Data? = nil) async throws -> T {
-        let url = baseURL.appendingPathComponent(path)
+        let url = try makeURL(for: path)
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.timeoutInterval = 30

@@ -13,14 +13,16 @@ type completeLessonRequest struct {
 }
 
 func List(c *fiber.Ctx) error {
-	cat := curriculum()
-	log.Printf("[API] GET /lessons -> returning %d categories with subtopics", len(cat))
+	lang := normalizeLessonLang(c.Query("lang", "en"))
+	cat := curriculumForLang(lang)
+	log.Printf("[API] GET /lessons -> returning %d categories (lang=%s)", len(cat), lang)
 	return c.JSON(fiber.Map{"categories": cat})
 }
 
 func GetByID(c *fiber.Ctx) error {
 	id := c.Params("id")
-	title, category, content, exercises := getLessonDetail(id)
+	lang := normalizeLessonLang(c.Query("lang", "en"))
+	title, category, content, exercises := getLessonDetail(id, lang)
 	return c.JSON(fiber.Map{
 		"id":           id,
 		"title":        title,

@@ -36,8 +36,10 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
       _error = null;
     });
     try {
+      final prefs = await SharedPreferences.getInstance();
+      final lang = prefs.getString('settings_language') ?? 'en';
       final res = await _dio.dio.get(
-        'lessons',
+        'lessons?lang=$lang',
         options: Options(headers: {'Authorization': 'Bearer mock-dev-token'}),
       );
       final data = res.data as Map<String, dynamic>;

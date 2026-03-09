@@ -10,7 +10,6 @@ struct ContentView: View {
     @EnvironmentObject private var authManager: AuthManager
     @AppStorage("profile_username") private var profileUsername = ""
     @AppStorage("profile_name") private var profileName = ""
-    @State private var cameraTrialUsed = KeychainFlag.isSet("camera_trial_used")
     @State private var showProfileSetup = false
 
     private var isLoggedIn: Bool {
@@ -22,9 +21,9 @@ struct ContentView: View {
         authManager.isAuthenticated && (profileName.isEmpty || profileUsername.isEmpty)
     }
 
-    /// Camera available if logged in, OR free trial not yet used.
+    /// Camera available only if logged in.
     private var canUseCamera: Bool {
-        isLoggedIn || !cameraTrialUsed
+        isLoggedIn
     }
 
     var body: some View {
@@ -37,7 +36,7 @@ struct ContentView: View {
                 .tag(1)
             NavigationStack {
                 if canUseCamera {
-                    CameraView(onTrialUsed: markTrialUsed)
+                    CameraView()
                 } else {
                     CameraLoginRequiredView()
                 }
@@ -68,11 +67,6 @@ struct ContentView: View {
         }
     }
 
-    private func markTrialUsed() {
-        guard !isLoggedIn else { return }
-        KeychainFlag.set("camera_trial_used")
-        cameraTrialUsed = true
-    }
 }
 
 #Preview {
