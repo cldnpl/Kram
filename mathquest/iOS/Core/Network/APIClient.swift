@@ -29,6 +29,7 @@ actor APIClient {
 
         return decoder
     }()
+    private let maxRetries = 3
 
     init(baseURL: URL = APIConfig.baseURL) {
         self.baseURL = baseURL
@@ -78,39 +79,75 @@ actor APIClient {
         guard let url = URL(string: path, relativeTo: base) else {
             throw URLError(.badURL)
         }
-        var request = URLRequest(url: url)
-        request.httpMethod = method
-        request.timeoutInterval = 30
-        #if DEBUG
-        print("[APIClient] \(method) \(url.absoluteString)")
-        #endif
-        if let token = token {
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        }
-        if path.contains("camera"), let username = UserDefaults.standard.string(forKey: "profile_username"), !username.isEmpty {
-            request.setValue(username, forHTTPHeaderField: "X-Username")
-        }
-        request.setValue(SubscriptionTier.current.rawValue, forHTTPHeaderField: "X-Subscription-Tier")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = body
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        var lastError: Error?
+        for attempt in 1...maxRetries {
+            var request = URLRequest(url: url)
+            request.httpMethod = method
+            request.timeoutInterval = 30
+            #if DEBUG
+            print("[APIClient] \(method) \(url.absoluteString) [attempt \(attempt)/\(maxRetries)]")
+            #endif
+            if let token = token {
+                request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+            }
+            if path.contains("camera"), let username = UserDefaults.standard.string(forKey: "profile_username"), !username.isEmpty {
+                request.setValue(username, forHTTPHeaderField: "X-Username")
+            }
+            request.setValue(SubscriptionTier.current.rawValue, forHTTPHeaderField: "X-Subscription-Tier")
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = body
 
-        guard let http = response as? HTTPURLResponse else {
-            throw URLError(.badServerResponse)
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard let http = response as? HTTPURLResponse else {
+                    throw URLError(.badServerResponse)
+                }
+
+                if (200...299).contains(http.statusCode) {
+                    do {
+                        return try Self.decoder.decode(T.self, from: data)
+                    } catch {
+                        let responseBody = String(data: data, encoding: .utf8) ?? "<non-utf8-payload>"
+                        throw APIError.decodingFailed(underlying: error, body: responseBody)
+                    }
+                }
+
+                let responseBody = String(data: data, encoding: .utf8) ?? ""
+                let httpError = APIError.httpStatus(code: http.statusCode, body: responseBody)
+                if shouldRetry(statusCode: http.statusCode, method: method), attempt < maxRetries {
+                    try await Task.sleep(nanoseconds: UInt64(attempt) * 500_000_000) // 0.5s, 1s, 1.5s
+                    continue
+                }
+                throw httpError
+            } catch {
+                lastError = error
+                if shouldRetry(error: error, method: method), attempt < maxRetries {
+                    try await Task.sleep(nanoseconds: UInt64(attempt) * 500_000_000)
+                    continue
+                }
+                throw error
+            }
         }
 
-        guard (200...299).contains(http.statusCode) else {
-            let responseBody = String(data: data, encoding: .utf8) ?? ""
-            throw APIError.httpStatus(code: http.statusCode, body: responseBody)
-        }
+        throw lastError ?? URLError(.unknown)
+    }
 
-        do {
-            return try Self.decoder.decode(T.self, from: data)
-        } catch {
-            let responseBody = String(data: data, encoding: .utf8) ?? "<non-utf8-payload>"
-            throw APIError.decodingFailed(underlying: error, body: responseBody)
+    private func shouldRetry(statusCode: Int, method: String) -> Bool {
+        guard method.uppercased() == "GET" else { return false }
+        return statusCode == 502 || statusCode == 503 || statusCode == 504
+    }
+
+    private func shouldRetry(error: Error, method: String) -> Bool {
+        guard method.uppercased() == "GET" else { return false }
+        let nsError = error as NSError
+        if nsError.domain != NSURLErrorDomain {
+            return false
         }
+        return nsError.code == URLError.networkConnectionLost.rawValue ||
+            nsError.code == URLError.timedOut.rawValue ||
+            nsError.code == URLError.cannotConnectToHost.rawValue ||
+            nsError.code == URLError.cannotFindHost.rawValue
     }
 
     enum APIError: LocalizedError {
