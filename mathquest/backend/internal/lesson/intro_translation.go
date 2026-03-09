@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -17,8 +16,6 @@ var introTranslationCache sync.Map
 var introTranslatorHTTPClient = &http.Client{
 	Timeout: 8 * time.Second,
 }
-
-var boldMarkerRegex = regexp.MustCompile(`\*\*`)
 
 func localizeLessonIntro(id, intro, lang string) string {
 	normalizedLang := normalizeLessonLang(lang)
@@ -94,27 +91,6 @@ func shouldKeepLineAsIs(line string) bool {
 	if strings.HasPrefix(trimmed, "[DIAGRAM:") && strings.HasSuffix(trimmed, "]") {
 		return true
 	}
-	if isFormulaLikeLine(trimmed) {
-		return true
-	}
-	return false
-}
-
-func isFormulaLikeLine(line string) bool {
-	if strings.ContainsAny(line, "=^√∫Δ→±⇔≤≥") {
-		return true
-	}
-
-	lower := strings.ToLower(line)
-	if strings.Contains(lower, "gcd(") || strings.Contains(lower, "lcm(") {
-		return true
-	}
-	if strings.Contains(lower, "sin") || strings.Contains(lower, "cos") || strings.Contains(lower, "tan") {
-		return true
-	}
-	if strings.Contains(lower, "log") || strings.Contains(lower, "ln") {
-		return true
-	}
 	return false
 }
 
@@ -123,10 +99,7 @@ func translateTextBlock(text, targetLang string) (string, error) {
 		return text, nil
 	}
 
-	const boldToken = "<<KRAM_BOLD_MARKER>>"
-	masked := boldMarkerRegex.ReplaceAllString(text, boldToken)
-
-	escapedText := url.QueryEscape(masked)
+	escapedText := url.QueryEscape(text)
 	u := "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=" + targetLang + "&dt=t&q=" + escapedText
 
 	req, err := http.NewRequest(http.MethodGet, u, nil)
@@ -154,8 +127,6 @@ func translateTextBlock(text, targetLang string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
-	translated = strings.ReplaceAll(translated, boldToken, "**")
 	return translated, nil
 }
 
