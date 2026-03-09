@@ -39,7 +39,10 @@ actor APIClient {
     }
 
     func request<T: Decodable>(_ path: String, method: String = "GET", body: Data? = nil) async throws -> T {
-        let url = baseURL.appendingPathComponent(path)
+        let base = baseURL.absoluteString.hasSuffix("/") ? baseURL : URL(string: baseURL.absoluteString + "/")!
+        guard let url = URL(string: path, relativeTo: base) else {
+            throw URLError(.badURL)
+        }
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.timeoutInterval = 30
