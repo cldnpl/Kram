@@ -12,6 +12,7 @@ import (
 )
 
 var introTranslationCache sync.Map
+var exerciseTranslationCache sync.Map
 
 var introTranslatorHTTPClient = &http.Client{
 	Timeout: 8 * time.Second,
@@ -41,6 +42,77 @@ func localizeLessonIntro(id, intro, lang string) string {
 	}
 
 	introTranslationCache.Store(cacheKey, translated)
+	return translated
+}
+
+func localizeLessonExercises(id string, sourceExercises, fallbackExercises []lessonJSONExercise, lang string) []lessonJSONExercise {
+	normalizedLang := normalizeLessonLang(lang)
+	if normalizedLang == "en" || len(sourceExercises) == 0 {
+		return sourceExercises
+	}
+
+	localized := make([]lessonJSONExercise, 0, len(sourceExercises))
+	for exIdx, source := range sourceExercises {
+		fallback := lessonJSONExercise{}
+		if exIdx < len(fallbackExercises) {
+			fallback = fallbackExercises[exIdx]
+		}
+
+		out := source
+		out.Question = localizeExerciseField(id, source.ID, "q", source.Question, normalizedLang, fallback.Question)
+
+		out.Options = make([]string, 0, len(source.Options))
+		for optIdx, option := range source.Options {
+			fallbackOpt := ""
+			if optIdx < len(fallback.Options) {
+				fallbackOpt = fallback.Options[optIdx]
+			}
+			out.Options = append(out.Options, localizeExerciseField(id, source.ID, fmt.Sprintf("o%d", optIdx), option, normalizedLang, fallbackOpt))
+		}
+
+		correctIndex := -1
+		for i, option := range source.Options {
+			if strings.TrimSpace(option) == strings.TrimSpace(source.CorrectAnswer) {
+				correctIndex = i
+				break
+			}
+		}
+		if correctIndex >= 0 && correctIndex < len(out.Options) {
+			out.CorrectAnswer = out.Options[correctIndex]
+		} else {
+			out.CorrectAnswer = localizeExerciseField(id, source.ID, "a", source.CorrectAnswer, normalizedLang, fallback.CorrectAnswer)
+		}
+
+		localized = append(localized, out)
+	}
+
+	return localized
+}
+
+func localizeExerciseField(lessonID, exerciseID, fieldID, text, lang, fallback string) string {
+	trimmed := strings.TrimSpace(text)
+	if trimmed == "" {
+		return text
+	}
+
+	cacheKey := fmt.Sprintf("%s|%s|%s|%s|%d", lang, lessonID, exerciseID, fieldID, len(trimmed))
+	if cached, ok := exerciseTranslationCache.Load(cacheKey); ok {
+		if translated, ok := cached.(string); ok && strings.TrimSpace(translated) != "" {
+			return translated
+		}
+	}
+
+	translated, err := translateTextBlock(trimmed, lang)
+	if err != nil || strings.TrimSpace(translated) == "" {
+		if strings.TrimSpace(fallback) != "" {
+			exerciseTranslationCache.Store(cacheKey, fallback)
+			return fallback
+		}
+		exerciseTranslationCache.Store(cacheKey, text)
+		return text
+	}
+
+	exerciseTranslationCache.Store(cacheKey, translated)
 	return translated
 }
 

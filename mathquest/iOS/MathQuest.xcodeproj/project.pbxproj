@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B10000000000000000000027 /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000027 /* CommunityView.swift */; };
 		B10000000000000000000001 /* MathQuestApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000001 /* MathQuestApp.swift */; };
 		B10000000000000000000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000002 /* ContentView.swift */; };
 		B10000000000000000000003 /* APIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000003 /* APIClient.swift */; };
@@ -46,6 +45,7 @@
 		B10000000000000000000024 /* UsernameLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000024 /* UsernameLoginView.swift */; };
 		B10000000000000000000025 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000025 /* L10n.swift */; };
 		B10000000000000000000026 /* KeychainFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000026 /* KeychainFlag.swift */; };
+		B10000000000000000000027 /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000027 /* CommunityView.swift */; };
 		B20000000000000000000001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000001 /* FirebaseAuth */; };
 		B20000000000000000000002 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000002 /* GoogleSignIn */; };
 		E349E3B42F57B0EE000B1E48 /* Kram.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E349E3B32F57B0EE000B1E48 /* Kram.storekit */; };
@@ -265,14 +265,6 @@
 			path = Features;
 			sourceTree = "<group>";
 		};
-		G10000000000000000000016 /* Community */ = {
-			isa = PBXGroup;
-			children = (
-				F10000000000000000000027 /* CommunityView.swift */,
-			);
-			path = Community;
-			sourceTree = "<group>";
-		};
 		G10000000000000000000006 /* Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -411,6 +403,14 @@
 				F10000000000000000000025 /* L10n.swift */,
 			);
 			path = L10n;
+			sourceTree = "<group>";
+		};
+		G10000000000000000000016 /* Community */ = {
+			isa = PBXGroup;
+			children = (
+				F10000000000000000000027 /* CommunityView.swift */,
+			);
+			path = Community;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -568,7 +568,7 @@
 				B10000000000000000000022 /* UsernamePasswordAuthView.swift in Sources */,
 				B10000000000000000000023 /* UsernamePasswordRegisterView.swift in Sources */,
 				B10000000000000000000026 /* KeychainFlag.swift in Sources */,
-		B10000000000000000000027 /* CommunityView.swift in Sources */,
+				B10000000000000000000027 /* CommunityView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

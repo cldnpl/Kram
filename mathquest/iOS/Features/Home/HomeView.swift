@@ -191,10 +191,14 @@ struct CategoryCardView: View {
 struct CategorySubtopicsView: View {
     let category: CategoryItem
     @EnvironmentObject private var authManager: AuthManager
-    @AppStorage("guest_lessons_opened_count") private var guestLessonsOpenedCount = 0
+    @AppStorage("profile_username") private var profileUsername = ""
     @State private var selectedLesson: LessonItem?
     @State private var showLoginPrompt = false
     @State private var showLoginSheet = false
+
+    private var isLoggedIn: Bool {
+        authManager.isAuthenticated || !profileUsername.isEmpty
+    }
 
     var body: some View {
         List {
@@ -206,7 +210,7 @@ struct CategorySubtopicsView: View {
                     ForEach(section.items) { item in
                         let lessonCost = lessonCostForSection(section.lessonId)
                         let lesson = LessonItem(
-                            id: section.lessonId,
+                            id: item.id,
                             title: item.title,
                             description: "",
                             difficulty: 0,
@@ -248,8 +252,8 @@ struct CategorySubtopicsView: View {
         .fullScreenCover(isPresented: $showLoginSheet) {
             LoginView(showCloseButton: true)
         }
-        .onChange(of: authManager.isAuthenticated) { _, isAuthenticated in
-            if isAuthenticated {
+        .onChange(of: isLoggedIn) { _, loggedIn in
+            if loggedIn {
                 showLoginSheet = false
             }
         }
@@ -262,18 +266,11 @@ struct CategorySubtopicsView: View {
     }
 
     private func handleLessonTap(_ lesson: LessonItem) {
-        if authManager.isAuthenticated {
+        if isLoggedIn {
             selectedLesson = lesson
-            return
+        } else {
+            showLoginPrompt = true
         }
-
-        if guestLessonsOpenedCount < 1 {
-            guestLessonsOpenedCount += 1
-            selectedLesson = lesson
-            return
-        }
-
-        showLoginPrompt = true
     }
 }
 

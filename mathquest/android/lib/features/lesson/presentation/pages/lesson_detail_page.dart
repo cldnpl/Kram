@@ -115,10 +115,9 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                     ),
     );
   }
-
-  // Dark purple (same as gradient) for formula boxes (1st, 3rd, …)
+  // Dark purple (same as gradient) for formula boxes.
   static const _formulaBoxColor = Color(0xFF6650A4);
-  // Light purple for example boxes (2nd, 4th, …)
+  // Light purple for example boxes.
   static const _exampleBoxColor = Color(0xFF9980F0);
 
   List<Widget> _buildIntroBlocks(String intro) {
@@ -136,14 +135,11 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       if (diagramIdx != -1 && (boxStartIdx == -1 || diagramIdx < boxStartIdx)) {
         final textBefore = remaining.substring(0, diagramIdx).trim();
         if (textBefore.isNotEmpty) {
-          for (final p in textBefore.split('\n\n')) {
-            final t = p.trim();
-            if (t.isNotEmpty) {
-              blocks.add(Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildTextWithBold(context, t, Theme.of(context).textTheme.bodyLarge!),
-              ));
-            }
+          for (final paragraph in _paragraphsFromText(textBefore)) {
+            blocks.add(Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+            ));
           }
         }
         final afterPrefix = remaining.substring(diagramIdx + diagramPrefix.length);
@@ -164,14 +160,11 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       if (boxStartIdx == -1) {
         final text = remaining.trim();
         if (text.isNotEmpty) {
-          for (final p in text.split('\n\n')) {
-            final t = p.trim();
-            if (t.isNotEmpty) {
-              blocks.add(Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildTextWithBold(context, t, Theme.of(context).textTheme.bodyLarge!),
-              ));
-            }
+          for (final paragraph in _paragraphsFromText(text)) {
+            blocks.add(Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+            ));
           }
         }
         break;
@@ -179,14 +172,11 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
 
       final textBefore = remaining.substring(0, boxStartIdx).trim();
       if (textBefore.isNotEmpty) {
-        for (final p in textBefore.split('\n\n')) {
-          final t = p.trim();
-          if (t.isNotEmpty) {
-            blocks.add(Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildTextWithBold(context, t, Theme.of(context).textTheme.bodyLarge!),
-            ));
-          }
+        for (final paragraph in _paragraphsFromText(textBefore)) {
+          blocks.add(Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+          ));
         }
       }
 
@@ -204,9 +194,8 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
 
       final boxContent = remaining.substring(0, boxEndIdx).trim();
       if (boxContent.isNotEmpty) {
-        // Alternate colors: even index (0,2,4…) → formula (dark purple),
-        //                   odd  index (1,3,5…) → example (light purple)
-        final isFormulaBox = boxIndex.isEven;
+        final forcedFormulaStyle = _forceFormulaStyleForBox(boxContent);
+        final isFormulaBox = forcedFormulaStyle ?? boxIndex.isEven;
         final bgColor = isFormulaBox
             ? _formulaBoxColor.withOpacity(0.15)
             : _exampleBoxColor.withOpacity(0.15);
@@ -269,6 +258,34 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     return blocks;
   }
 
+  bool? _forceFormulaStyleForBox(String boxContent) {
+    final lines = boxContent
+        .split('\n')
+        .map((line) => line.replaceAll('**', '').trim().toLowerCase())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    if (lines.isEmpty) return null;
+
+    const exampleHints = [
+      'example', 'examples', 'esempio', 'esempi', 'exemple', 'exemples',
+      'ejemplo', 'ejemplos', 'misol', 'misollar'
+    ];
+    const formulaHints = [
+      'formula', 'formulas', 'formule', 'fórmulas', 'formular',
+      'equation', 'equazioni', 'équation', 'ecuación', 'tenglama'
+    ];
+
+    final header = lines.first;
+    if (exampleHints.any(header.contains)) return false;
+    if (formulaHints.any(header.contains)) return true;
+
+    final formulaLines = lines.where(_isFormulaLine).length;
+    final textLines = lines.length - formulaLines;
+    if (formulaLines > textLines) return true;
+    if (textLines > formulaLines) return false;
+    return null;
+  }
+
   bool _isFormulaLine(String line) {
     final s = line.trim();
     if (s.isEmpty) return false;
@@ -277,6 +294,89 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     final lower = s.toLowerCase();
     if (lower.contains('lim') || lower.contains('sin') || lower.contains('cos') || lower.contains('tan') || lower.contains('ln') || lower.contains('log')) return true;
     return false;
+  }
+
+  List<String> _paragraphsFromText(String text) {
+    final normalized = text.replaceAll('\r\n', '\n');
+    final out = <String>[];
+
+    for (final rawLine in normalized.split('\n')) {
+      final line = rawLine.trim();
+      if (line.isEmpty) continue;
+
+      if (_isBulletLikeLine(line) || _isStandaloneHeading(line)) {
+        out.add(line);
+        continue;
+      }
+
+      final headingSplit = _splitLeadingBoldHeading(line);
+      if (headingSplit != null) {
+        out.add(headingSplit[0]);
+        if (headingSplit[1].isNotEmpty) {
+          out.addAll(_splitBySentence(headingSplit[1]));
+        }
+        continue;
+      }
+
+      out.addAll(_splitBySentence(line));
+    }
+
+    return out;
+  }
+
+  bool _isBulletLikeLine(String line) {
+    final s = line.trimLeft();
+    return s.startsWith('•') || s.startsWith('- ') || s.startsWith('* ');
+  }
+
+  bool _isStandaloneHeading(String line) {
+    final s = line.trim();
+    return s.startsWith('**') && s.endsWith('**') && s.length > 4;
+  }
+
+  List<String>? _splitLeadingBoldHeading(String line) {
+    final s = line.trim();
+    if (!s.startsWith('**')) return null;
+    final end = s.indexOf('**', 2);
+    if (end == -1) return null;
+
+    final heading = s.substring(0, end + 2).trim();
+    final rest = s.substring(end + 2).trim();
+    if (heading.isEmpty) return null;
+    return [heading, rest];
+  }
+
+  List<String> _splitBySentence(String text) {
+    final out = <String>[];
+    var buf = StringBuffer();
+    var i = 0;
+
+    bool isBreakPunctuation(String ch) => ch == '.' || ch == '?' || ch == '!';
+    bool isWhitespace(String ch) => ch.trim().isEmpty;
+
+    while (i < text.length) {
+      final ch = text[i];
+      buf.write(ch);
+
+      if (isBreakPunctuation(ch)) {
+        final atEnd = i + 1 >= text.length;
+        final nextIsWhitespace = !atEnd && isWhitespace(text[i + 1]);
+        if (atEnd || nextIsWhitespace) {
+          final p = buf.toString().trim();
+          if (p.isNotEmpty) out.add(p);
+          buf = StringBuffer();
+          while (i + 1 < text.length && isWhitespace(text[i + 1])) {
+            i++;
+          }
+        }
+      }
+
+      i++;
+    }
+
+    final tail = buf.toString().trim();
+    if (tail.isNotEmpty) out.add(tail);
+    return out;
   }
 
   Widget _buildTextWithBold(BuildContext context, String text, TextStyle baseStyle) {

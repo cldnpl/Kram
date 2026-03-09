@@ -89,6 +89,9 @@ final class HomeViewModel: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
 
+        await client.setToken("mock-dev-token")
+        let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
+
         do {
             await client.setToken("mock-dev-token")
             let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
@@ -96,27 +99,36 @@ final class HomeViewModel: ObservableObject {
             let res: CategoriesResponse = try await client.request("lessons?lang=\(lang)")
             categories = res.categories.map(\.toItem)
             print("[Home] got \(categories.count) categories")
+        } catch {
+            print("[Home] ERROR loading lessons: \(error)")
+            errorMessage = error.localizedDescription
+            return
+        }
 
+        do {
             print("[Home] fetching balance...")
             let balanceRes: BalanceResponse = try await client.request("coins/balance")
             coinBalance = balanceRes.balance + CoinWallet.localBonus()
             print("[Home] balance = \(coinBalance)")
+        } catch {
+            print("[Home] balance fetch failed: \(error)")
+        }
 
+        do {
             print("[Home] fetching streak...")
             let streakRes: StreakResponse = try await client.request("streak")
             streakDays = streakRes.streak_days
             activeToday = streakRes.active_today
             print("[Home] streak = \(streakDays), activeToday = \(activeToday)")
-
-            // Evaluate Live Activity for streak warning
-            StreakActivityManager.shared.evaluate(
-                streakDays: streakDays,
-                activeToday: activeToday
-            )
         } catch {
-            print("[Home] ERROR: \(error)")
-            errorMessage = error.localizedDescription
+            print("[Home] streak fetch failed: \(error)")
         }
+
+        // Evaluate Live Activity for streak warning using latest known values.
+        StreakActivityManager.shared.evaluate(
+            streakDays: streakDays,
+            activeToday: activeToday
+        )
     }
 
     /// Total subcategory count for a category (for progress display).
