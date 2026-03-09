@@ -135,14 +135,11 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       if (diagramIdx != -1 && (boxStartIdx == -1 || diagramIdx < boxStartIdx)) {
         final textBefore = remaining.substring(0, diagramIdx).trim();
         if (textBefore.isNotEmpty) {
-          for (final p in textBefore.split('\n\n')) {
-            final t = p.trim();
-            if (t.isNotEmpty) {
-              blocks.add(Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildTextWithBold(context, t, Theme.of(context).textTheme.bodyLarge!),
-              ));
-            }
+          for (final paragraph in _paragraphsFromText(textBefore)) {
+            blocks.add(Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+            ));
           }
         }
         final afterPrefix = remaining.substring(diagramIdx + diagramPrefix.length);
@@ -163,14 +160,11 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       if (boxStartIdx == -1) {
         final text = remaining.trim();
         if (text.isNotEmpty) {
-          for (final p in text.split('\n\n')) {
-            final t = p.trim();
-            if (t.isNotEmpty) {
-              blocks.add(Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _buildTextWithBold(context, t, Theme.of(context).textTheme.bodyLarge!),
-              ));
-            }
+          for (final paragraph in _paragraphsFromText(text)) {
+            blocks.add(Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+            ));
           }
         }
         break;
@@ -178,14 +172,11 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
 
       final textBefore = remaining.substring(0, boxStartIdx).trim();
       if (textBefore.isNotEmpty) {
-        for (final p in textBefore.split('\n\n')) {
-          final t = p.trim();
-          if (t.isNotEmpty) {
-            blocks.add(Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: _buildTextWithBold(context, t, Theme.of(context).textTheme.bodyLarge!),
-            ));
-          }
+        for (final paragraph in _paragraphsFromText(textBefore)) {
+          blocks.add(Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+          ));
         }
       }
 
@@ -303,6 +294,89 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     final lower = s.toLowerCase();
     if (lower.contains('lim') || lower.contains('sin') || lower.contains('cos') || lower.contains('tan') || lower.contains('ln') || lower.contains('log')) return true;
     return false;
+  }
+
+  List<String> _paragraphsFromText(String text) {
+    final normalized = text.replaceAll('\r\n', '\n');
+    final out = <String>[];
+
+    for (final rawLine in normalized.split('\n')) {
+      final line = rawLine.trim();
+      if (line.isEmpty) continue;
+
+      if (_isBulletLikeLine(line) || _isStandaloneHeading(line)) {
+        out.add(line);
+        continue;
+      }
+
+      final headingSplit = _splitLeadingBoldHeading(line);
+      if (headingSplit != null) {
+        out.add(headingSplit[0]);
+        if (headingSplit[1].isNotEmpty) {
+          out.addAll(_splitBySentence(headingSplit[1]));
+        }
+        continue;
+      }
+
+      out.addAll(_splitBySentence(line));
+    }
+
+    return out;
+  }
+
+  bool _isBulletLikeLine(String line) {
+    final s = line.trimLeft();
+    return s.startsWith('•') || s.startsWith('- ') || s.startsWith('* ');
+  }
+
+  bool _isStandaloneHeading(String line) {
+    final s = line.trim();
+    return s.startsWith('**') && s.endsWith('**') && s.length > 4;
+  }
+
+  List<String>? _splitLeadingBoldHeading(String line) {
+    final s = line.trim();
+    if (!s.startsWith('**')) return null;
+    final end = s.indexOf('**', 2);
+    if (end == -1) return null;
+
+    final heading = s.substring(0, end + 2).trim();
+    final rest = s.substring(end + 2).trim();
+    if (heading.isEmpty) return null;
+    return [heading, rest];
+  }
+
+  List<String> _splitBySentence(String text) {
+    final out = <String>[];
+    var buf = StringBuffer();
+    var i = 0;
+
+    bool isBreakPunctuation(String ch) => ch == '.' || ch == '?' || ch == '!';
+    bool isWhitespace(String ch) => ch.trim().isEmpty;
+
+    while (i < text.length) {
+      final ch = text[i];
+      buf.write(ch);
+
+      if (isBreakPunctuation(ch)) {
+        final atEnd = i + 1 >= text.length;
+        final nextIsWhitespace = !atEnd && isWhitespace(text[i + 1]);
+        if (atEnd || nextIsWhitespace) {
+          final p = buf.toString().trim();
+          if (p.isNotEmpty) out.add(p);
+          buf = StringBuffer();
+          while (i + 1 < text.length && isWhitespace(text[i + 1])) {
+            i++;
+          }
+        }
+      }
+
+      i++;
+    }
+
+    final tail = buf.toString().trim();
+    if (tail.isNotEmpty) out.add(tail);
+    return out;
   }
 
   Widget _buildTextWithBold(BuildContext context, String text, TextStyle baseStyle) {

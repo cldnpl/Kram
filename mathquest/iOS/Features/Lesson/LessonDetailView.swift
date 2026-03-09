@@ -340,9 +340,31 @@ private func boxLines(from content: String) -> [String] {
 }
 
 private func paragraphs(from text: String) -> [String] {
-    text.components(separatedBy: "\n\n")
-        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-        .filter { !$0.isEmpty }
+    let normalized = text.replacingOccurrences(of: "\r\n", with: "\n")
+    var out: [String] = []
+
+    for rawLine in normalized.components(separatedBy: "\n") {
+        let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+        if line.isEmpty { continue }
+
+        if isBulletLikeLine(line) || isStandaloneHeading(line) {
+            out.append(line)
+            continue
+        }
+
+        let split = splitLeadingBoldHeading(line)
+        if let heading = split.heading {
+            out.append(heading)
+            if let rest = split.rest, !rest.isEmpty {
+                out.append(contentsOf: splitBySentence(rest))
+            }
+            continue
+        }
+
+        out.append(contentsOf: splitBySentence(line))
+    }
+
+    return out
 }
 
 private func renderInlineBold(_ text: String) -> Text {
@@ -374,6 +396,70 @@ private func isFormulaLine(_ line: String) -> Bool {
     if lower.contains("ln") || lower.contains("log") || lower.contains("e^") { return true }
 
     return false
+}
+
+private func isBulletLikeLine(_ line: String) -> Bool {
+    let s = line.trimmingCharacters(in: .whitespaces)
+    return s.hasPrefix("•") || s.hasPrefix("- ") || s.hasPrefix("* ")
+}
+
+private func isStandaloneHeading(_ line: String) -> Bool {
+    let s = line.trimmingCharacters(in: .whitespacesAndNewlines)
+    return s.hasPrefix("**") && s.hasSuffix("**") && s.count > 4
+}
+
+private func splitLeadingBoldHeading(_ line: String) -> (heading: String?, rest: String?) {
+    let s = line.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard s.hasPrefix("**") else { return (nil, nil) }
+    guard let start = s.range(of: "**")?.upperBound,
+          let end = s[start...].range(of: "**")?.upperBound else {
+        return (nil, nil)
+    }
+
+    let heading = String(s[..<end]).trimmingCharacters(in: .whitespacesAndNewlines)
+    let rest = String(s[end...]).trimmingCharacters(in: .whitespacesAndNewlines)
+    if heading.isEmpty { return (nil, nil) }
+    return (heading, rest)
+}
+
+private func splitBySentence(_ text: String) -> [String] {
+    var out: [String] = []
+    var buffer = ""
+
+    func flushBuffer() {
+        let trimmed = buffer.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.isEmpty {
+            out.append(trimmed)
+        }
+        buffer = ""
+    }
+
+    var idx = text.startIndex
+    while idx < text.endIndex {
+        let ch = text[idx]
+        buffer.append(ch)
+
+        if ch == "." || ch == "?" || ch == "!" {
+            let next = text.index(after: idx)
+            let atEnd = next >= text.endIndex
+            let nextIsSpace = !atEnd && text[next].unicodeScalars.allSatisfy { $0.properties.isWhitespace }
+
+            if atEnd || nextIsSpace {
+                flushBuffer()
+                var skip = next
+                while skip < text.endIndex && text[skip].unicodeScalars.allSatisfy({ $0.properties.isWhitespace }) {
+                    skip = text.index(after: skip)
+                }
+                idx = skip
+                continue
+            }
+        }
+
+        idx = text.index(after: idx)
+    }
+
+    flushBuffer()
+    return out
 }
 
 private func boxStyleIsFormula(content: String, fallbackIndex: Int) -> Bool {
