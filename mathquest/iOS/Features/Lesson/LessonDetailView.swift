@@ -1,6 +1,5 @@
 import SwiftUI
 import WebKit
-import UIKit
 
 // Dark purple (same as app gradient) for formula boxes (1st, 3rd, …)
 private let formulaBoxColor = Color(red: 102/255, green: 80/255, blue: 164/255)  // #6650A4
@@ -34,18 +33,9 @@ struct LessonDetailView: View {
                             switch block {
                             case .text(let text):
                                 ForEach(paragraphs(from: text), id: \.self) { paragraph in
-                                    if isFormulaLine(paragraph) {
-                                        FormulaFractionTextView(
-                                            line: paragraph,
-                                            color: UIColor(formulaBoxColor)
-                                        )
-                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    renderInlineBold(paragraph)
+                                        .font(.body)
                                         .padding(.bottom, 8)
-                                    } else {
-                                        renderInlineBold(paragraph)
-                                            .font(.body)
-                                            .padding(.bottom, 8)
-                                    }
                                 }
                             case .box(let content):
                                 let boxIdx = boxIndices[idx] ?? 0
@@ -55,11 +45,9 @@ struct LessonDetailView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     ForEach(boxLines(from: content), id: \.self) { line in
                                         if isFormulaLine(line) {
-                                            FormulaFractionTextView(
-                                                line: line,
-                                                color: UIColor(accentColor)
-                                            )
-                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            Text(line)
+                                                .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                                                .foregroundColor(accentColor)
                                         } else {
                                             renderInlineBold(line)
                                                 .font(.body)
@@ -498,108 +486,6 @@ private func boxStyleIsFormula(content: String, fallbackIndex: Int) -> Bool {
     if textLines > formulaLines { return false }
 
     return fallbackIndex % 2 == 0
-}
-
-private struct FormulaFractionTextView: UIViewRepresentable {
-    let line: String
-    let color: UIColor
-
-    func makeUIView(context: Context) -> UILabel {
-        let label = UILabel()
-        label.numberOfLines = 0
-        label.lineBreakMode = .byWordWrapping
-        label.setContentCompressionResistancePriority(.required, for: .vertical)
-        label.setContentHuggingPriority(.required, for: .vertical)
-        return label
-    }
-
-    func updateUIView(_ uiView: UILabel, context: Context) {
-        uiView.attributedText = buildFractionAttributedLine(line: line, color: color)
-    }
-}
-
-private let fractionRegex: NSRegularExpression = {
-    // Simple algebraic fraction tokens (e.g. 1/2, a/b, x2/y3)
-    return try! NSRegularExpression(pattern: #"([A-Za-z0-9]+)\s*/\s*([A-Za-z0-9]+)"#)
-}()
-
-private func buildFractionAttributedLine(line: String, color: UIColor) -> NSAttributedString {
-    let formulaFont = UIFont.monospacedSystemFont(ofSize: 18, weight: .semibold)
-    let attrs: [NSAttributedString.Key: Any] = [
-        .font: formulaFont,
-        .foregroundColor: color
-    ]
-
-    let result = NSMutableAttributedString()
-    let nsLine = line as NSString
-    let fullRange = NSRange(location: 0, length: nsLine.length)
-    let matches = fractionRegex.matches(in: line, options: [], range: fullRange)
-
-    var cursor = 0
-    for m in matches {
-        if m.range.location > cursor {
-            let plain = nsLine.substring(with: NSRange(location: cursor, length: m.range.location - cursor))
-            result.append(NSAttributedString(string: plain, attributes: attrs))
-        }
-
-        let numerator = nsLine.substring(with: m.range(at: 1))
-        let denominator = nsLine.substring(with: m.range(at: 2))
-        let attachment = fractionAttachment(numerator: numerator, denominator: denominator, color: color)
-        result.append(NSAttributedString(attachment: attachment))
-        cursor = m.range.location + m.range.length
-    }
-
-    if cursor < nsLine.length {
-        let tail = nsLine.substring(from: cursor)
-        result.append(NSAttributedString(string: tail, attributes: attrs))
-    }
-
-    if result.length == 0 {
-        return NSAttributedString(string: line, attributes: attrs)
-    }
-    return result
-}
-
-private func fractionAttachment(numerator: String, denominator: String, color: UIColor) -> NSTextAttachment {
-    let topFont = UIFont.monospacedSystemFont(ofSize: 12, weight: .bold)
-    let bottomFont = UIFont.monospacedSystemFont(ofSize: 12, weight: .bold)
-    let textAttrsTop: [NSAttributedString.Key: Any] = [.font: topFont, .foregroundColor: color]
-    let textAttrsBottom: [NSAttributedString.Key: Any] = [.font: bottomFont, .foregroundColor: color]
-
-    let numSize = (numerator as NSString).size(withAttributes: textAttrsTop)
-    let denSize = (denominator as NSString).size(withAttributes: textAttrsBottom)
-    let width = ceil(max(numSize.width, denSize.width)) + 6
-    let lineHeight: CGFloat = 1.2
-    let height = ceil(numSize.height + denSize.height + 4 + lineHeight)
-
-    let renderer = UIGraphicsImageRenderer(size: CGSize(width: width, height: height))
-    let image = renderer.image { _ in
-        let numRect = CGRect(
-            x: (width - numSize.width) / 2,
-            y: 0,
-            width: numSize.width,
-            height: numSize.height
-        )
-        (numerator as NSString).draw(in: numRect, withAttributes: textAttrsTop)
-
-        let yLine = numSize.height + 1
-        color.setFill()
-        UIRectFill(CGRect(x: 1, y: yLine, width: width - 2, height: lineHeight))
-
-        let denRect = CGRect(
-            x: (width - denSize.width) / 2,
-            y: yLine + 2,
-            width: denSize.width,
-            height: denSize.height
-        )
-        (denominator as NSString).draw(in: denRect, withAttributes: textAttrsBottom)
-    }
-
-    let attachment = NSTextAttachment()
-    attachment.image = image
-    // Baseline alignment with surrounding 18pt formula text.
-    attachment.bounds = CGRect(x: 0, y: -3, width: width, height: height)
-    return attachment
 }
 
 // MARK: - Diagram view (SVG: fetch then load as data to avoid encoding/load errors and red box)
