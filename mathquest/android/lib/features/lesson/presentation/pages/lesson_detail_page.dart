@@ -115,8 +115,8 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                     ),
     );
   }
-
   // Dark purple (same as app gradient) for formula boxes (1st, 3rd, …)
+  // Dark purple (same as gradient) for formula boxes (1st, 3rd, …)
   static const _formulaBoxColor = Color(0xFF6650A4);
   // Light purple for example boxes (2nd, 4th, …)
   static const _exampleBoxColor = Color(0xFF9980F0);

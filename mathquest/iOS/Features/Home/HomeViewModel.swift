@@ -93,6 +93,8 @@ final class HomeViewModel: ObservableObject {
         let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
 
         do {
+            await client.setToken("mock-dev-token")
+            let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
             print("[Home] fetching lessons from: \(APIConfig.baseURLString)/lessons?lang=\(lang)")
             let res: CategoriesResponse = try await client.request("lessons?lang=\(lang)")
             categories = res.categories.map(\.toItem)
