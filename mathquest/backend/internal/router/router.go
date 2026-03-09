@@ -36,6 +36,10 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	api.Get("/health", func(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{"ok": true})
 	})
+	// Public lesson read endpoints (no auth/DB dependency): prevents lesson list outages
+	// when auth or DB are temporarily unavailable.
+	api.Get("/lessons", lesson.List)
+	api.Get("/lessons/:id", lesson.GetByID)
 
 	// Auth (public)
 	authGroup := api.Group("/auth")
@@ -54,9 +58,7 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	// Protected routes
 	protected := api.Group("", middleware.FirebaseAuth(), middleware.ResolveUserID(db))
 
-	// Lessons
-	protected.Get("/lessons", lesson.List)
-	protected.Get("/lessons/:id", lesson.GetByID)
+	// Lessons (mutations only)
 	protected.Post("/lessons/:id/start", lesson.Start)
 	protected.Post("/lessons/:id/complete", func(c *fiber.Ctx) error {
 		if err := lesson.Complete(c); err != nil {
