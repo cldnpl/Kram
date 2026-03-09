@@ -115,10 +115,9 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                     ),
     );
   }
-  // Dark purple (same as app gradient) for formula boxes (1st, 3rd, …)
-  // Dark purple (same as gradient) for formula boxes (1st, 3rd, …)
+  // Dark purple (same as gradient) for formula boxes.
   static const _formulaBoxColor = Color(0xFF6650A4);
-  // Light purple for example boxes (2nd, 4th, …)
+  // Light purple for example boxes.
   static const _exampleBoxColor = Color(0xFF9980F0);
 
   List<Widget> _buildIntroBlocks(String intro) {
@@ -204,9 +203,8 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
 
       final boxContent = remaining.substring(0, boxEndIdx).trim();
       if (boxContent.isNotEmpty) {
-        // Alternate colors: even index (0,2,4…) → formula (dark purple),
-        //                   odd  index (1,3,5…) → example (light purple)
-        final isFormulaBox = boxIndex.isEven;
+        final forcedFormulaStyle = _forceFormulaStyleForBox(boxContent);
+        final isFormulaBox = forcedFormulaStyle ?? boxIndex.isEven;
         final bgColor = isFormulaBox
             ? _formulaBoxColor.withOpacity(0.15)
             : _exampleBoxColor.withOpacity(0.15);
@@ -267,6 +265,34 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     }
 
     return blocks;
+  }
+
+  bool? _forceFormulaStyleForBox(String boxContent) {
+    final lines = boxContent
+        .split('\n')
+        .map((line) => line.replaceAll('**', '').trim().toLowerCase())
+        .where((line) => line.isNotEmpty)
+        .toList();
+    if (lines.isEmpty) return null;
+
+    const exampleHints = [
+      'example', 'examples', 'esempio', 'esempi', 'exemple', 'exemples',
+      'ejemplo', 'ejemplos', 'misol', 'misollar'
+    ];
+    const formulaHints = [
+      'formula', 'formulas', 'formule', 'fórmulas', 'formular',
+      'equation', 'equazioni', 'équation', 'ecuación', 'tenglama'
+    ];
+
+    final header = lines.first;
+    if (exampleHints.any(header.contains)) return false;
+    if (formulaHints.any(header.contains)) return true;
+
+    final formulaLines = lines.where(_isFormulaLine).length;
+    final textLines = lines.length - formulaLines;
+    if (formulaLines > textLines) return true;
+    if (textLines > formulaLines) return false;
+    return null;
   }
 
   bool _isFormulaLine(String line) {

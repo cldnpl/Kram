@@ -39,7 +39,7 @@ struct LessonDetailView: View {
                                 }
                             case .box(let content):
                                 let boxIdx = boxIndices[idx] ?? 0
-                                let isFormulaBox = boxIdx % 2 == 0
+                                let isFormulaBox = boxStyleIsFormula(content: content, fallbackIndex: boxIdx)
                                 let accentColor = isFormulaBox ? formulaBoxColor : exampleBoxColor
 
                                 VStack(alignment: .leading, spacing: 8) {
@@ -254,38 +254,68 @@ private enum ContentBlock {
 private func parseContentBlocks(_ intro: String) -> [ContentBlock] {
     var result: [ContentBlock] = []
     var remaining = intro
+
     while true {
-        let diagramPrefix = "[DIAGRAM:"
-        if let ds = remaining.range(of: diagramPrefix) {
-            let afterPrefix = remaining[ds.upperBound...]
-            if let bracket = afterPrefix.firstIndex(of: "]") {
-                let id = String(afterPrefix[..<bracket]).trimmingCharacters(in: .whitespaces)
-                let textBefore = String(remaining[..<ds.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
-                if !textBefore.isEmpty { result.append(.text(textBefore)) }
-                if !id.isEmpty { result.append(.diagram(id)) }
-                remaining = String(afterPrefix[afterPrefix.index(after: bracket)...])
-                continue
-            }
+        let diagramRange = remaining.range(of: "[DIAGRAM:")
+        let boxRange = remaining.range(of: "[BOX]")
+
+        if diagramRange == nil && boxRange == nil {
+            let trimmed = remaining.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { result.append(.text(trimmed)) }
+            break
         }
 
-        guard let range = remaining.range(of: "[BOX]") else {
-            let trimmed = remaining.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty { result.append(.text(trimmed)) }
-            break
+        let nextIsDiagram: Bool
+        switch (diagramRange, boxRange) {
+        case let (d?, b?):
+            nextIsDiagram = d.lowerBound < b.lowerBound
+        case (_?, nil):
+            nextIsDiagram = true
+        case (nil, _?):
+            nextIsDiagram = false
+        default:
+            nextIsDiagram = false
         }
-        let textPart = String(remaining[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
-        if !textPart.isEmpty { result.append(.text(textPart)) }
-        remaining = String(remaining[range.upperBound...])
-        if let endRange = remaining.range(of: "[/BOX]") {
-            let boxContent = String(remaining[..<endRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if nextIsDiagram, let d = diagramRange {
+            let textBefore = String(remaining[..<d.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !textBefore.isEmpty {
+                result.append(.text(textBefore))
+            }
+
+            let afterPrefix = remaining[d.upperBound...]
+            guard let bracket = afterPrefix.firstIndex(of: "]") else {
+                let trailing = String(remaining).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trailing.isEmpty { result.append(.text(trailing)) }
+                break
+            }
+
+            let id = String(afterPrefix[..<bracket]).trimmingCharacters(in: .whitespaces)
+            if !id.isEmpty { result.append(.diagram(id)) }
+
+            let nextStart = afterPrefix.index(after: bracket)
+            remaining = String(afterPrefix[nextStart...])
+            continue
+        }
+
+        if let b = boxRange {
+            let textPart = String(remaining[..<b.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+            if !textPart.isEmpty { result.append(.text(textPart)) }
+
+            let afterBoxStart = remaining[b.upperBound...]
+            guard let endRange = afterBoxStart.range(of: "[/BOX]") else {
+                let trailing = String(afterBoxStart).trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trailing.isEmpty { result.append(.text(trailing)) }
+                break
+            }
+
+            let boxContent = String(afterBoxStart[..<endRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
             if !boxContent.isEmpty { result.append(.box(boxContent)) }
-            remaining = String(remaining[endRange.upperBound...])
-        } else {
-            let trimmed = remaining.trimmingCharacters(in: .whitespacesAndNewlines)
-            if !trimmed.isEmpty { result.append(.text(trimmed)) }
-            break
+            remaining = String(afterBoxStart[endRange.upperBound...])
+            continue
         }
     }
+
     return result
 }
 
@@ -344,6 +374,32 @@ private func isFormulaLine(_ line: String) -> Bool {
     if lower.contains("ln") || lower.contains("log") || lower.contains("e^") { return true }
 
     return false
+}
+
+private func boxStyleIsFormula(content: String, fallbackIndex: Int) -> Bool {
+    let lines = boxLines(from: content)
+    let cleaned = lines
+        .map { $0.replacingOccurrences(of: "**", with: "").lowercased() }
+        .filter { !$0.isEmpty }
+
+    if let header = cleaned.first {
+        let exampleHints = ["example", "examples", "esempio", "esempi", "exemple", "exemples", "ejemplo", "ejemplos", "misol", "misollar"]
+        if exampleHints.contains(where: { header.contains($0) }) {
+            return false
+        }
+
+        let formulaHints = ["formula", "formulas", "formule", "fórmulas", "formullar", "equation", "equazioni", "équation", "ecuación", "tenglama"]
+        if formulaHints.contains(where: { header.contains($0) }) {
+            return true
+        }
+    }
+
+    let formulaLines = lines.filter { isFormulaLine($0) }.count
+    let textLines = max(0, lines.count - formulaLines)
+    if formulaLines > textLines { return true }
+    if textLines > formulaLines { return false }
+
+    return fallbackIndex % 2 == 0
 }
 
 // MARK: - Diagram view (SVG: fetch then load as data to avoid encoding/load errors and red box)
