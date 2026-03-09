@@ -1,13 +1,10 @@
 import Foundation
 
-// Device e simulatore: stesso URL. Modifica macHost se il Mac ha un altro IP (es. 10.20.54.26).
+// Deployed server.
 enum APIConfig {
-    private static let macHost = "10.20.54.26"
-    private static let apiPath = "8080/api"
-
-    /// Usato da tutte le richieste API (lessons, coins, ecc.). Nessun #if simulator/device.
+    /// Usato da tutte le richieste API (lessons, coins, ecc.).
     static var baseURLString: String {
-        "http://\(macHost):\(apiPath)"
+        "https://kram.islamov.online/api"
     }
     
     static var baseURL: URL {

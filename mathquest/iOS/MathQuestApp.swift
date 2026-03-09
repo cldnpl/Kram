@@ -16,6 +16,15 @@ class AppDelegate: NSObject, UIApplicationDelegate {
                      options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
         return GIDSignIn.sharedInstance.handle(url)
     }
+
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let token = deviceToken.map { String(format: "%02x", $0) }.joined()
+        print("[Push] APNs device token registered: \(token)")
+    }
+
+    func application(_ application: UIApplication, didFailToRegisterForRemoteNotificationsWithError error: Error) {
+        print("[Push] APNs device token registration failed: \(error)")
+    }
 }
 
 @main
@@ -68,7 +77,18 @@ private struct BootstrapView: View {
 }
 
 private struct AppFlowView: View {
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some View {
         ContentView()
+            .task {
+                await StreakActivityManager.shared.refreshRemoteStartSupport()
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                guard newPhase == .active else { return }
+                Task {
+                    await StreakActivityManager.shared.refreshRemoteStartSupport()
+                }
+            }
     }
 }

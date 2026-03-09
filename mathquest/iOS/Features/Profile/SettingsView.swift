@@ -4,60 +4,85 @@ private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 
 struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var authManager: AuthManager
     @AppStorage("profile_name") private var profileName = ""
-    @AppStorage("profile_level") private var profileLevel = "beginner"
-    @AppStorage("settings_dark_mode") private var darkMode = false
-    @AppStorage("settings_notifications") private var notificationsEnabled = true
+    @AppStorage("profile_level") private var profileLevel = "Beginner"
     @AppStorage("settings_sound") private var soundEnabled = true
     @AppStorage("settings_language") private var language = "en"
     @AppStorage("settings_difficulty") private var difficulty = "medio"
+    @AppStorage("profile_username") private var profileUsername = ""
+    @State private var showDeleteConfirmation = false
+    @State private var editingUsername = ""
+    @State private var isUsernameAvailable: Bool?
+    @State private var isCheckingUsername = false
 
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
                 settingsSection(title: L10n.profile) {
-                    HStack {
-                        Label(L10n.name, systemImage: "person.fill")
-                            .foregroundStyle(.primary)
-                        Spacer()
-                        Text(profileName.isEmpty ? "—" : profileName)
-                            .foregroundStyle(.secondary)
+                    VStack(spacing: 0) {
+                        HStack(spacing: 12) {
+                            Label(L10n.name, systemImage: "person.fill")
+                                .foregroundStyle(.primary)
+                            TextField(L10n.name, text: $profileName)
+                                .textFieldStyle(.plain)
+                                .font(.system(size: 17))
+                        }
+                        .padding(.vertical, 4)
+
+                        Divider()
+                            .padding(.vertical, 8)
+
+                        HStack(spacing: 12) {
+                            Label("Username", systemImage: "at")
+                                .foregroundStyle(.primary)
+                            TextField("Username", text: $editingUsername)
+                                .textFieldStyle(.plain)
+                                .textInputAutocapitalization(.never)
+                                .autocorrectionDisabled()
+                                .font(.system(size: 17))
+                                .onChange(of: editingUsername) { _, newValue in
+                                    checkUsernameDebounced(newValue)
+                                }
+
+                            if isCheckingUsername {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                            } else if let available = isUsernameAvailable {
+                                Image(systemName: available ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                    .foregroundStyle(available ? .green : .red)
+                                    .font(.system(size: 18))
+                            }
+                        }
+                        .padding(.vertical, 4)
                     }
-                    .padding(.vertical, 4)
+                }
+                .onAppear {
+                    editingUsername = profileUsername
+                }
+
+                settingsSection(title: "Math Level") {
+                    VStack(spacing: 10) {
+                        ForEach(["Beginner", "Intermediate", "Advanced"], id: \.self) { level in
+                            mathLevelCard(
+                                level: level,
+                                description: mathLevelDescription(for: level),
+                                icon: mathLevelIcon(for: level),
+                                isSelected: profileLevel == level
+                            ) {
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    profileLevel = level
+                                }
+                            }
+                        }
+                    }
                 }
 
                 settingsSection(title: L10n.studyPreferences) {
                     VStack(spacing: 0) {
-                        Picker(selection: $difficulty) {
-                            Text(L10n.difficultyEasy).tag("facile")
-                            Text(L10n.difficultyMedium).tag("medio")
-                            Text(L10n.difficultyHard).tag("difficile")
-                        } label: {
-                            Label(L10n.difficulty, systemImage: "chart.bar.fill")
-                        }
-                        .pickerStyle(.menu)
-                        .tint(appPurple)
-
-                        Divider().padding(.vertical, 8)
-
-                        Toggle(isOn: $notificationsEnabled) {
-                            Label(L10n.studyReminder, systemImage: "bell.fill")
-                        }
-                        .tint(appPurple)
-
-                        Divider().padding(.vertical, 8)
-
                         Toggle(isOn: $soundEnabled) {
                             Label(L10n.sounds, systemImage: "speaker.wave.2.fill")
-                        }
-                        .tint(appPurple)
-                    }
-                }
-
-                settingsSection(title: L10n.interface) {
-                    VStack(spacing: 0) {
-                        Toggle(isOn: $darkMode) {
-                            Label(L10n.darkTheme, systemImage: "moon.fill")
                         }
                         .tint(appPurple)
                     }
@@ -78,6 +103,18 @@ struct SettingsView: View {
                         .tint(appPurple)
                     }
                 }
+
+                if authManager.isAuthenticated || !profileUsername.isEmpty {
+                    settingsSection(title: "Account") {
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Delete Account", systemImage: "trash.fill")
+                                .foregroundStyle(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                }
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 24)
@@ -85,6 +122,163 @@ struct SettingsView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle(L10n.settingsTitle)
         .navigationBarTitleDisplayMode(.large)
+        .alert("Delete Account", isPresented: $showDeleteConfirmation) {
+            Button("Cancel", role: .cancel) {}
+            Button("Delete", role: .destructive) {
+                deleteAccount()
+            }
+        } message: {
+            Text("This will permanently delete your account and all data. This action cannot be undone.")
+        }
+    }
+
+    @State private var _usernameCheckTask: Task<Void, Never>?
+
+    private func checkUsernameDebounced(_ newValue: String) {
+        let trimmed = newValue.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        // If same as current saved username, no check needed
+        if trimmed == profileUsername.lowercased() {
+            isUsernameAvailable = nil
+            isCheckingUsername = false
+            return
+        }
+
+        guard !trimmed.isEmpty else {
+            isUsernameAvailable = nil
+            isCheckingUsername = false
+            return
+        }
+
+        isCheckingUsername = true
+        isUsernameAvailable = nil
+
+        _usernameCheckTask?.cancel()
+        _usernameCheckTask = Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            guard !Task.isCancelled else { return }
+
+            guard let url = URL(string: "\(APIConfig.baseURLString)/auth/check-username?username=\(trimmed)") else {
+                await MainActor.run { isCheckingUsername = false }
+                return
+            }
+
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard !Task.isCancelled else { return }
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                   let available = json["available"] as? Bool {
+                    await MainActor.run {
+                        isUsernameAvailable = available
+                        isCheckingUsername = false
+                        if available {
+                            saveUsername(trimmed)
+                        }
+                    }
+                }
+            } catch {
+                guard !Task.isCancelled else { return }
+                await MainActor.run { isCheckingUsername = false }
+            }
+        }
+    }
+
+    private func saveUsername(_ username: String) {
+        profileUsername = username
+        // Also call the profile update API
+        Task {
+            guard let url = URL(string: "\(APIConfig.baseURLString)/profile") else { return }
+            var request = URLRequest(url: url)
+            request.httpMethod = "PUT"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.httpBody = try? JSONSerialization.data(withJSONObject: ["username": username])
+            _ = try? await URLSession.shared.data(for: request)
+        }
+    }
+
+    private func deleteAccount() {
+        // Clear all local data
+        profileName = ""
+        profileUsername = ""
+        UserDefaults.standard.removeObject(forKey: "profile_username")
+        UserDefaults.standard.removeObject(forKey: "profile_name")
+        UserDefaults.standard.removeObject(forKey: "profile_level")
+        UserDefaults.standard.removeObject(forKey: "profile_photo_path")
+        CoinWallet.resetLocalBonus()
+
+        // Sign out from Firebase if authenticated
+        if authManager.isAuthenticated {
+            authManager.signOut()
+        }
+
+        // Pop back to profile
+        dismiss()
+    }
+
+    private func mathLevelDescription(for level: String) -> String {
+        switch level {
+        case "Beginner": return "Basic arithmetic, fractions, decimals"
+        case "Intermediate": return "Algebra, geometry, basic equations"
+        case "Advanced": return "Calculus, trigonometry, advanced algebra"
+        default: return ""
+        }
+    }
+
+    private func mathLevelIcon(for level: String) -> String {
+        switch level {
+        case "Beginner": return "leaf.fill"
+        case "Intermediate": return "flame.fill"
+        case "Advanced": return "bolt.fill"
+        default: return "star.fill"
+        }
+    }
+
+    private func mathLevelCard(level: String, description: String, icon: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 14) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            isSelected
+                                ? LinearGradient(
+                                    colors: [appPurple, Color(red: 0.6, green: 0.4, blue: 0.95)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                                : LinearGradient(
+                                    colors: [Color.gray.opacity(0.15), Color.gray.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                        )
+                        .frame(width: 44, height: 44)
+                    Image(systemName: icon)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundStyle(isSelected ? .white : .gray)
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(level)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(isSelected ? .primary : .secondary)
+                    Text(description)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
+                }
+                Spacer()
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundStyle(isSelected ? appPurple : Color.gray.opacity(0.3))
+            }
+            .padding(14)
+            .background(colorScheme == .dark ? Color(.tertiarySystemBackground) : .white)
+            .clipShape(RoundedRectangle(cornerRadius: 14))
+            .overlay(
+                RoundedRectangle(cornerRadius: 14)
+                    .stroke(isSelected ? appPurple : .clear, lineWidth: 2)
+            )
+            .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+        }
+        .buttonStyle(.plain)
     }
 
     @ViewBuilder
@@ -101,9 +295,9 @@ struct SettingsView: View {
             }
             .padding(16)
             .background(colorScheme == .dark ? Color(.secondarySystemGroupedBackground) : .white)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: 20))
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
+                RoundedRectangle(cornerRadius: 20)
                     .stroke(Color(.separator).opacity(0.3), lineWidth: 0.5)
             )
         }

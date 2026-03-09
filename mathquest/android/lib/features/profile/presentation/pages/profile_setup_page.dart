@@ -1,7 +1,11 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/network/api_config.dart';
 import '../../../../core/router/app_router.dart';
 
 const _profileSetupDoneKey = 'profile_setup_done';
@@ -15,11 +19,19 @@ class ProfileSetupPage extends StatefulWidget {
 
 class _ProfileSetupPageState extends State<ProfileSetupPage> {
   final _nameController = TextEditingController();
+  final _usernameController = TextEditingController();
   String _level = 'Beginner';
   bool _saving = false;
   String? _errorMessage;
+  bool? _isUsernameAvailable;
+  bool _isCheckingUsername = false;
+  Timer? _debounceTimer;
+  final _dio = Dio(BaseOptions(baseUrl: kApiBaseUrl));
 
-  bool get _canSubmit => _nameController.text.trim().isNotEmpty;
+  bool get _canSubmit =>
+      _nameController.text.trim().isNotEmpty &&
+      _usernameController.text.trim().isNotEmpty &&
+      _isUsernameAvailable == true;
 
   @override
   void initState() {
@@ -31,12 +43,11 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     final prefs = await SharedPreferences.getInstance();
     final savedName = prefs.getString('profile_name') ?? '';
     final savedLevel = prefs.getString('profile_level') ?? '';
+    final savedUsername = prefs.getString('profile_username') ?? '';
 
-    // If we already have saved data, use it
     if (savedName.isNotEmpty) {
       _nameController.text = savedName;
     } else {
-      // Otherwise, try to get name from Firebase user
       final user = FirebaseAuth.instance.currentUser;
       if (user?.displayName != null && user!.displayName!.isNotEmpty) {
         _nameController.text = user.displayName!;
@@ -46,11 +57,63 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     if (savedLevel.isNotEmpty) {
       setState(() => _level = savedLevel);
     }
+
+    if (savedUsername.isNotEmpty) {
+      _usernameController.text = savedUsername;
+    }
+  }
+
+  void _onUsernameChanged(String value) {
+    final trimmed = value.trim().toLowerCase();
+    debugPrint('[ProfileSetup] onUsernameChanged: raw="$value" trimmed="$trimmed"');
+    if (trimmed.isEmpty) {
+      debugPrint('[ProfileSetup] username empty — resetting state');
+      setState(() {
+        _isUsernameAvailable = null;
+        _isCheckingUsername = false;
+      });
+      _debounceTimer?.cancel();
+      return;
+    }
+
+    setState(() {
+      _isCheckingUsername = true;
+      _isUsernameAvailable = null;
+    });
+
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _checkUsernameAvailability(trimmed);
+    });
+  }
+
+  Future<void> _checkUsernameAvailability(String username) async {
+    debugPrint('[ProfileSetup] checking availability for "$username"');
+    try {
+      final response = await _dio.get('/auth/check-username', queryParameters: {'username': username});
+      debugPrint('[ProfileSetup] response: ${response.statusCode} ${response.data}');
+      if (!mounted) return;
+
+      final available = response.data['available'] == true;
+      debugPrint('[ProfileSetup] available=$available');
+      setState(() {
+        _isUsernameAvailable = available;
+        _isCheckingUsername = false;
+      });
+      debugPrint('[ProfileSetup] canSubmit=$_canSubmit name="${_nameController.text}" username="$username" isUsernameAvailable=$_isUsernameAvailable');
+    } catch (e) {
+      debugPrint('[ProfileSetup] error checking username: $e');
+      if (!mounted) return;
+      setState(() {
+        _isUsernameAvailable = null;
+        _isCheckingUsername = false;
+      });
+    }
   }
 
   Future<void> _submit() async {
     if (!_canSubmit) {
-      setState(() => _errorMessage = 'Please enter your name and select a level.');
+      setState(() => _errorMessage = 'Please enter your name, username, and select a level.');
       return;
     }
 
@@ -59,14 +122,43 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
       _errorMessage = null;
     });
 
+    final trimmedUsername = _usernameController.text.trim().toLowerCase();
+
+    // Register the username on the server
+    try {
+      await _dio.post('/auth/register-username', data: {'username': trimmedUsername});
+    } on DioException catch (e) {
+      if (!mounted) return;
+      if (e.response?.statusCode == 409) {
+        setState(() {
+          _errorMessage = 'Username is already taken. Please choose another.';
+          _isUsernameAvailable = false;
+          _saving = false;
+        });
+        return;
+      }
+      setState(() {
+        _errorMessage = 'Failed to register username.';
+        _saving = false;
+      });
+      return;
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = 'Network error: $e';
+        _saving = false;
+      });
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('profile_name', _nameController.text.trim());
+    await prefs.setString('profile_username', trimmedUsername);
     await prefs.setString('profile_level', _level);
     await prefs.setBool(_profileSetupDoneKey, true);
 
     if (!mounted) return;
 
-    // Trigger router refresh and navigate
     RouterRefreshNotifier.instance.refresh();
     context.go('/');
   }
@@ -74,6 +166,8 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -181,6 +275,74 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                 ),
                 onChanged: (_) => setState(() {}),
               ),
+              const SizedBox(height: 20),
+
+              // Username field
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Username',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _usernameController,
+                autocorrect: false,
+                enableSuggestions: false,
+                textCapitalization: TextCapitalization.none,
+                decoration: InputDecoration(
+                  hintText: 'Choose a username',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 16,
+                  ),
+                  suffixIcon: _isCheckingUsername
+                      ? const Padding(
+                          padding: EdgeInsets.all(12),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : _isUsernameAvailable != null
+                          ? Icon(
+                              _isUsernameAvailable!
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
+                              color: _isUsernameAvailable!
+                                  ? Colors.green
+                                  : Colors.red,
+                            )
+                          : null,
+                ),
+                onChanged: (value) {
+                  setState(() {});
+                  _onUsernameChanged(value);
+                },
+              ),
+              if (_isUsernameAvailable == false)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Username is already taken',
+                      style: TextStyle(fontSize: 13, color: Colors.red.shade600),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 24),
 
               // Math level

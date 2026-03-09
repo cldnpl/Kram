@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import ImageIO
 import UIKit
+import FirebaseAuth
 
 @MainActor
 final class CameraViewModel: ObservableObject {
@@ -24,17 +25,18 @@ final class CameraViewModel: ObservableObject {
         dailyLimit = tier.cameraDailyLimit ?? Self.unlimitedValue
         usesRemaining = tier.cameraDailyLimit ?? Self.unlimitedValue
 
-        // Forward nested camera service updates so SwiftUI re-renders when
-        // authorization/session state changes.
         cameraService.objectWillChange
             .sink { [weak self] _ in
                 self?.objectWillChange.send()
             }
             .store(in: &cancellables)
 
-        // Set mock token for development
         Task {
-            await client.setToken("mock-dev-token")
+            if Auth.auth().currentUser != nil {
+                await client.setToken("mock-dev-token")
+            } else {
+                await client.setToken(nil)
+            }
         }
     }
 

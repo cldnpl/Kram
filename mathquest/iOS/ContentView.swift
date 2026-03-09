@@ -1,29 +1,77 @@
 import SwiftUI
 
+/// Permette di cambiare tab da figli (es. dopo login username → andare alla Home).
+final class TabSelection: ObservableObject {
+    @Published var selectedTab: Int = 0
+}
+
 struct ContentView: View {
-    @State private var selectedTab = 0
+    @StateObject private var tabSelection = TabSelection()
     @EnvironmentObject private var authManager: AuthManager
+    @AppStorage("profile_username") private var profileUsername = ""
+    @AppStorage("profile_name") private var profileName = ""
+    @State private var cameraTrialUsed = KeychainFlag.isSet("camera_trial_used")
+    @State private var showProfileSetup = false
+
+    private var isLoggedIn: Bool {
+        authManager.isAuthenticated || !profileUsername.isEmpty
+    }
+
+    /// Show profile setup after Google/Apple sign-in if name or username is missing
+    private var needsProfileSetup: Bool {
+        authManager.isAuthenticated && (profileName.isEmpty || profileUsername.isEmpty)
+    }
+
+    /// Camera available if logged in, OR free trial not yet used.
+    private var canUseCamera: Bool {
+        isLoggedIn || !cameraTrialUsed
+    }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $tabSelection.selectedTab) {
             HomeView()
                 .tabItem { Label("Lessons", systemImage: "house.fill") }
                 .tag(0)
+            CommunityView()
+                .tabItem { Label("Community", systemImage: "person.2.fill") }
+                .tag(1)
             NavigationStack {
-                if authManager.isAuthenticated {
-                    CameraView()
+                if canUseCamera {
+                    CameraView(onTrialUsed: markTrialUsed)
                 } else {
                     CameraLoginRequiredView()
                 }
             }
             .tabItem { Label("Camera", systemImage: "camera.fill") }
-            .tag(1)
+            .tag(2)
             NavigationStack {
                 ProfileView()
             }
             .tabItem { Label("Profile", systemImage: "person.fill") }
-            .tag(2)
+            .tag(3)
         }
+        .environmentObject(tabSelection)
+        .fullScreenCover(isPresented: $showProfileSetup) {
+            ProfileSetupView {
+                showProfileSetup = false
+            }
+        }
+        .onChange(of: authManager.isAuthenticated) { _, isAuth in
+            if isAuth && (profileName.isEmpty || profileUsername.isEmpty) {
+                showProfileSetup = true
+            }
+        }
+        .onAppear {
+            if needsProfileSetup {
+                showProfileSetup = true
+            }
+        }
+    }
+
+    private func markTrialUsed() {
+        guard !isLoggedIn else { return }
+        KeychainFlag.set("camera_trial_used")
+        cameraTrialUsed = true
     }
 }
 
@@ -34,6 +82,7 @@ struct ContentView: View {
 }
 
 private struct CameraLoginRequiredView: View {
+    @EnvironmentObject private var tabSelection: TabSelection
     @State private var showLogin = false
 
     var body: some View {
@@ -63,7 +112,16 @@ private struct CameraLoginRequiredView: View {
         .navigationTitle("Camera")
         .navigationBarTitleDisplayMode(.inline)
         .fullScreenCover(isPresented: $showLogin) {
-            LoginView(showCloseButton: true)
+            LoginView(
+                showCloseButton: true,
+                onUsernameLoginSuccess: {
+                    showLogin = false
+                    tabSelection.selectedTab = 0
+                }
+            )
+        }
+        .onChange(of: tabSelection.selectedTab) { _, newTab in
+            if newTab != 2 { showLogin = false }
         }
     }
 }

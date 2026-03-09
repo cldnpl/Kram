@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/network/api_config.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/l10n/app_locale.dart';
 
@@ -18,12 +22,23 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _darkMode = false;
   String _difficulty = 'medio';
   String _language = 'en';
+  String _profileLevel = 'Beginner';
+  String _profileUsername = '';
+  bool? _isUsernameAvailable;
+  bool _isCheckingUsername = false;
+  Timer? _usernameDebounce;
+  final _nameEditController = TextEditingController();
+  final _usernameEditController = TextEditingController();
+  final _dio = Dio(BaseOptions(baseUrl: kApiBaseUrl));
 
+  static const _keyProfileUsername = 'profile_username';
   static const _keyNotifications = 'settings_notifications';
   static const _keySound = 'settings_sound';
   static const _keyDarkMode = 'settings_dark_mode';
   static const _keyDifficulty = 'settings_difficulty';
   static const _keyLanguage = 'settings_language';
+  static const _keyProfileLevel = 'profile_level';
+  static const _keyProfileName = 'profile_name';
 
   @override
   void initState() {
@@ -31,16 +46,111 @@ class _SettingsPageState extends State<SettingsPage> {
     _load();
   }
 
+  @override
+  void dispose() {
+    _nameEditController.dispose();
+    _usernameEditController.dispose();
+    _usernameDebounce?.cancel();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
-      _profileName = prefs.getString('profile_name') ?? '';
+      _profileName = prefs.getString(_keyProfileName) ?? '';
+      _nameEditController.text = _profileName;
+      _profileUsername = prefs.getString(_keyProfileUsername) ?? '';
+      _usernameEditController.text = _profileUsername;
       _notificationsEnabled = prefs.getBool(_keyNotifications) ?? true;
       _soundEnabled = prefs.getBool(_keySound) ?? true;
       _darkMode = prefs.getBool(_keyDarkMode) ?? false;
       _difficulty = prefs.getString(_keyDifficulty) ?? 'medio';
       _language = prefs.getString(_keyLanguage) ?? 'en';
+      _profileLevel = prefs.getString(_keyProfileLevel) ?? 'Beginner';
     });
+  }
+
+  String _mathLevelDescription(String level) {
+    switch (level) {
+      case 'Beginner':
+        return 'Basic arithmetic, fractions, decimals';
+      case 'Intermediate':
+        return 'Algebra, geometry, basic equations';
+      case 'Advanced':
+        return 'Calculus, trigonometry, advanced algebra';
+      default:
+        return '';
+    }
+  }
+
+  IconData _mathLevelIcon(String level) {
+    switch (level) {
+      case 'Beginner':
+        return Icons.eco;
+      case 'Intermediate':
+        return Icons.local_fire_department;
+      case 'Advanced':
+        return Icons.bolt;
+      default:
+        return Icons.star;
+    }
+  }
+
+  void _onUsernameChanged(String value) {
+    final trimmed = value.trim().toLowerCase();
+
+    // Same as saved — no check needed
+    if (trimmed == _profileUsername.toLowerCase()) {
+      setState(() {
+        _isUsernameAvailable = null;
+        _isCheckingUsername = false;
+      });
+      _usernameDebounce?.cancel();
+      return;
+    }
+
+    if (trimmed.isEmpty) {
+      setState(() {
+        _isUsernameAvailable = null;
+        _isCheckingUsername = false;
+      });
+      _usernameDebounce?.cancel();
+      return;
+    }
+
+    setState(() {
+      _isCheckingUsername = true;
+      _isUsernameAvailable = null;
+    });
+
+    _usernameDebounce?.cancel();
+    _usernameDebounce = Timer(const Duration(milliseconds: 500), () {
+      _checkAndSaveUsername(trimmed);
+    });
+  }
+
+  Future<void> _checkAndSaveUsername(String username) async {
+    try {
+      final response = await _dio.get('/auth/check-username', queryParameters: {'username': username});
+      if (!mounted) return;
+
+      final available = response.data['available'] == true;
+      setState(() {
+        _isUsernameAvailable = available;
+        _isCheckingUsername = false;
+      });
+
+      if (available) {
+        _profileUsername = username;
+        await _setString(_keyProfileUsername, username);
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isUsernameAvailable = null;
+        _isCheckingUsername = false;
+      });
+    }
   }
 
   Future<void> _setBool(String key, bool value) async {
@@ -83,15 +193,87 @@ class _SettingsPageState extends State<SettingsPage> {
             context,
             backgroundColor: cardBg,
             borderColor: borderColor,
-            child: ListTile(
-              leading: Icon(Icons.person, color: AppColors.appPurple, size: 22),
-              title: Text(AppLocale.tr('name'), style: const TextStyle(fontWeight: FontWeight.w500)),
-              trailing: Text(
-                _profileName.isEmpty ? '—' : _profileName,
-                style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.6)),
-              ),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.person, color: AppColors.appPurple, size: 22),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _nameEditController,
+                          decoration: InputDecoration(
+                            hintText: AppLocale.tr('name'),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                          onChanged: (v) async {
+                            _profileName = v;
+                            await _setString(_keyProfileName, v);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Divider(height: 1, color: borderColor),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    children: [
+                      Icon(Icons.alternate_email, color: AppColors.appPurple, size: 22),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextField(
+                          controller: _usernameEditController,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          textCapitalization: TextCapitalization.none,
+                          decoration: const InputDecoration(
+                            hintText: 'Username',
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
+                          ),
+                          onChanged: _onUsernameChanged,
+                        ),
+                      ),
+                      if (_isCheckingUsername)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      else if (_isUsernameAvailable != null)
+                        Icon(
+                          _isUsernameAvailable! ? Icons.check_circle : Icons.cancel,
+                          color: _isUsernameAvailable! ? Colors.green : Colors.red,
+                          size: 20,
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 24),
+          _sectionTitle('Math Level'),
+          const SizedBox(height: 8),
+          ...['Beginner', 'Intermediate', 'Advanced'].map((level) => Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: _mathLevelCard(context, level, isDark),
+          )),
           const SizedBox(height: 24),
           _sectionTitle(AppLocale.tr('study_preferences')),
           const SizedBox(height: 8),
@@ -235,10 +417,98 @@ class _SettingsPageState extends State<SettingsPage> {
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: borderColor, width: 0.5),
       ),
       child: child,
+    );
+  }
+
+  Widget _mathLevelCard(BuildContext context, String level, bool isDark) {
+    final isSelected = _profileLevel == level;
+    final cardBg = isDark ? const Color(0xFF2C2C2E) : Colors.white;
+    return GestureDetector(
+      onTap: () async {
+        setState(() => _profileLevel = level);
+        await _setString(_keyProfileLevel, level);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? AppColors.appPurple : Colors.transparent,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: isSelected
+                    ? const LinearGradient(
+                        colors: [
+                          Color(0xFF664DE6),
+                          Color(0xFF9980F0),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : null,
+                color: isSelected ? null : Colors.grey.shade200,
+              ),
+              child: Icon(
+                _mathLevelIcon(level),
+                size: 20,
+                color: isSelected ? Colors.white : Colors.grey,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    level,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? (isDark ? Colors.white : Colors.black87)
+                          : Colors.grey.shade600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    _mathLevelDescription(level),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              isSelected ? Icons.check_circle : Icons.circle_outlined,
+              size: 24,
+              color: isSelected ? AppColors.appPurple : Colors.grey.shade300,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

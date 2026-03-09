@@ -1,4 +1,5 @@
-import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import '../../../core/network/dio_client.dart';
 import 'camera_models.dart';
@@ -8,43 +9,57 @@ class CameraApi {
 
   final DioClient _client;
 
-  Options get _authOptions => Options(
-        headers: {'Authorization': 'Bearer mock-dev-token'},
-      );
+  /// Bearer per Firebase (Apple/Google), X-Username per login con username/password.
+  Future<Options> _cameraOptions() async {
+    final headers = <String, dynamic>{};
+    if (FirebaseAuth.instance.currentUser != null) {
+      headers['Authorization'] = 'Bearer mock-dev-token';
+    }
+    final prefs = await SharedPreferences.getInstance();
+    final username = prefs.getString('profile_username') ?? '';
+    if (username.isNotEmpty) {
+      headers['X-Username'] = username;
+    }
+    return Options(headers: headers);
+  }
 
   Future<SolveResponse> solve(String imageBase64, String mediaType) async {
+    final opts = await _cameraOptions();
     final response = await _client.dio.post(
       'camera/solve',
       data: {
         'image_base64': imageBase64,
         'media_type': mediaType,
       },
-      options: _authOptions,
+      options: opts,
     );
     return SolveResponse.fromJson(response.data);
   }
 
   Future<List<HistoryItem>> getHistory() async {
+    final opts = await _cameraOptions();
     final response = await _client.dio.get(
       'camera/history',
-      options: _authOptions,
+      options: opts,
     );
     final historyResponse = HistoryResponse.fromJson(response.data);
     return historyResponse.history;
   }
 
   Future<HistoryDetailResponse> getHistoryDetail(int id) async {
+    final opts = await _cameraOptions();
     final response = await _client.dio.get(
       'camera/history/$id',
-      options: _authOptions,
+      options: opts,
     );
     return HistoryDetailResponse.fromJson(response.data);
   }
 
   Future<StatusResponse> getStatus() async {
+    final opts = await _cameraOptions();
     final response = await _client.dio.get(
       'camera/status',
-      options: _authOptions,
+      options: opts,
     );
     return StatusResponse.fromJson(response.data);
   }

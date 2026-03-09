@@ -1,8 +1,14 @@
+import 'dart:io';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/l10n/app_locale.dart';
+import '../../../../core/network/dio_client.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -15,23 +21,62 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final DioClient _dio = DioClient();
   String _userName = '';
+  String _profileUsername = '';
   String _mathLevel = 'Beginner';
   int _streakDays = 0;
   int _lessonsCompleted = 0;
+  String _profilePhotoPath = '';
+
+  static const _keyProfilePhoto = 'profile_photo_path';
+  static const _profilePhotoFilename = 'profile_photo.jpg';
 
   @override
   void initState() {
     super.initState();
     _loadProfileData();
+    _fetchStreak();
   }
 
   Future<void> _loadProfileData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _userName = prefs.getString('profile_name') ?? '';
+      _profileUsername = prefs.getString('profile_username') ?? '';
       _mathLevel = prefs.getString('profile_level') ?? 'Beginner';
+      _profilePhotoPath = prefs.getString(_keyProfilePhoto) ?? '';
     });
+  }
+
+  Future<void> _fetchStreak() async {
+    try {
+      final res = await _dio.dio.get(
+        'streak',
+        options: Options(headers: {'Authorization': 'Bearer mock-dev-token'}),
+      );
+      final data = res.data as Map<String, dynamic>;
+      if (mounted) {
+        setState(() {
+          _streakDays = (data['streak_days'] as num?)?.toInt() ?? 0;
+        });
+      }
+    } catch (e) {
+      debugPrint('[Profile] streak fetch error: $e');
+    }
+  }
+
+  Future<void> _pickProfilePhoto() async {
+    final picker = ImagePicker();
+    final xFile = await picker.pickImage(source: ImageSource.gallery);
+    if (xFile == null || !mounted) return;
+    final dir = await getApplicationDocumentsDirectory();
+    final destFile = File('${dir.path}/$_profilePhotoFilename');
+    await File(xFile.path).copy(destFile.path);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyProfilePhoto, destFile.path);
+    if (!mounted) return;
+    setState(() => _profilePhotoPath = destFile.path);
   }
 
   String _getInitials(String name) {
@@ -83,7 +128,8 @@ class _ProfilePageState extends State<ProfilePage> {
         },
         builder: (context, state) {
           final user = state.user;
-          final isLoggedIn = state.status == AuthStatus.authenticated;
+          final isLoggedIn = state.status == AuthStatus.authenticated ||
+              _profileUsername.isNotEmpty;
           final displayName =
               _userName.isNotEmpty ? _userName : (user?.displayName ?? 'User');
           final email = user?.email ?? '';
@@ -95,47 +141,84 @@ class _ProfilePageState extends State<ProfilePage> {
               children: [
                 // Profile header
                 const SizedBox(height: 10),
-                // Avatar
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
+                // Avatar (tap per cambiare foto)
+                GestureDetector(
+                  onTap: _pickProfilePhoto,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: _profilePhotoPath.isNotEmpty &&
+                                File(_profilePhotoPath).existsSync()
+                            ? ClipOval(
+                                child: Image.file(
+                                  File(_profilePhotoPath),
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : photoUrl != null
+                                ? CircleAvatar(
+                                    radius: 50,
+                                    backgroundImage: NetworkImage(photoUrl),
+                                    onBackgroundImageError: (_, __) {},
+                                    child: null,
+                                  )
+                                : Container(
+                                    width: 100,
+                                    height: 100,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Color(0xFF6650A4),
+                                          Color(0xFF9980F0),
+                                        ],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        _getInitials(displayName),
+                                        style: const TextStyle(
+                                          fontSize: 36,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        bottom: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF6650A4),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.camera_alt,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  child: photoUrl != null
-                      ? CircleAvatar(
-                          radius: 50,
-                          backgroundImage: NetworkImage(photoUrl),
-                          onBackgroundImageError: (_, __) {},
-                          child: null,
-                        )
-                      : Container(
-                          width: 100,
-                          height: 100,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [Color(0xFF6650A4), Color(0xFF9980F0)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              _getInitials(displayName),
-                              style: const TextStyle(
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ),
                 ),
                 const SizedBox(height: 16),
 
@@ -147,6 +230,16 @@ class _ProfilePageState extends State<ProfilePage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                if (isLoggedIn && _profileUsername.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    '@$_profileUsername',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
 
                 // Email
                 if (email.isNotEmpty) ...[
@@ -203,11 +296,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 Row(
                   children: [
                     Expanded(
-                      child: _StatCard(
-                        icon: Icons.local_fire_department,
-                        iconColor: Colors.orange,
-                        value: '$_streakDays',
-                        label: 'Day Streak',
+                      child: GestureDetector(
+                        onTap: () => context.push('/streak'),
+                        child: _StatCard(
+                          icon: Icons.local_fire_department,
+                          iconColor: Colors.orange,
+                          value: '$_streakDays',
+                          label: 'Day Streak',
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -259,12 +355,24 @@ class _ProfilePageState extends State<ProfilePage> {
                             if (isLoggedIn) {
                               final prefs =
                                   await SharedPreferences.getInstance();
+                              final photoPath = prefs.getString(_keyProfilePhoto);
+                              if (photoPath != null) {
+                                try {
+                                  final f = File(photoPath);
+                                  if (f.existsSync()) f.deleteSync();
+                                } catch (_) {}
+                              }
                               await prefs.remove('profile_name');
+                              await prefs.remove('profile_username');
                               await prefs.remove('profile_level');
+                              await prefs.remove(_keyProfilePhoto);
                               if (!context.mounted) return;
                               context
                                   .read<AuthBloc>()
                                   .add(const AuthSignOutRequested());
+                              await _loadProfileData();
+                              if (!context.mounted) return;
+                              setState(() {});
                             } else {
                               context.go('/login');
                             }

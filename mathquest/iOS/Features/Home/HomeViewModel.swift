@@ -67,10 +67,17 @@ private struct BalanceResponse: Decodable {
     let balance: Int
 }
 
+private struct StreakResponse: Decodable {
+    let streak_days: Int
+    let active_today: Bool
+}
+
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published var categories: [CategoryItem] = []
     @Published var coinBalance = 0
+    @Published var streakDays = 0
+    @Published var activeToday = false
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -93,6 +100,18 @@ final class HomeViewModel: ObservableObject {
             let balanceRes: BalanceResponse = try await client.request("coins/balance")
             coinBalance = balanceRes.balance + CoinWallet.localBonus()
             print("[Home] balance = \(coinBalance)")
+
+            print("[Home] fetching streak...")
+            let streakRes: StreakResponse = try await client.request("streak")
+            streakDays = streakRes.streak_days
+            activeToday = streakRes.active_today
+            print("[Home] streak = \(streakDays), activeToday = \(activeToday)")
+
+            // Evaluate Live Activity for streak warning
+            StreakActivityManager.shared.evaluate(
+                streakDays: streakDays,
+                activeToday: activeToday
+            )
         } catch {
             print("[Home] ERROR: \(error)")
             errorMessage = error.localizedDescription

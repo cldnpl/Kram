@@ -61,6 +61,42 @@ struct ProfileSetupView: View {
                                 .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
                         }
 
+                        // Username field
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Username")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.secondary)
+
+                            HStack {
+                                TextField("Choose a username", text: $viewModel.username)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .font(.system(size: 17))
+                                    .onChange(of: viewModel.username) { _, _ in
+                                        viewModel.onUsernameChanged()
+                                    }
+
+                                if viewModel.isCheckingUsername {
+                                    ProgressView()
+                                        .scaleEffect(0.8)
+                                } else if let available = viewModel.isUsernameAvailable {
+                                    Image(systemName: available ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                        .foregroundStyle(available ? .green : .red)
+                                        .font(.system(size: 20))
+                                }
+                            }
+                            .padding()
+                            .background(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
+
+                            if let available = viewModel.isUsernameAvailable, !available {
+                                Text("Username is already taken")
+                                    .font(.caption)
+                                    .foregroundStyle(.red)
+                            }
+                        }
+
                         // Math level picker
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Math Level")

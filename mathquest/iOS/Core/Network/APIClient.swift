@@ -49,6 +49,9 @@ actor APIClient {
         if let token = token {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
+        if path.contains("camera"), let username = UserDefaults.standard.string(forKey: "profile_username"), !username.isEmpty {
+            request.setValue(username, forHTTPHeaderField: "X-Username")
+        }
         request.setValue(SubscriptionTier.current.rawValue, forHTTPHeaderField: "X-Subscription-Tier")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = body

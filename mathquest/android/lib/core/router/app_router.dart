@@ -1,7 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/username_login_page.dart';
 import '../../features/auth/presentation/pages/username_password_auth_page.dart';
 import '../../features/auth/presentation/pages/username_password_register_page.dart';
 import '../../features/onboarding/presentation/pages/carousel_onboarding_page.dart';
@@ -12,7 +14,11 @@ import '../../features/profile/presentation/pages/profile_page.dart';
 import '../../features/profile/presentation/pages/profile_setup_page.dart';
 import '../../features/camera/presentation/pages/camera_page.dart';
 import '../../features/shop/presentation/pages/shop_page.dart';
+import '../../features/streak/presentation/pages/streak_calendar_page.dart';
 import 'main_shell_scaffold.dart';
+
+const _carouselSeenKey = 'carousel_seen';
+const _profileSetupDoneKey = 'profile_setup_done';
 
 // Notifier to trigger router refresh
 class RouterRefreshNotifier extends ChangeNotifier {
@@ -28,17 +34,43 @@ final appRouter = GoRouter(
   initialLocation: '/',
   refreshListenable: RouterRefreshNotifier.instance,
   redirect: (context, state) async {
-    final isAuthenticated = FirebaseAuth.instance.currentUser != null;
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenCarousel = prefs.getBool(_carouselSeenKey) ?? false;
+    final hasCompletedProfile = prefs.getBool(_profileSetupDoneKey) ?? false;
+    final profileName = prefs.getString('profile_name') ?? '';
+    final profileLevel = prefs.getString('profile_level') ?? '';
+    final profileUsername = prefs.getString('profile_username') ?? '';
+    final isProfileComplete = hasCompletedProfile &&
+        profileName.isNotEmpty &&
+        profileLevel.isNotEmpty &&
+        profileUsername.isNotEmpty;
+    final isFirebaseAuth = FirebaseAuth.instance.currentUser != null;
+    final hasUsername = (prefs.getString('profile_username') ?? '').isNotEmpty;
+    final isLoggedIn = isFirebaseAuth || hasUsername;
 
     final location = state.matchedLocation;
     final isLoginRoute = location == '/login';
     final isCameraRoute = location == '/camera';
+    final isCarouselRoute = location == '/carousel';
+    final isProfileSetupRoute = location == '/profile-setup';
 
-    if (!isAuthenticated && isCameraRoute) {
+    if (!hasSeenCarousel) {
+      return isCarouselRoute ? null : '/carousel';
+    }
+
+    if (!isProfileComplete) {
+      return isProfileSetupRoute ? null : '/profile-setup';
+    }
+
+    if (!isLoggedIn && isCameraRoute) {
       return '/login?reason=camera';
     }
 
-    if (isAuthenticated && isLoginRoute) {
+    if (isCarouselRoute || isProfileSetupRoute) {
+      return '/';
+    }
+
+    if (isLoggedIn && isLoginRoute) {
       return '/';
     }
 
@@ -46,6 +78,7 @@ final appRouter = GoRouter(
   },
   routes: [
     GoRoute(path: '/login', builder: (_, __) => const LoginPage()),
+    GoRoute(path: '/username-login', builder: (_, __) => const UsernameLoginPage()),
     GoRoute(
       path: '/login/username-password',
       builder: (_, __) => const UsernamePasswordAuthPage(),
@@ -91,6 +124,7 @@ final appRouter = GoRouter(
       },
     ),
     GoRoute(path: '/shop', builder: (_, __) => const ShopPage()),
+    GoRoute(path: '/streak', builder: (_, __) => const StreakCalendarPage()),
     GoRoute(path: '/camera', builder: (_, __) => const CameraPage()),
   ],
 );
