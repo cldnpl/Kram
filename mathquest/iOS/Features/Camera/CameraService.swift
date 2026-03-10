@@ -1,22 +1,16 @@
 @preconcurrency import AVFoundation
-import QuartzCore
 import UIKit
-import Vision
 
 @MainActor
 final class CameraService: NSObject, ObservableObject {
     @Published var isAuthorized = false
     @Published var capturedImage: UIImage?
     @Published var errorMessage: String?
-    @Published var liveDetectedText = ""
 
     private var captureSession: AVCaptureSession?
     private var photoOutput: AVCapturePhotoOutput?
-    private var videoOutput: AVCaptureVideoDataOutput?
     private var photoContinuation: CheckedContinuation<UIImage?, Error>?
     private let sessionQueue = DispatchQueue(label: "com.mathquest.camera.session")
-    private let liveTextRecognizer = LiveTextRecognizer()
-    private var focusRegionNormalized = CGRect(x: 0.2, y: 0.35, width: 0.6, height: 0.3)
 
     var session: AVCaptureSession? {
         captureSession
@@ -28,12 +22,6 @@ final class CameraService: NSObject, ObservableObject {
 
     override init() {
         super.init()
-        liveTextRecognizer.onTextDetected = { [weak self] text in
-            Task { @MainActor in
-                self?.liveDetectedText = text
-            }
-        }
-        liveTextRecognizer.setRegionOfInterest(visionRegion(from: focusRegionNormalized))
     }
 
     func refreshAuthorizationStatus() {
@@ -64,19 +52,6 @@ final class CameraService: NSObject, ObservableObject {
         }
     }
 
-    func setFocusRegion(_ normalizedRect: CGRect) {
-        let clampedRect = normalizedRect
-            .standardized
-            .intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
-
-        guard !clampedRect.isNull, clampedRect.width > 0, clampedRect.height > 0 else {
-            return
-        }
-
-        focusRegionNormalized = clampedRect
-        liveTextRecognizer.setRegionOfInterest(visionRegion(from: clampedRect))
-    }
-
     func setupCamera() async {
         refreshAuthorizationStatus()
         guard isAuthorized else {
@@ -84,7 +59,7 @@ final class CameraService: NSObject, ObservableObject {
             return
         }
 
-        if captureSession != nil, photoOutput != nil, videoOutput != nil {
+        if captureSession != nil, photoOutput != nil {
             startSessionIfNeeded()
             return
         }
@@ -109,22 +84,10 @@ final class CameraService: NSObject, ObservableObject {
             session.addOutput(output)
         }
 
-        let videoOutput = AVCaptureVideoDataOutput()
-        videoOutput.alwaysDiscardsLateVideoFrames = true
-        videoOutput.videoSettings = [
-            kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)
-        ]
-
-        if session.canAddOutput(videoOutput) {
-            session.addOutput(videoOutput)
-            videoOutput.setSampleBufferDelegate(liveTextRecognizer, queue: liveTextRecognizer.outputQueue)
-        }
-
         session.commitConfiguration()
 
         self.captureSession = session
         self.photoOutput = output
-        self.videoOutput = videoOutput
 
         startSessionIfNeeded()
     }
@@ -163,8 +126,6 @@ final class CameraService: NSObject, ObservableObject {
             photoContinuation = nil
         }
 
-        liveDetectedText = ""
-
         guard let captureSession = captureSession else { return }
         sessionQueue.async {
             guard captureSession.isRunning else { return }
@@ -178,15 +139,6 @@ final class CameraService: NSObject, ObservableObject {
             guard !captureSession.isRunning else { return }
             captureSession.startRunning()
         }
-    }
-
-    private func visionRegion(from topLeftRect: CGRect) -> CGRect {
-        CGRect(
-            x: topLeftRect.minX,
-            y: 1 - topLeftRect.maxY,
-            width: topLeftRect.width,
-            height: topLeftRect.height
-        )
     }
 
     enum CameraError: Error, LocalizedError {
@@ -238,80 +190,3 @@ extension CameraService: AVCapturePhotoCaptureDelegate {
     }
 }
 
-private final class LiveTextRecognizer: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
-    var onTextDetected: ((String) -> Void)?
-    let outputQueue = DispatchQueue(label: "com.mathquest.camera.liveText", qos: .userInitiated)
-
-    private var isProcessing = false
-    private var lastProcessTime: CFTimeInterval = 0
-    private let throttleInterval: CFTimeInterval = 0.6
-    private let lock = NSLock()
-    private var regionOfInterest = CGRect(x: 0, y: 0, width: 1, height: 1)
-
-    func setRegionOfInterest(_ rect: CGRect) {
-        lock.lock()
-        regionOfInterest = rect
-        lock.unlock()
-    }
-
-    func captureOutput(
-        _ output: AVCaptureOutput,
-        didOutput sampleBuffer: CMSampleBuffer,
-        from connection: AVCaptureConnection
-    ) {
-        guard shouldProcessFrame(),
-              let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else {
-            return
-        }
-
-        let request = VNRecognizeTextRequest { [weak self] request, _ in
-            defer { self?.markProcessingComplete() }
-
-            let observations = request.results as? [VNRecognizedTextObservation] ?? []
-            let lines = observations
-                .compactMap { $0.topCandidates(1).first?.string.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
-
-            self?.onTextDetected?(Array(lines.prefix(3)).joined(separator: "\n"))
-        }
-
-        request.recognitionLevel = .fast
-        request.usesLanguageCorrection = false
-        request.minimumTextHeight = 0.025
-        request.regionOfInterest = currentRegionOfInterest()
-
-        let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, orientation: .right, options: [:])
-        do {
-            try handler.perform([request])
-        } catch {
-            markProcessingComplete()
-        }
-    }
-
-    private func shouldProcessFrame() -> Bool {
-        lock.lock()
-        defer { lock.unlock() }
-
-        let now = CACurrentMediaTime()
-        guard !isProcessing, now - lastProcessTime >= throttleInterval else {
-            return false
-        }
-
-        isProcessing = true
-        lastProcessTime = now
-        return true
-    }
-
-    private func currentRegionOfInterest() -> CGRect {
-        lock.lock()
-        let current = regionOfInterest
-        lock.unlock()
-        return current
-    }
-
-    private func markProcessingComplete() {
-        lock.lock()
-        isProcessing = false
-        lock.unlock()
-    }
-}

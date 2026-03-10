@@ -250,22 +250,6 @@ struct CameraView: View {
                 focusFrameOverlay(in: size, focusRect: focusRect)
             }
 
-            if viewModel.state == .idle && !viewModel.cameraService.liveDetectedText.isEmpty {
-                VStack {
-                    Text(viewModel.cameraService.liveDetectedText)
-                        .font(.subheadline)
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(4)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
-                        .background(Color.black.opacity(0.65))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .padding(.horizontal, 20)
-                        .padding(.top, 70)
-                    Spacer()
-                }
-            }
         }
         .allowsHitTesting(viewModel.state == .idle)
     }

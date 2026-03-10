@@ -15,7 +15,7 @@ final class CameraViewModel: ObservableObject {
     @Published var showCameraPermissionSheet = false
     @Published var showLoginPrompt = false
     @Published var history: [HistoryItem] = []
-    @Published private(set) var focusRectNormalized = CGRect(x: 0.2, y: 0.35, width: 0.6, height: 0.3)
+    @Published private(set) var focusRectNormalized = CGRect(x: 0.05, y: 0.3, width: 0.9, height: 0.25)
 
     let cameraService = CameraService()
     private let client = APIClient()
@@ -239,7 +239,6 @@ final class CameraViewModel: ObservableObject {
         }
 
         focusRectNormalized = clampedRect
-        cameraService.setFocusRegion(clampedRect)
     }
 
     private func solve(image: UIImage, setProcessingState: Bool, cropRectNormalized: CGRect?) async {
