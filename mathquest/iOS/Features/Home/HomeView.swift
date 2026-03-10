@@ -191,13 +191,13 @@ struct CategoryCardView: View {
 struct CategorySubtopicsView: View {
     let category: CategoryItem
     @EnvironmentObject private var authManager: AuthManager
-    @AppStorage("profile_username") private var profileUsername = ""
+    @AppStorage("session_logged_in") private var sessionLoggedIn = false
     @State private var selectedLesson: LessonItem?
     @State private var showLoginPrompt = false
     @State private var showLoginSheet = false
 
     private var isLoggedIn: Bool {
-        authManager.isAuthenticated || !profileUsername.isEmpty
+        authManager.isAuthenticated || sessionLoggedIn
     }
 
     var body: some View {

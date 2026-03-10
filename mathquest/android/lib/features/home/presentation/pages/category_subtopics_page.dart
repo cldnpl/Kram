@@ -7,6 +7,7 @@ import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/network/dio_client.dart';
 
 const _guestLessonsOpenedCountKey = 'guest_lessons_opened_count';
+const _sessionLoggedInKey = 'session_logged_in';
 
 class CategorySubtopicsPage extends StatefulWidget {
   const CategorySubtopicsPage({super.key, required this.categoryId});
@@ -77,14 +78,15 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
   }
 
   Future<void> _handleLessonTap(String lessonId) async {
-    final isAuthenticated = FirebaseAuth.instance.currentUser != null;
+    final prefs = await SharedPreferences.getInstance();
+    final hasSession = prefs.getBool(_sessionLoggedInKey) ?? false;
+    final isAuthenticated = FirebaseAuth.instance.currentUser != null || hasSession;
     if (isAuthenticated) {
       if (!mounted) return;
       context.push('/lesson/$lessonId');
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
     final openedCount = prefs.getInt(_guestLessonsOpenedCountKey) ?? 0;
 
     if (openedCount >= 1) {

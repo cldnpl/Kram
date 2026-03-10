@@ -19,6 +19,7 @@ import 'main_shell_scaffold.dart';
 
 const _carouselSeenKey = 'carousel_seen';
 const _profileSetupDoneKey = 'profile_setup_done';
+const _sessionLoggedInKey = 'session_logged_in';
 
 // Notifier to trigger router refresh
 class RouterRefreshNotifier extends ChangeNotifier {
@@ -45,8 +46,8 @@ final appRouter = GoRouter(
         profileLevel.isNotEmpty &&
         profileUsername.isNotEmpty;
     final isFirebaseAuth = FirebaseAuth.instance.currentUser != null;
-    final hasUsername = (prefs.getString('profile_username') ?? '').isNotEmpty;
-    final isLoggedIn = isFirebaseAuth || hasUsername;
+    final hasSession = prefs.getBool(_sessionLoggedInKey) ?? false;
+    final isLoggedIn = isFirebaseAuth || hasSession;
 
     final location = state.matchedLocation;
     final isLoginRoute = location == '/login';

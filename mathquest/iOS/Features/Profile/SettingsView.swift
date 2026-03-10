@@ -11,6 +11,7 @@ struct SettingsView: View {
     @AppStorage("profile_level") private var profileLevel = "Beginner"
     @AppStorage("settings_sound") private var soundEnabled = true
     @AppStorage("settings_language") private var language = "en"
+    @AppStorage("session_logged_in") private var sessionLoggedIn = false
     @AppStorage("settings_difficulty") private var difficulty = "medio"
     @AppStorage("profile_username") private var profileUsername = ""
     @State private var showDeleteConfirmation = false
@@ -112,7 +113,7 @@ struct SettingsView: View {
                     }
                 }
 
-                if authManager.isAuthenticated || !profileUsername.isEmpty {
+                if authManager.isAuthenticated || sessionLoggedIn {
                     settingsSection(title: L10n.account) {
                         Button(role: .destructive) {
                             showDeleteConfirmation = true
@@ -254,6 +255,7 @@ struct SettingsView: View {
         if authManager.isAuthenticated {
             authManager.signOut()
         }
+        sessionLoggedIn = false
 
         // Pop back to profile
         dismiss()

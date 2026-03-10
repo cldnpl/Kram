@@ -25,6 +25,7 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
 
   static const _keyUsername = 'profile_username';
   static const _keyName = 'profile_name';
+  static const _keySessionLoggedIn = 'session_logged_in';
 
   // Stessi colori iOS: appPurple (0.4, 0.3, 0.9), background white 0.95
   static const _appPurple = Color(0xFF664DE6);
@@ -46,6 +47,7 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
     if (_isLoginMode) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyUsername, u);
+      await prefs.setBool(_keySessionLoggedIn, true);
       if (!mounted) return;
       context.go('/');
       return;
@@ -71,12 +73,13 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
     setState(() => _isRegistering = false);
     if (!mounted) return;
     if (response.statusCode == 409) {
-      setState(() => _errorMessage = _usernameAlreadyExistsMessage);
+      setState(() => _errorMessage = AppLocale.tr('username_exists'));
       return;
     }
     if (response.statusCode != null && response.statusCode! >= 200 && response.statusCode! < 300) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyUsername, u);
+      await prefs.setBool(_keySessionLoggedIn, true);
       if (!mounted) return;
       context.go('/');
     } else {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/auth_service.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
@@ -17,6 +18,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   final AuthService _authService;
   StreamSubscription<User?>? _authSubscription;
+  static const _sessionLoggedInKey = 'session_logged_in';
 
   Future<void> _onSubscriptionRequested(
     AuthSubscriptionRequested event,
@@ -31,6 +33,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   void _onUserChanged(_AuthUserChanged event, Emitter<AuthState> emit) {
+    _persistSession(event.user != null);
     if (event.error != null) {
       emit(
         state.copyWith(
@@ -49,6 +52,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         user: event.user,
       ),
     );
+  }
+
+  Future<void> _persistSession(bool loggedIn) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_sessionLoggedInKey, loggedIn);
+    } catch (_) {}
   }
 
   Future<void> _onGoogleSignInRequested(

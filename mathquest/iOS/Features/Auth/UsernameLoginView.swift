@@ -102,6 +102,7 @@ struct UsernameLoginView: View {
                         guard !u.isEmpty else { return }
                         errorMessage = nil
                         UserDefaults.standard.set(u, forKey: "profile_username")
+                        UserDefaults.standard.set(true, forKey: "session_logged_in")
                         (onDismiss ?? { dismiss() })()
                     } label: {
                         Text(L10n.login)

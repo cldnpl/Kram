@@ -5,13 +5,14 @@ struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var tabSelection: TabSelection
+    @AppStorage("session_logged_in") private var sessionLoggedIn = false
     @State private var showLogin = false
     @State private var showStreak = false
     @State private var selectedPhotoItem: PhotosPickerItem?
 
     var body: some View {
         let isAuthenticated = authManager.isAuthenticated
-        let isLoggedIn = isAuthenticated || !viewModel.profileUsername.isEmpty
+        let isLoggedIn = isAuthenticated || sessionLoggedIn
 
         ScrollView {
             VStack(spacing: 24) {
@@ -127,6 +128,7 @@ struct ProfileView: View {
                 // Sign In / Sign Out
                 Button {
                     if isLoggedIn {
+                        sessionLoggedIn = false
                         authManager.signOut()
                         viewModel.signOut()
                     } else {

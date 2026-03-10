@@ -10,6 +10,7 @@ struct ContentView: View {
     @StateObject private var tabSelection = TabSelection()
     @EnvironmentObject private var authManager: AuthManager
     @AppStorage("hasSeenCarousel") private var hasSeenCarousel = false
+    @AppStorage("session_logged_in") private var sessionLoggedIn = false
     @AppStorage("profile_username") private var profileUsername = ""
     @AppStorage("profile_name") private var profileName = ""
     @AppStorage("profile_level") private var profileLevel = ""
@@ -18,7 +19,7 @@ struct ContentView: View {
     @State private var isHydratingProfile = false
 
     private var isLoggedIn: Bool {
-        authManager.isAuthenticated || !profileUsername.isEmpty
+        authManager.isAuthenticated || sessionLoggedIn
     }
 
     private var isProfileComplete: Bool {

@@ -31,9 +31,11 @@ class _ProfilePageState extends State<ProfilePage> {
   int _streakDays = 0;
   int _lessonsCompleted = 0;
   String _profilePhotoPath = '';
+  bool _sessionLoggedIn = false;
 
   static const _keyProfilePhoto = 'profile_photo_path';
   static const _profilePhotoFilename = 'profile_photo.jpg';
+  static const _keySessionLoggedIn = 'session_logged_in';
 
   @override
   void initState() {
@@ -49,6 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
       _profileUsername = prefs.getString('profile_username') ?? '';
       _mathLevel = prefs.getString('profile_level') ?? 'Beginner';
       _profilePhotoPath = prefs.getString(_keyProfilePhoto) ?? '';
+      _sessionLoggedIn = prefs.getBool(_keySessionLoggedIn) ?? false;
     });
   }
 
@@ -237,12 +240,14 @@ class _ProfilePageState extends State<ProfilePage> {
           }
           if (state.status == AuthStatus.authenticated) {
             _syncRemoteProfile(user: state.user);
+            SharedPreferences.getInstance().then((prefs) {
+              prefs.setBool(_keySessionLoggedIn, true);
+            });
           }
         },
         builder: (context, state) {
           final user = state.user;
-          final isLoggedIn = state.status == AuthStatus.authenticated ||
-              _profileUsername.isNotEmpty;
+          final isLoggedIn = state.status == AuthStatus.authenticated || _sessionLoggedIn;
           final displayName =
               _userName.isNotEmpty ? _userName : (user?.displayName ?? AppLocale.tr('user_fallback'));
           final email = user?.email ?? '';
@@ -466,6 +471,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         ? null
                         : () async {
                             if (isLoggedIn) {
+                              final prefs = await SharedPreferences.getInstance();
+                              await prefs.setBool(_keySessionLoggedIn, false);
+                              if (mounted) {
+                                setState(() => _sessionLoggedIn = false);
+                              }
                               if (!context.mounted) return;
                               context
                                   .read<AuthBloc>()

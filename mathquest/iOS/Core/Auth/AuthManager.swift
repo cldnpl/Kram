@@ -29,10 +29,12 @@ final class AuthManager: NSObject, ObservableObject {
         let currentUser = Auth.auth().currentUser
         isAuthenticated = currentUser != nil
         firebaseUID = currentUser?.uid
+        UserDefaults.standard.set(currentUser != nil, forKey: "session_logged_in")
         authStateHandle = Auth.auth().addStateDidChangeListener { [weak self] _, user in
             Task { @MainActor in
                 self?.isAuthenticated = user != nil
                 self?.firebaseUID = user?.uid
+                UserDefaults.standard.set(user != nil, forKey: "session_logged_in")
             }
         }
     }

@@ -8,6 +8,7 @@ class CameraApi {
   CameraApi({DioClient? client}) : _client = client ?? DioClient();
 
   final DioClient _client;
+  static const _sessionLoggedInKey = 'session_logged_in';
 
   /// Bearer per Firebase (Apple/Google), X-Username per login con username/password.
   Future<Options> _cameraOptions() async {
@@ -17,7 +18,8 @@ class CameraApi {
     }
     final prefs = await SharedPreferences.getInstance();
     final username = prefs.getString('profile_username') ?? '';
-    if (username.isNotEmpty) {
+    final sessionLoggedIn = prefs.getBool(_sessionLoggedInKey) ?? false;
+    if (sessionLoggedIn && username.isNotEmpty) {
       headers['X-Username'] = username;
     }
     return Options(headers: headers);
