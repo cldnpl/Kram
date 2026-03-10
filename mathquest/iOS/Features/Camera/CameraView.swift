@@ -24,6 +24,8 @@ struct CameraView: View {
     @State private var resizeStartRect: CGRect?
     @State private var activeResizeHandle: FocusHandle?
     @State private var showLoginFromPrompt = false
+    @State private var showReviewSheet = false
+    @State private var reviewSolveId: Int = 0
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.scenePhase) private var scenePhase
 
@@ -164,13 +166,24 @@ struct CameraView: View {
             if let response = selectedSolution {
                 CameraSolutionPage(response: response)
                     .onDisappear {
+                        let solveId = response.id
                         selectedSolution = nil
                         viewModel.reset()
                         Task {
                             await viewModel.resumeCameraIfNeeded()
                         }
+                        if SolveReviewSheet.shouldShowReview(for: solveId) {
+                            reviewSolveId = solveId
+                            showReviewSheet = true
+                        }
                     }
             }
+        }
+        .sheet(isPresented: $showReviewSheet) {
+            SolveReviewSheet(solveId: reviewSolveId, isPresented: $showReviewSheet)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.hidden)
+                .presentationCornerRadius(28)
         }
     }
 
@@ -682,16 +695,17 @@ struct CameraView: View {
 
     private func defaultFocusRect(in size: CGSize) -> CGRect {
         let bounds = focusBounds(in: size)
-        let minDimension = min(bounds.width, bounds.height)
-        let minimumSide = min(minFocusSize.width, minDimension)
-        let side = min(max(minDimension * defaultFocusSideRatio, minimumSide), minDimension)
+        let maxWidth = bounds.width - 16
+        let maxHeight = bounds.height * 0.55
+        let width = maxWidth
+        let height = min(width * 0.35, maxHeight)
         let centerY = focusCenterY(in: bounds)
 
         return CGRect(
-            x: bounds.midX - (side / 2),
-            y: centerY - (side / 2),
-            width: side,
-            height: side
+            x: bounds.midX - (width / 2),
+            y: centerY - (height / 2),
+            width: width,
+            height: height
         )
     }
 
@@ -699,8 +713,10 @@ struct CameraView: View {
         let bounds = focusBounds(in: size)
         let minimumWidth = min(minFocusSize.width, bounds.width)
         let minimumHeight = min(minFocusSize.height, bounds.height)
-        let width = min(max(rect.width, minimumWidth), bounds.width)
-        let height = min(max(rect.height, minimumHeight), bounds.height)
+        let maxHeight = bounds.height * 0.55
+        let maxWidth = bounds.width - 16
+        let width = min(max(rect.width, minimumWidth), maxWidth)
+        let height = min(max(rect.height, minimumHeight), maxHeight)
         let centerY = focusCenterY(in: bounds)
         let originX = bounds.midX - (width / 2)
         let originY = max(bounds.minY, min(centerY - (height / 2), bounds.maxY - height))

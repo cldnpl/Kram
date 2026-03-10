@@ -46,6 +46,7 @@
 		B10000000000000000000025 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000025 /* L10n.swift */; };
 		B10000000000000000000026 /* KeychainFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000026 /* KeychainFlag.swift */; };
 		B10000000000000000000027 /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000027 /* CommunityView.swift */; };
+		B10000000000000000000028 /* SolveReviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000028 /* SolveReviewSheet.swift */; };
 		B20000000000000000000001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000001 /* FirebaseAuth */; };
 		B20000000000000000000002 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000002 /* GoogleSignIn */; };
 		E349E3B42F57B0EE000B1E48 /* Kram.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E349E3B32F57B0EE000B1E48 /* Kram.storekit */; };
@@ -135,6 +136,7 @@
 		F10000000000000000000025 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
 		F10000000000000000000026 /* KeychainFlag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainFlag.swift; sourceTree = "<group>"; };
 		F10000000000000000000027 /* CommunityView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommunityView.swift; sourceTree = "<group>"; };
+		F10000000000000000000028 /* SolveReviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SolveReviewSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -340,6 +342,7 @@
 				F10000000000000000000019 /* CameraService.swift */,
 				F1000000000000000000001A /* ScanningLineView.swift */,
 				F1000000000000000000001B /* StepCardView.swift */,
+				F10000000000000000000028 /* SolveReviewSheet.swift */,
 			);
 			path = Camera;
 			sourceTree = "<group>";
@@ -569,6 +572,7 @@
 				B10000000000000000000023 /* UsernamePasswordRegisterView.swift in Sources */,
 				B10000000000000000000026 /* KeychainFlag.swift in Sources */,
 				B10000000000000000000027 /* CommunityView.swift in Sources */,
+				B10000000000000000000028 /* SolveReviewSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

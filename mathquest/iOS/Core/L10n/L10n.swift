@@ -227,6 +227,48 @@ enum L10n {
             "stop_live_activity": ["it": "Ferma Live Activity", "en": "Stop Live Activity", "fr": "Arrêter l'activité live", "es": "Detener actividad en vivo", "uz": "Live Activity ni to'xtatish"],
             "rewards_title": ["it": "Task e ricompense", "en": "Tasks and rewards", "fr": "Tâches et récompenses", "es": "Tareas y recompensas", "uz": "Vazifalar va mukofotlar"],
             "rewards_nav_title": ["it": "Ricompense", "en": "Rewards", "fr": "Récompenses", "es": "Recompensas", "uz": "Mukofotlar"],
+
+            // MARK: - Solve Review Sheet
+            "review_title": ["it": "Com'è stata l'esperienza?", "en": "How was your experience?", "fr": "Comment était votre expérience ?", "es": "¿Cómo fue tu experiencia?", "uz": "Tajribangiz qanday bo'ldi?"],
+            "review_thanks": ["it": "Grazie per il tuo feedback!", "en": "Thanks for your feedback!", "fr": "Merci pour votre avis !", "es": "¡Gracias por tu opinión!", "uz": "Fikr-mulohazangiz uchun rahmat!"],
+            "review_what_liked": ["it": "Cosa ti è piaciuto di più?", "en": "What did you like most?", "fr": "Qu'avez-vous le plus aimé ?", "es": "¿Qué te gustó más?", "uz": "Sizga nima ko'proq yoqdi?"],
+            "review_what_wrong": ["it": "Cosa è andato storto?", "en": "What went wrong?", "fr": "Qu'est-ce qui n'a pas fonctionné ?", "es": "¿Qué salió mal?", "uz": "Nima noto'g'ri bo'ldi?"],
+            "review_what_better": ["it": "Cosa potrebbe migliorare?", "en": "What could be better?", "fr": "Que pourrait-on améliorer ?", "es": "¿Qué podría mejorar?", "uz": "Nimani yaxshilash mumkin?"],
+            // 5-star categories
+            "review_cat_capturing": ["it": "Cattura (riconoscimento camera)", "en": "Capturing (camera recognition)", "fr": "Capture (reconnaissance caméra)", "es": "Captura (reconocimiento de cámara)", "uz": "Suratga olish (kamera aniqlash)"],
+            "review_cat_solution_accuracy": ["it": "Accuratezza della soluzione", "en": "Solution accuracy", "fr": "Précision de la solution", "es": "Precisión de la solución", "uz": "Yechim aniqligi"],
+            "review_cat_step_by_step": ["it": "Spiegazione passo passo", "en": "Step-by-step explanation", "fr": "Explication étape par étape", "es": "Explicación paso a paso", "uz": "Bosqichma-bosqich tushuntirish"],
+            "review_cat_speed": ["it": "Velocità", "en": "Speed", "fr": "Vitesse", "es": "Velocidad", "uz": "Tezlik"],
+            // 1-2 star categories
+            "review_cat_camera_failed": ["it": "La camera non ha catturato bene", "en": "Camera didn't capture correctly", "fr": "La caméra n'a pas bien capturé", "es": "La cámara no capturó bien", "uz": "Kamera to'g'ri suratga olmadi"],
+            "review_cat_wrong_solution": ["it": "Soluzione/risposta sbagliata", "en": "Wrong solution/answer", "fr": "Mauvaise solution/réponse", "es": "Solución/respuesta incorrecta", "uz": "Noto'g'ri yechim/javob"],
+            "review_cat_unclear_steps": ["it": "I passaggi non erano chiari", "en": "Steps were unclear", "fr": "Les étapes n'étaient pas claires", "es": "Los pasos no estaban claros", "uz": "Bosqichlar tushunarsiz edi"],
+            "review_cat_slow_buggy": ["it": "App lenta/con bug", "en": "App was slow/buggy", "fr": "L'app était lente/buguée", "es": "La app fue lenta/con errores", "uz": "Ilova sekin/xatoli edi"],
+            // 3-4 star categories
+            "review_cat_camera_accuracy": ["it": "Precisione della camera", "en": "Camera accuracy", "fr": "Précision de la caméra", "es": "Precisión de la cámara", "uz": "Kamera aniqligi"],
+            "review_cat_solution_quality": ["it": "Qualità della soluzione", "en": "Solution quality", "fr": "Qualité de la solution", "es": "Calidad de la solución", "uz": "Yechim sifati"],
+            "review_cat_explanation_clarity": ["it": "Chiarezza della spiegazione", "en": "Explanation clarity", "fr": "Clarté de l'explication", "es": "Claridad de la explicación", "uz": "Tushuntirish ravshanlighi"],
+            "review_cat_speed_mid": ["it": "Velocità", "en": "Speed", "fr": "Vitesse", "es": "Velocidad", "uz": "Tezlik"],
+            // 5-star details
+            "review_detail_recognized_perfect": ["it": "Ha riconosciuto la scrittura perfettamente", "en": "Recognized handwriting perfectly", "fr": "A reconnu l'écriture parfaitement", "es": "Reconoció la escritura perfectamente", "uz": "Qo'lyozmani mukammal aniqladi"],
+            "review_detail_fast_accurate": ["it": "Veloce e preciso", "en": "Fast and accurate", "fr": "Rapide et précis", "es": "Rápido y preciso", "uz": "Tez va aniq"],
+            "review_detail_completely_correct": ["it": "Completamente corretto", "en": "Completely correct", "fr": "Totalement correct", "es": "Completamente correcto", "uz": "To'liq to'g'ri"],
+            "review_detail_great_format": ["it": "Ottimo formato di spiegazione", "en": "Great explanation format", "fr": "Excellent format d'explication", "es": "Excelente formato de explicación", "uz": "Ajoyib tushuntirish formati"],
+            "review_detail_easy_follow": ["it": "Facile da seguire", "en": "Easy to follow", "fr": "Facile à suivre", "es": "Fácil de seguir", "uz": "Kuzatish oson"],
+            "review_detail_learned_new": ["it": "Ho imparato qualcosa di nuovo", "en": "Learned something new", "fr": "J'ai appris quelque chose de nouveau", "es": "Aprendí algo nuevo", "uz": "Yangi narsa o'rgandim"],
+            "review_detail_lightning_fast": ["it": "Velocissimo", "en": "Lightning fast", "fr": "Ultra rapide", "es": "Rapidísimo", "uz": "Chaqmoqdek tez"],
+            "review_detail_no_waiting": ["it": "Nessuna attesa", "en": "No waiting", "fr": "Aucune attente", "es": "Sin espera", "uz": "Kutish yo'q"],
+            // 1-2 star details
+            "review_detail_no_recognize": ["it": "Non ha riconosciuto la mia scrittura", "en": "Didn't recognize my writing", "fr": "N'a pas reconnu mon écriture", "es": "No reconoció mi escritura", "uz": "Yozuvimni aniqlamadi"],
+            "review_detail_wrong_area": ["it": "Ha catturato l'area sbagliata", "en": "Captured wrong area", "fr": "A capturé la mauvaise zone", "es": "Capturó el área equivocada", "uz": "Noto'g'ri joyni suratga oldi"],
+            "review_detail_took_long": ["it": "Ci ha messo troppo", "en": "Took too long", "fr": "A pris trop de temps", "es": "Tardó demasiado", "uz": "Juda uzoq vaqt oldi"],
+            "review_detail_answer_wrong": ["it": "La risposta era sbagliata", "en": "Answer was wrong", "fr": "La réponse était fausse", "es": "La respuesta fue incorrecta", "uz": "Javob noto'g'ri edi"],
+            "review_detail_missing_steps": ["it": "Passaggi mancanti", "en": "Missing steps", "fr": "Étapes manquantes", "es": "Faltan pasos", "uz": "Bosqichlar yetishmayapti"],
+            "review_detail_incorrect_method": ["it": "Metodo non corretto", "en": "Incorrect method", "fr": "Méthode incorrecte", "es": "Método incorrecto", "uz": "Noto'g'ri usul"],
+            "review_detail_steps_confusing": ["it": "I passaggi erano confusi", "en": "Steps were confusing", "fr": "Les étapes étaient confuses", "es": "Los pasos eran confusos", "uz": "Bosqichlar chalkash edi"],
+            "review_detail_skipped_steps": ["it": "Ha saltato passaggi importanti", "en": "Skipped important steps", "fr": "A sauté des étapes importantes", "es": "Saltó pasos importantes", "uz": "Muhim bosqichlar tashlab ketildi"],
+            "review_detail_too_slow": ["it": "Troppo lento", "en": "Too slow", "fr": "Trop lent", "es": "Demasiado lento", "uz": "Juda sekin"],
+            "review_detail_got_stuck": ["it": "Si è bloccato nell'elaborazione", "en": "Got stuck processing", "fr": "Bloqué lors du traitement", "es": "Se quedó procesando", "uz": "Qayta ishlashda qotib qoldi"],
         ]
         let lang = currentLanguage
         let dict = table[key] ?? [:]
@@ -405,4 +447,41 @@ enum L10n {
     static var stopLiveActivity: String { string("stop_live_activity") }
     static var rewardsTitle: String { string("rewards_title") }
     static var rewardsNavTitle: String { string("rewards_nav_title") }
+
+    // MARK: - Solve Review Sheet
+    static var reviewTitle: String { string("review_title") }
+    static var reviewThanks: String { string("review_thanks") }
+    static var reviewWhatLiked: String { string("review_what_liked") }
+    static var reviewWhatWrong: String { string("review_what_wrong") }
+    static var reviewWhatBetter: String { string("review_what_better") }
+    static var reviewCatCapturing: String { string("review_cat_capturing") }
+    static var reviewCatSolutionAccuracy: String { string("review_cat_solution_accuracy") }
+    static var reviewCatStepByStep: String { string("review_cat_step_by_step") }
+    static var reviewCatSpeed: String { string("review_cat_speed") }
+    static var reviewCatCameraFailed: String { string("review_cat_camera_failed") }
+    static var reviewCatWrongSolution: String { string("review_cat_wrong_solution") }
+    static var reviewCatUnclearSteps: String { string("review_cat_unclear_steps") }
+    static var reviewCatSlowBuggy: String { string("review_cat_slow_buggy") }
+    static var reviewCatCameraAccuracy: String { string("review_cat_camera_accuracy") }
+    static var reviewCatSolutionQuality: String { string("review_cat_solution_quality") }
+    static var reviewCatExplanationClarity: String { string("review_cat_explanation_clarity") }
+    static var reviewCatSpeedMid: String { string("review_cat_speed_mid") }
+    static var reviewDetailRecognizedPerfect: String { string("review_detail_recognized_perfect") }
+    static var reviewDetailFastAccurate: String { string("review_detail_fast_accurate") }
+    static var reviewDetailCompletelyCorrect: String { string("review_detail_completely_correct") }
+    static var reviewDetailGreatFormat: String { string("review_detail_great_format") }
+    static var reviewDetailEasyFollow: String { string("review_detail_easy_follow") }
+    static var reviewDetailLearnedNew: String { string("review_detail_learned_new") }
+    static var reviewDetailLightningFast: String { string("review_detail_lightning_fast") }
+    static var reviewDetailNoWaiting: String { string("review_detail_no_waiting") }
+    static var reviewDetailNoRecognize: String { string("review_detail_no_recognize") }
+    static var reviewDetailWrongArea: String { string("review_detail_wrong_area") }
+    static var reviewDetailTookLong: String { string("review_detail_took_long") }
+    static var reviewDetailAnswerWrong: String { string("review_detail_answer_wrong") }
+    static var reviewDetailMissingSteps: String { string("review_detail_missing_steps") }
+    static var reviewDetailIncorrectMethod: String { string("review_detail_incorrect_method") }
+    static var reviewDetailStepsConfusing: String { string("review_detail_steps_confusing") }
+    static var reviewDetailSkippedSteps: String { string("review_detail_skipped_steps") }
+    static var reviewDetailTooSlow: String { string("review_detail_too_slow") }
+    static var reviewDetailGotStuck: String { string("review_detail_got_stuck") }
 }
