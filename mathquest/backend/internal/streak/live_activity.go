@@ -516,7 +516,7 @@ func (h *Handler) resolveOrCreateUserID(c *fiber.Ctx) uint {
 
 	createPayload := map[string]any{
 		"firebase_uid": firebaseUID,
-		"name":         "MathQuest User",
+		"name":         "",
 		"created_at":   time.Now().UTC(),
 	}
 	if err := h.db.Table("users").Create(createPayload).Error; err != nil {

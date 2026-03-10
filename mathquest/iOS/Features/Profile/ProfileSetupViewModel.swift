@@ -151,7 +151,36 @@ final class ProfileSetupViewModel: ObservableObject {
         UserDefaults.standard.set(trimmedUsername, forKey: "profile_username")
         UserDefaults.standard.set(level, forKey: "profile_level")
 
+        await syncProfileToBackend(
+            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+            username: trimmedUsername,
+            level: level
+        )
+
         isSubmitting = false
         onComplete()
+    }
+
+    private func syncProfileToBackend(name: String, username: String, level: String) async {
+        var token: String?
+        if let uid = Auth.auth().currentUser?.uid, !uid.isEmpty {
+            token = uid
+        } else if !username.isEmpty {
+            token = "username:\(username)"
+        }
+        guard let token else { return }
+        guard let url = URL(string: "\(APIConfig.baseURLString)/profile") else { return }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: [
+            "name": name,
+            "username": username,
+            "math_level": level,
+        ])
+
+        _ = try? await URLSession.shared.data(for: request)
     }
 }

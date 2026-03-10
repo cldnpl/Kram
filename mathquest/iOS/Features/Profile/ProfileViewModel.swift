@@ -110,9 +110,14 @@ final class ProfileViewModel: ObservableObject {
             await client.setToken(token)
             let remote: RemoteProfileResponse = try await client.request("profile")
 
-            if let remoteName = remote.name?.trimmingCharacters(in: .whitespacesAndNewlines), !remoteName.isEmpty {
-                userName = remoteName
-                UserDefaults.standard.set(remoteName, forKey: "profile_name")
+            if let remoteNameRaw = remote.name?.trimmingCharacters(in: .whitespacesAndNewlines) {
+                let remoteName = remoteNameRaw
+                let isPlaceholder = remoteName.caseInsensitiveCompare("Mock User") == .orderedSame ||
+                    remoteName.caseInsensitiveCompare("MathQuest User") == .orderedSame
+                if !remoteName.isEmpty && !isPlaceholder {
+                    userName = remoteName
+                    UserDefaults.standard.set(remoteName, forKey: "profile_name")
+                }
             }
             if let remoteUsername = remote.username?.trimmingCharacters(in: .whitespacesAndNewlines), !remoteUsername.isEmpty {
                 profileUsername = remoteUsername

@@ -62,6 +62,7 @@ class AppLocale {
     'lessons': {'it': 'Lezioni', 'en': 'Lessons', 'fr': 'Leçons', 'es': 'Lecciones', 'uz': 'Darslar'},
     'camera': {'it': 'Camera', 'en': 'Camera', 'fr': 'Appareil photo', 'es': 'Cámara', 'uz': 'Kamera'},
     'profile_tab': {'it': 'Profilo', 'en': 'Profile', 'fr': 'Profil', 'es': 'Perfil', 'uz': 'Profil'},
+    'greeting_prefix': {'it': 'Ciao', 'en': 'Hi', 'fr': 'Salut', 'es': 'Hola', 'uz': 'Salom'},
     'hi_there': {'it': 'there', 'en': 'there', 'fr': 'toi', 'es': 'allí', 'uz': 'siz'},
     'loading': {'it': 'Caricamento...', 'en': 'Loading...', 'fr': 'Chargement...', 'es': 'Cargando...', 'uz': 'Yuklanmoqda...'},
     'error': {'it': 'Errore', 'en': 'Error', 'fr': 'Erreur', 'es': 'Error', 'uz': 'Xato'},

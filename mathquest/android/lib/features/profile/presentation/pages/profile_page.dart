@@ -109,9 +109,13 @@ class _ProfilePageState extends State<ProfilePage> {
       final remoteUsername = (data['username'] as String?)?.trim() ?? '';
       final remoteLevel = (data['math_level'] as String?)?.trim() ?? '';
       final remoteAvatar = (data['avatar_url'] as String?)?.trim() ?? '';
+      final isPlaceholderName = remoteName.toLowerCase() == 'mock user' ||
+          remoteName.toLowerCase() == 'mathquest user';
 
       final prefs = await SharedPreferences.getInstance();
-      if (remoteName.isNotEmpty) await prefs.setString('profile_name', remoteName);
+      if (remoteName.isNotEmpty && !isPlaceholderName) {
+        await prefs.setString('profile_name', remoteName);
+      }
       if (remoteUsername.isNotEmpty) await prefs.setString('profile_username', remoteUsername);
       if (remoteLevel.isNotEmpty) await prefs.setString('profile_level', remoteLevel);
 
@@ -129,7 +133,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (!mounted) return;
       setState(() {
-        if (remoteName.isNotEmpty) _userName = remoteName;
+        if (remoteName.isNotEmpty && !isPlaceholderName) _userName = remoteName;
         if (remoteUsername.isNotEmpty) _profileUsername = remoteUsername;
         if (remoteLevel.isNotEmpty) _mathLevel = remoteLevel;
         _profilePhotoPath = nextPhotoPath;

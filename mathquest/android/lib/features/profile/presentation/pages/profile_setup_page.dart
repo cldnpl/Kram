@@ -157,6 +157,22 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
     await prefs.setString('profile_level', _level);
     await prefs.setBool(_profileSetupDoneKey, true);
 
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final token = uid.isNotEmpty ? uid : 'username:$trimmedUsername';
+    try {
+      await _dio.put(
+        '/profile',
+        data: {
+          'name': _nameController.text.trim(),
+          'username': trimmedUsername,
+          'math_level': _level,
+        },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+    } catch (e) {
+      debugPrint('[ProfileSetup] profile sync failed: $e');
+    }
+
     if (!mounted) return;
 
     RouterRefreshNotifier.instance.refresh();

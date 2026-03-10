@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 
 /// Permette di cambiare tab da figli (es. dopo login username → andare alla Home).
 final class TabSelection: ObservableObject {
@@ -14,6 +15,7 @@ struct ContentView: View {
     @AppStorage("profile_level") private var profileLevel = ""
     @State private var showCarousel = false
     @State private var showProfileSetup = false
+    @State private var isHydratingProfile = false
 
     private var isLoggedIn: Bool {
         authManager.isAuthenticated || !profileUsername.isEmpty
@@ -66,24 +68,86 @@ struct ContentView: View {
             }
         }
         .onChange(of: hasSeenCarousel) { _, seen in
-            if seen && !isProfileComplete {
-                showProfileSetup = true
+            if seen {
+                Task {
+                    await hydrateProfileFromBackendIfNeeded()
+                    if !isProfileComplete {
+                        showProfileSetup = true
+                    }
+                }
             }
         }
         .onChange(of: authManager.isAuthenticated) { _, _ in
-            if hasSeenCarousel && !isProfileComplete {
-                showProfileSetup = true
+            if hasSeenCarousel {
+                Task {
+                    await hydrateProfileFromBackendIfNeeded()
+                    if !isProfileComplete {
+                        showProfileSetup = true
+                    }
+                }
             }
         }
         .onAppear {
             if !hasSeenCarousel {
                 showCarousel = true
-            } else if !isProfileComplete {
-                showProfileSetup = true
+            } else {
+                Task {
+                    await hydrateProfileFromBackendIfNeeded()
+                    if !isProfileComplete {
+                        showProfileSetup = true
+                    }
+                }
             }
         }
     }
 
+    private func resolvedAuthToken() -> String? {
+        if let uid = Auth.auth().currentUser?.uid, !uid.isEmpty {
+            return uid
+        }
+        let username = profileUsername.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if !username.isEmpty {
+            return "username:\(username)"
+        }
+        return nil
+    }
+
+    private func hydrateProfileFromBackendIfNeeded() async {
+        if isProfileComplete || isHydratingProfile {
+            return
+        }
+        guard let token = resolvedAuthToken() else { return }
+        isHydratingProfile = true
+        defer { isHydratingProfile = false }
+
+        do {
+            let client = APIClient()
+            await client.setToken(token)
+            let remote: BootstrapProfileResponse = try await client.request("profile")
+
+            if let remoteNameRaw = remote.name?.trimmingCharacters(in: .whitespacesAndNewlines) {
+                let isPlaceholder = remoteNameRaw.caseInsensitiveCompare("Mock User") == .orderedSame ||
+                    remoteNameRaw.caseInsensitiveCompare("MathQuest User") == .orderedSame
+                if !remoteNameRaw.isEmpty && !isPlaceholder {
+                    profileName = remoteNameRaw
+                }
+            }
+            if let remoteUsername = remote.username?.trimmingCharacters(in: .whitespacesAndNewlines), !remoteUsername.isEmpty {
+                profileUsername = remoteUsername
+            }
+            if let remoteLevel = remote.math_level?.trimmingCharacters(in: .whitespacesAndNewlines), !remoteLevel.isEmpty {
+                profileLevel = remoteLevel
+            }
+        } catch {
+            // Keep local values only; profile setup fallback will handle missing data.
+        }
+    }
+}
+
+private struct BootstrapProfileResponse: Decodable {
+    let name: String?
+    let username: String?
+    let math_level: String?
 }
 
 #Preview {

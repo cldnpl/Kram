@@ -74,6 +74,7 @@ enum L10n {
             "lessons": ["it": "Lezioni", "en": "Lessons", "fr": "Leçons", "es": "Lecciones", "uz": "Darslar"],
             "camera": ["it": "Camera", "en": "Camera", "fr": "Appareil photo", "es": "Cámara", "uz": "Kamera"],
             "profile_tab": ["it": "Profilo", "en": "Profile", "fr": "Profil", "es": "Perfil", "uz": "Profil"],
+            "greeting_prefix": ["it": "Ciao", "en": "Hi", "fr": "Salut", "es": "Hola", "uz": "Salom"],
             "hi_there": ["it": "there", "en": "there", "fr": "toi", "es": "allí", "uz": "siz"],
             "loading": ["it": "Caricamento...", "en": "Loading...", "fr": "Chargement...", "es": "Cargando...", "uz": "Yuklanmoqda..."],
             "error": ["it": "Errore", "en": "Error", "fr": "Erreur", "es": "Error", "uz": "Xato"],
@@ -129,6 +130,7 @@ enum L10n {
     static var lessons: String { string("lessons") }
     static var camera: String { string("camera") }
     static var profileTab: String { string("profile_tab") }
+    static var greetingPrefix: String { string("greeting_prefix") }
     static var hiThere: String { string("hi_there") }
     static var loading: String { string("loading") }
     static var error: String { string("error") }

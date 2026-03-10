@@ -40,7 +40,7 @@ func resolveOrCreateUserByUID(db *gorm.DB, firebaseUID string) (userProfileRecor
 
 	user = userProfileRecord{
 		FirebaseUID: firebaseUID,
-		Name:        "MathQuest User",
+		Name:        "",
 		MathLevel:   "Beginner",
 	}
 	if err := db.Create(&user).Error; err != nil {
@@ -58,7 +58,7 @@ func NewGet(db *gorm.DB) fiber.Handler {
 		if db == nil {
 			return c.JSON(fiber.Map{
 				"id":           1,
-				"name":         "Mock User",
+				"name":         "",
 				"username":     "",
 				"age":          12,
 				"math_level":   "beginner",
@@ -173,7 +173,7 @@ func NewUpdate(db *gorm.DB) fiber.Handler {
 func Get(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"id":           1,
-		"name":         "Mock User",
+		"name":         "",
 		"username":     "",
 		"age":          12,
 		"math_level":   "beginner",

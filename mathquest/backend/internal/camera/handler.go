@@ -120,7 +120,7 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 
 	user = appUser{
 		FirebaseUID: firebaseUID,
-		Name:        "MathQuest User",
+		Name:        "",
 	}
 	if err := h.db.Create(&user).Error; err != nil {
 		// If another request created the same user concurrently, fetch it.

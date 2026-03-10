@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 
 private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 
@@ -16,6 +17,7 @@ struct SettingsView: View {
     @State private var editingUsername = ""
     @State private var isUsernameAvailable: Bool?
     @State private var isCheckingUsername = false
+    @State private var profileSyncTask: Task<Void, Never>?
 
     var body: some View {
         ScrollView {
@@ -28,6 +30,11 @@ struct SettingsView: View {
                             TextField(L10n.name, text: $profileName)
                                 .textFieldStyle(.plain)
                                 .font(.system(size: 17))
+                                .onChange(of: profileName) { _, newValue in
+                                    Task {
+                                        await _setProfileName(newValue)
+                                    }
+                                }
                         }
                         .padding(.vertical, 4)
 
@@ -74,6 +81,7 @@ struct SettingsView: View {
                                 withAnimation(.easeInOut(duration: 0.2)) {
                                     profileLevel = level
                                 }
+                                scheduleProfileSync()
                             }
                         }
                     }
@@ -185,15 +193,51 @@ struct SettingsView: View {
 
     private func saveUsername(_ username: String) {
         profileUsername = username
-        // Also call the profile update API
-        Task {
-            guard let url = URL(string: "\(APIConfig.baseURLString)/profile") else { return }
-            var request = URLRequest(url: url)
-            request.httpMethod = "PUT"
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-            request.httpBody = try? JSONSerialization.data(withJSONObject: ["username": username])
-            _ = try? await URLSession.shared.data(for: request)
+        scheduleProfileSync()
+    }
+
+    private func _setProfileName(_ name: String) async {
+        UserDefaults.standard.set(name, forKey: "profile_name")
+        scheduleProfileSync()
+    }
+
+    private func resolveAuthToken() -> String? {
+        if let uid = Auth.auth().currentUser?.uid, !uid.isEmpty {
+            return uid
         }
+        let username = profileUsername.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if !username.isEmpty {
+            return "username:\(username)"
+        }
+        return nil
+    }
+
+    private func scheduleProfileSync() {
+        profileSyncTask?.cancel()
+        profileSyncTask = Task {
+            try? await Task.sleep(nanoseconds: 500_000_000)
+            guard !Task.isCancelled else { return }
+            await syncProfileToBackend()
+        }
+    }
+
+    private func syncProfileToBackend() async {
+        guard let token = resolveAuthToken() else { return }
+        guard let url = URL(string: "\(APIConfig.baseURLString)/profile") else { return }
+
+        let payload: [String: Any] = [
+            "name": profileName.trimmingCharacters(in: .whitespacesAndNewlines),
+            "username": profileUsername.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+            "math_level": profileLevel.trimmingCharacters(in: .whitespacesAndNewlines),
+        ]
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        _ = try? await URLSession.shared.data(for: request)
     }
 
     private func deleteAccount() {

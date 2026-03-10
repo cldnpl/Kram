@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -27,6 +28,7 @@ class _SettingsPageState extends State<SettingsPage> {
   bool? _isUsernameAvailable;
   bool _isCheckingUsername = false;
   Timer? _usernameDebounce;
+  Timer? _profileSyncDebounce;
   final _nameEditController = TextEditingController();
   final _usernameEditController = TextEditingController();
   final _dio = Dio(BaseOptions(baseUrl: kApiBaseUrl));
@@ -51,6 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
     _nameEditController.dispose();
     _usernameEditController.dispose();
     _usernameDebounce?.cancel();
+    _profileSyncDebounce?.cancel();
     super.dispose();
   }
 
@@ -68,6 +71,7 @@ class _SettingsPageState extends State<SettingsPage> {
       _language = prefs.getString(_keyLanguage) ?? 'en';
       _profileLevel = prefs.getString(_keyProfileLevel) ?? 'Beginner';
     });
+    await _syncRemoteProfile();
   }
 
   String _mathLevelDescription(String level) {
@@ -143,6 +147,7 @@ class _SettingsPageState extends State<SettingsPage> {
       if (available) {
         _profileUsername = username;
         await _setString(_keyProfileUsername, username);
+        _scheduleProfileSync();
       }
     } catch (_) {
       if (!mounted) return;
@@ -161,6 +166,80 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _setString(String key, String value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(key, value);
+  }
+
+  String? _resolveAuthToken() {
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    if (uid.isNotEmpty) return uid;
+    final username = _profileUsername.trim().toLowerCase();
+    if (username.isNotEmpty) return 'username:$username';
+    return null;
+  }
+
+  void _scheduleProfileSync() {
+    _profileSyncDebounce?.cancel();
+    _profileSyncDebounce = Timer(const Duration(milliseconds: 500), () {
+      _syncProfileToBackend();
+    });
+  }
+
+  Future<void> _syncProfileToBackend() async {
+    final token = _resolveAuthToken();
+    if (token == null) return;
+    try {
+      await _dio.put(
+        '/profile',
+        data: {
+          'name': _profileName.trim(),
+          'username': _profileUsername.trim().toLowerCase(),
+          'math_level': _profileLevel.trim(),
+        },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+    } catch (_) {}
+  }
+
+  Future<void> _syncRemoteProfile() async {
+    final token = _resolveAuthToken();
+    if (token == null) return;
+    try {
+      final res = await _dio.get(
+        '/profile',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      final data = Map<String, dynamic>.from(res.data as Map);
+      final remoteName = (data['name'] as String?)?.trim() ?? '';
+      final remoteUsername = (data['username'] as String?)?.trim() ?? '';
+      final remoteLevel = (data['math_level'] as String?)?.trim() ?? '';
+      final isPlaceholder = remoteName.toLowerCase() == 'mock user' ||
+          remoteName.toLowerCase() == 'mathquest user';
+
+      final prefs = await SharedPreferences.getInstance();
+      if (remoteName.isNotEmpty && !isPlaceholder) {
+        await prefs.setString(_keyProfileName, remoteName);
+      }
+      if (remoteUsername.isNotEmpty) {
+        await prefs.setString(_keyProfileUsername, remoteUsername);
+      }
+      if (remoteLevel.isNotEmpty) {
+        await prefs.setString(_keyProfileLevel, remoteLevel);
+      }
+
+      if (!mounted) return;
+      setState(() {
+        if (remoteName.isNotEmpty && !isPlaceholder) {
+          _profileName = remoteName;
+          _nameEditController.text = remoteName;
+        }
+        if (remoteUsername.isNotEmpty) {
+          _profileUsername = remoteUsername;
+          _usernameEditController.text = remoteUsername;
+        }
+        if (remoteLevel.isNotEmpty) {
+          _profileLevel = remoteLevel;
+        }
+      });
+    } catch (_) {}
   }
 
   @override
@@ -217,6 +296,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           onChanged: (v) async {
                             _profileName = v;
                             await _setString(_keyProfileName, v);
+                            _scheduleProfileSync();
                           },
                         ),
                       ),
@@ -431,6 +511,7 @@ class _SettingsPageState extends State<SettingsPage> {
       onTap: () async {
         setState(() => _profileLevel = level);
         await _setString(_keyProfileLevel, level);
+        _scheduleProfileSync();
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),

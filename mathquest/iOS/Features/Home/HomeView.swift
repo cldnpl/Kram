@@ -27,7 +27,7 @@ struct HomeView: View {
 
                 VStack(spacing: 0) {
                     HStack {
-                        Text("Hi, \(profileName.isEmpty ? L10n.hiThere : profileName)!")
+                        Text("\(L10n.greetingPrefix), \(profileName.isEmpty ? L10n.hiThere : profileName)!")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundStyle(.black)

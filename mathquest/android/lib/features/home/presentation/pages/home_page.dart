@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,7 +31,7 @@ class _HomePageState extends State<HomePage> {
     debugPrint('[Home] initState - loading data');
     AppLocale.localeNotifier.addListener(_handleLocaleChanged);
     _load();
-    _loadProfileName();
+    _loadProfileName().then((_) => _syncRemoteProfileName());
   }
 
   @override
@@ -47,6 +48,29 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadProfileName() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() => _profileName = prefs.getString('profile_name') ?? '');
+  }
+
+  Future<void> _syncRemoteProfileName() async {
+    final prefs = await SharedPreferences.getInstance();
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final username = (prefs.getString('profile_username') ?? '').trim().toLowerCase();
+    final token = uid.isNotEmpty ? uid : (username.isNotEmpty ? 'username:$username' : '');
+    if (token.isEmpty) return;
+
+    try {
+      final res = await _dio.dio.get(
+        'profile',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      final data = Map<String, dynamic>.from(res.data as Map);
+      final remoteName = (data['name'] as String?)?.trim() ?? '';
+      final isPlaceholder = remoteName.toLowerCase() == 'mock user' ||
+          remoteName.toLowerCase() == 'mathquest user';
+      if (remoteName.isEmpty || isPlaceholder) return;
+      await prefs.setString('profile_name', remoteName);
+      if (!mounted) return;
+      setState(() => _profileName = remoteName);
+    } catch (_) {}
   }
 
   Future<void> _load() async {
@@ -157,7 +181,7 @@ class _HomePageState extends State<HomePage> {
                         child: Padding(
                           padding: const EdgeInsets.only(left: 20, top: 56),
                           child: Text(
-                            'Hi, ${_profileName.isEmpty ? AppLocale.tr('hi_there') : _profileName}!',
+                            '${AppLocale.tr('greeting_prefix')}, ${_profileName.isEmpty ? AppLocale.tr('hi_there') : _profileName}!',
                             style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black,
