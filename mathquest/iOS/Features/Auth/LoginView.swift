@@ -6,7 +6,6 @@ private let loginButtonDarkPurple = Color(red: 30/255, green: 18/255, blue: 52/2
 struct LoginView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("hasSeenCarousel") private var hasSeenCarousel = true
     @State private var showUsernameLogin = false
     var showCloseButton = false
     /// Called after successful login: dismisses this view and navigates to Home.

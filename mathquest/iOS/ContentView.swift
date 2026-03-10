@@ -8,17 +8,21 @@ final class TabSelection: ObservableObject {
 struct ContentView: View {
     @StateObject private var tabSelection = TabSelection()
     @EnvironmentObject private var authManager: AuthManager
+    @AppStorage("hasSeenCarousel") private var hasSeenCarousel = false
     @AppStorage("profile_username") private var profileUsername = ""
     @AppStorage("profile_name") private var profileName = ""
+    @AppStorage("profile_level") private var profileLevel = ""
+    @State private var showCarousel = false
     @State private var showProfileSetup = false
 
     private var isLoggedIn: Bool {
         authManager.isAuthenticated || !profileUsername.isEmpty
     }
 
-    /// Show profile setup after Google/Apple sign-in if name or username is missing
-    private var needsProfileSetup: Bool {
-        authManager.isAuthenticated && (profileName.isEmpty || profileUsername.isEmpty)
+    private var isProfileComplete: Bool {
+        !profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !profileUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !profileLevel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     /// Camera available only if logged in.
@@ -50,18 +54,31 @@ struct ContentView: View {
             .tag(3)
         }
         .environmentObject(tabSelection)
+        .fullScreenCover(isPresented: $showCarousel) {
+            CarouselOnboardingView {
+                hasSeenCarousel = true
+                showCarousel = false
+            }
+        }
         .fullScreenCover(isPresented: $showProfileSetup) {
             ProfileSetupView {
                 showProfileSetup = false
             }
         }
-        .onChange(of: authManager.isAuthenticated) { _, isAuth in
-            if isAuth && (profileName.isEmpty || profileUsername.isEmpty) {
+        .onChange(of: hasSeenCarousel) { _, seen in
+            if seen && !isProfileComplete {
+                showProfileSetup = true
+            }
+        }
+        .onChange(of: authManager.isAuthenticated) { _, _ in
+            if hasSeenCarousel && !isProfileComplete {
                 showProfileSetup = true
             }
         }
         .onAppear {
-            if needsProfileSetup {
+            if !hasSeenCarousel {
+                showCarousel = true
+            } else if !isProfileComplete {
                 showProfileSetup = true
             }
         }
