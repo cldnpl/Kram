@@ -220,26 +220,18 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
-                children: boxContent
-                    .split('\n')
-                    .map((line) => line.trim())
-                    .where((line) => line.isNotEmpty)
-                    .map((line) {
+                children: _boxLinesFromContent(boxContent).map((entry) {
+                      final line = entry.text;
                       final baseStyle = Theme.of(context).textTheme.bodyLarge!.copyWith(
                         color: Theme.of(context).colorScheme.onSurface,
                       );
-                      final isFormula = _isFormulaLine(line);
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
-                        child: isFormula
-                            ? Text(
+                        child: entry.isFormula
+                            ? _buildFormulaLineWidget(
+                                context,
                                 line,
-                                style: baseStyle.copyWith(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'monospace',
-                                  color: textColor,
-                                ),
+                                textColor,
                               )
                             : _buildTextWithBold(context, line, baseStyle),
                       );
@@ -286,6 +278,8 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     return null;
   }
 
+  static final RegExp _fractionRegex = RegExp(r'([A-Za-z0-9]+)\s*/\s*([A-Za-z0-9]+)');
+
   bool _isFormulaLine(String line) {
     final s = line.trim();
     if (s.isEmpty) return false;
@@ -294,6 +288,72 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     final lower = s.toLowerCase();
     if (lower.contains('lim') || lower.contains('sin') || lower.contains('cos') || lower.contains('tan') || lower.contains('ln') || lower.contains('log')) return true;
     return false;
+  }
+
+  List<_BoxLine> _boxLinesFromContent(String content) {
+    final normalized = content.replaceAll('\r\n', '\n');
+    final out = <_BoxLine>[];
+
+    for (final rawLine in normalized.split('\n')) {
+      final line = rawLine.trim();
+      if (line.isEmpty) continue;
+
+      if (_isFormulaLine(line)) {
+        out.add(_BoxLine(text: line, isFormula: true));
+        continue;
+      }
+
+      for (final paragraph in _paragraphsFromText(line)) {
+        out.add(_BoxLine(text: paragraph, isFormula: false));
+      }
+    }
+
+    return out;
+  }
+
+  Widget _buildFormulaLineWidget(BuildContext context, String line, Color color) {
+    final style = Theme.of(context).textTheme.bodyLarge!.copyWith(
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      color: color,
+    );
+
+    final spans = <InlineSpan>[];
+    var last = 0;
+
+    for (final match in _fractionRegex.allMatches(line)) {
+      if (match.start > last) {
+        spans.add(TextSpan(text: line.substring(last, match.start), style: style));
+      }
+
+      final numerator = match.group(1);
+      final denominator = match.group(2);
+      if (numerator != null && denominator != null) {
+        spans.add(
+          WidgetSpan(
+            alignment: PlaceholderAlignment.middle,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: _FractionInline(
+                numerator: numerator,
+                denominator: denominator,
+                color: color,
+              ),
+            ),
+          ),
+        );
+      } else {
+        spans.add(TextSpan(text: match.group(0), style: style));
+      }
+
+      last = match.end;
+    }
+
+    if (last < line.length) {
+      spans.add(TextSpan(text: line.substring(last), style: style));
+    }
+
+    return RichText(text: TextSpan(style: style, children: spans));
   }
 
   List<String> _paragraphsFromText(String text) {
@@ -392,6 +452,44 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     final color = Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface;
     return RichText(
       text: TextSpan(style: baseStyle.copyWith(color: color), children: spans),
+    );
+  }
+}
+
+class _BoxLine {
+  const _BoxLine({required this.text, required this.isFormula});
+
+  final String text;
+  final bool isFormula;
+}
+
+class _FractionInline extends StatelessWidget {
+  const _FractionInline({
+    required this.numerator,
+    required this.denominator,
+    required this.color,
+  });
+
+  final String numerator;
+  final String denominator;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    const numberStyle = TextStyle(fontSize: 12, fontWeight: FontWeight.w600, height: 1.0);
+    return IntrinsicWidth(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(numerator, style: numberStyle.copyWith(color: color)),
+          Container(
+            margin: const EdgeInsets.symmetric(vertical: 1),
+            height: 1.1,
+            color: color,
+          ),
+          Text(denominator, style: numberStyle.copyWith(color: color)),
+        ],
+      ),
     );
   }
 }
