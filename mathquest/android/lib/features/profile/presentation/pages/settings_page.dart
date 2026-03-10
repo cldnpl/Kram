@@ -44,6 +44,34 @@ class _SettingsPageState extends State<SettingsPage> {
   static const _keyProfileName = 'profile_name';
   static const _keySessionLoggedIn = 'session_logged_in';
 
+  String _normalizeLevel(String raw) {
+    final value = raw.trim().toLowerCase();
+    switch (value) {
+      case 'beginner':
+      case 'principiante':
+      case 'debutant':
+      case 'debutante':
+      case 'basico':
+      case "boshlang'ich":
+      case 'boshlangich':
+        return 'Beginner';
+      case 'intermediate':
+      case 'intermedio':
+      case 'intermediaire':
+      case "o'rta":
+      case 'orta':
+        return 'Intermediate';
+      case 'advanced':
+      case 'avanzato':
+      case 'avance':
+      case 'avanzado':
+      case 'yuqori':
+        return 'Advanced';
+      default:
+        return 'Beginner';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -75,13 +103,18 @@ class _SettingsPageState extends State<SettingsPage> {
       _darkMode = prefs.getBool(_keyDarkMode) ?? false;
       _difficulty = prefs.getString(_keyDifficulty) ?? 'medio';
       _language = prefs.getString(_keyLanguage) ?? 'en';
-      _profileLevel = isLoggedIn ? (prefs.getString(_keyProfileLevel) ?? 'Beginner') : 'Beginner';
+      _profileLevel = isLoggedIn
+          ? _normalizeLevel(prefs.getString(_keyProfileLevel) ?? 'Beginner')
+          : 'Beginner';
     });
+    if (isLoggedIn) {
+      await prefs.setString(_keyProfileLevel, _profileLevel);
+    }
     await _syncRemoteProfile();
   }
 
   String _mathLevelDescription(String level) {
-    switch (level) {
+    switch (_normalizeLevel(level)) {
       case 'Beginner':
         return AppLocale.tr('level_desc_beginner');
       case 'Intermediate':
@@ -94,7 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   String _localizedLevelName(String level) {
-    switch (level) {
+    switch (_normalizeLevel(level)) {
       case 'Beginner':
         return AppLocale.tr('level_beginner');
       case 'Intermediate':
@@ -102,12 +135,12 @@ class _SettingsPageState extends State<SettingsPage> {
       case 'Advanced':
         return AppLocale.tr('level_advanced');
       default:
-        return level;
+        return AppLocale.tr('level_beginner');
     }
   }
 
   IconData _mathLevelIcon(String level) {
-    switch (level) {
+    switch (_normalizeLevel(level)) {
       case 'Beginner':
         return Icons.eco;
       case 'Intermediate':
@@ -115,7 +148,7 @@ class _SettingsPageState extends State<SettingsPage> {
       case 'Advanced':
         return Icons.bolt;
       default:
-        return Icons.star;
+        return Icons.eco;
     }
   }
 
@@ -213,7 +246,7 @@ class _SettingsPageState extends State<SettingsPage> {
         data: {
           'name': _profileName.trim(),
           'username': _profileUsername.trim().toLowerCase(),
-          'math_level': _profileLevel.trim(),
+          'math_level': _normalizeLevel(_profileLevel),
         },
         options: Options(headers: {'Authorization': 'Bearer $token'}),
       );
@@ -232,6 +265,7 @@ class _SettingsPageState extends State<SettingsPage> {
       final remoteName = (data['name'] as String?)?.trim() ?? '';
       final remoteUsername = (data['username'] as String?)?.trim() ?? '';
       final remoteLevel = (data['math_level'] as String?)?.trim() ?? '';
+      final normalizedRemoteLevel = _normalizeLevel(remoteLevel);
       final isPlaceholder = remoteName.toLowerCase() == 'mock user' ||
           remoteName.toLowerCase() == 'mathquest user';
 
@@ -243,7 +277,7 @@ class _SettingsPageState extends State<SettingsPage> {
         await prefs.setString(_keyProfileUsername, remoteUsername);
       }
       if (remoteLevel.isNotEmpty) {
-        await prefs.setString(_keyProfileLevel, remoteLevel);
+        await prefs.setString(_keyProfileLevel, normalizedRemoteLevel);
       }
 
       if (!mounted) return;
@@ -257,7 +291,7 @@ class _SettingsPageState extends State<SettingsPage> {
           _usernameEditController.text = remoteUsername;
         }
         if (remoteLevel.isNotEmpty) {
-          _profileLevel = remoteLevel;
+          _profileLevel = normalizedRemoteLevel;
         }
       });
     } catch (_) {}
@@ -543,12 +577,13 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _mathLevelCard(BuildContext context, String level, bool isDark) {
-    final isSelected = _profileLevel == level;
+    final isSelected = _normalizeLevel(_profileLevel) == level;
     final cardBg = isDark ? const Color(0xFF2C2C2E) : Colors.white;
     return GestureDetector(
       onTap: () async {
-        setState(() => _profileLevel = level);
-        await _setString(_keyProfileLevel, level);
+        final normalized = _normalizeLevel(level);
+        setState(() => _profileLevel = normalized);
+        await _setString(_keyProfileLevel, normalized);
         _scheduleProfileSync();
       },
       child: AnimatedContainer(

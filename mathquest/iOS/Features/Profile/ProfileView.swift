@@ -263,7 +263,7 @@ struct ProfileView: View {
     }
 
     private func levelIcon(for level: String) -> String {
-        switch level {
+        switch normalizedLevel(level) {
         case "Beginner":
             return "leaf.fill"
         case "Intermediate":
@@ -271,12 +271,12 @@ struct ProfileView: View {
         case "Advanced":
             return "bolt.fill"
         default:
-            return "star.fill"
+            return "leaf.fill"
         }
     }
 
     private func localizedLevelName(_ level: String) -> String {
-        switch level {
+        switch normalizedLevel(level) {
         case "Beginner":
             return L10n.levelBeginner
         case "Intermediate":
@@ -284,7 +284,24 @@ struct ProfileView: View {
         case "Advanced":
             return L10n.levelAdvanced
         default:
-            return level
+            return L10n.levelBeginner
+        }
+    }
+
+    private func normalizedLevel(_ raw: String) -> String {
+        let normalized = raw
+            .folding(options: .diacriticInsensitive, locale: .current)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        switch normalized {
+        case "beginner", "principiante", "debutant", "debutante", "basico", "boshlangich", "boshlang'ich":
+            return "Beginner"
+        case "intermediate", "intermedio", "intermediaire", "orta", "o'rta":
+            return "Intermediate"
+        case "advanced", "avanzato", "avance", "avanzado", "yuqori":
+            return "Advanced"
+        default:
+            return "Beginner"
         }
     }
 }

@@ -79,6 +79,10 @@ struct SettingsView: View {
                 }
                 .onAppear {
                     editingUsername = isLoggedIn ? profileUsername : ""
+                    let normalized = normalizedLevel(profileLevel)
+                    if profileLevel != normalized {
+                        profileLevel = normalized
+                    }
                 }
 
                 settingsSection(title: L10n.mathLevel) {
@@ -88,7 +92,7 @@ struct SettingsView: View {
                                 level: localizedLevelName(for: level),
                                 description: mathLevelDescription(for: level),
                                 icon: mathLevelIcon(for: level),
-                                isSelected: profileLevel == level
+                                isSelected: normalizedLevel(profileLevel) == level
                             ) {
                                 withAnimation(.easeInOut(duration: 0.2)) {
                                     profileLevel = level
@@ -241,7 +245,7 @@ struct SettingsView: View {
         let payload: [String: Any] = [
             "name": profileName.trimmingCharacters(in: .whitespacesAndNewlines),
             "username": profileUsername.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
-            "math_level": profileLevel.trimmingCharacters(in: .whitespacesAndNewlines),
+            "math_level": normalizedLevel(profileLevel),
         ]
 
         var request = URLRequest(url: url)
@@ -274,7 +278,7 @@ struct SettingsView: View {
     }
 
     private func mathLevelDescription(for level: String) -> String {
-        switch level {
+        switch normalizedLevel(level) {
         case "Beginner": return L10n.levelDescBeginner
         case "Intermediate": return L10n.levelDescIntermediate
         case "Advanced": return L10n.levelDescAdvanced
@@ -283,20 +287,37 @@ struct SettingsView: View {
     }
 
     private func localizedLevelName(for level: String) -> String {
-        switch level {
+        switch normalizedLevel(level) {
         case "Beginner": return L10n.levelBeginner
         case "Intermediate": return L10n.levelIntermediate
         case "Advanced": return L10n.levelAdvanced
-        default: return level
+        default: return L10n.levelBeginner
         }
     }
 
     private func mathLevelIcon(for level: String) -> String {
-        switch level {
+        switch normalizedLevel(level) {
         case "Beginner": return "leaf.fill"
         case "Intermediate": return "flame.fill"
         case "Advanced": return "bolt.fill"
-        default: return "star.fill"
+        default: return "leaf.fill"
+        }
+    }
+
+    private func normalizedLevel(_ raw: String) -> String {
+        let normalized = raw
+            .folding(options: .diacriticInsensitive, locale: .current)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        switch normalized {
+        case "beginner", "principiante", "debutant", "debutante", "basico", "boshlangich", "boshlang'ich":
+            return "Beginner"
+        case "intermediate", "intermedio", "intermediaire", "orta", "o'rta":
+            return "Intermediate"
+        case "advanced", "avanzato", "avance", "avanzado", "yuqori":
+            return "Advanced"
+        default:
+            return "Beginner"
         }
     }
 

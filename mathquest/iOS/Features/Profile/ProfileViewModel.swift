@@ -62,7 +62,8 @@ final class ProfileViewModel: ObservableObject {
         if isLoggedIn {
             userName = UserDefaults.standard.string(forKey: "profile_name") ?? ""
             profileUsername = UserDefaults.standard.string(forKey: "profile_username") ?? ""
-            mathLevel = UserDefaults.standard.string(forKey: "profile_level") ?? "Beginner"
+            mathLevel = normalizedMathLevel(UserDefaults.standard.string(forKey: "profile_level") ?? "Beginner")
+            UserDefaults.standard.set(mathLevel, forKey: "profile_level")
 
             if let path = UserDefaults.standard.string(forKey: profilePhotoPathKey),
                let url = profilePhotoFileURL(filename: path),
@@ -135,8 +136,9 @@ final class ProfileViewModel: ObservableObject {
                 UserDefaults.standard.set(remoteUsername, forKey: "profile_username")
             }
             if let remoteLevel = remote.math_level?.trimmingCharacters(in: .whitespacesAndNewlines), !remoteLevel.isEmpty {
-                mathLevel = remoteLevel
-                UserDefaults.standard.set(remoteLevel, forKey: "profile_level")
+                let normalizedLevel = normalizedMathLevel(remoteLevel)
+                mathLevel = normalizedLevel
+                UserDefaults.standard.set(normalizedLevel, forKey: "profile_level")
             }
             if let remoteStreak = remote.streak_days {
                 streakDays = remoteStreak
@@ -187,7 +189,7 @@ final class ProfileViewModel: ObservableObject {
         let payload = UpdateProfileRequestBody(
             name: userName.trimmingCharacters(in: .whitespacesAndNewlines),
             username: profileUsername.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
-            math_level: mathLevel.trimmingCharacters(in: .whitespacesAndNewlines),
+            math_level: normalizedMathLevel(mathLevel),
             avatar_url: avatarURL
         )
         do {
@@ -244,6 +246,23 @@ final class ProfileViewModel: ObservableObject {
 
     private func profilePhotoFileURL(filename: String) -> URL? {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent(filename)
+    }
+
+    private func normalizedMathLevel(_ raw: String) -> String {
+        let normalized = raw
+            .folding(options: .diacriticInsensitive, locale: .current)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        switch normalized {
+        case "beginner", "principiante", "debutant", "debutante", "basico", "boshlangich", "boshlang'ich":
+            return "Beginner"
+        case "intermediate", "intermedio", "intermediaire", "orta", "o'rta":
+            return "Intermediate"
+        case "advanced", "avanzato", "avance", "avanzado", "yuqori":
+            return "Advanced"
+        default:
+            return "Beginner"
+        }
     }
 
     func signOut() {

@@ -37,6 +37,34 @@ class _ProfilePageState extends State<ProfilePage> {
   static const _profilePhotoFilename = 'profile_photo.jpg';
   static const _keySessionLoggedIn = 'session_logged_in';
 
+  String _normalizeLevel(String raw) {
+    final value = raw.trim().toLowerCase();
+    switch (value) {
+      case 'beginner':
+      case 'principiante':
+      case 'debutant':
+      case 'debutante':
+      case 'basico':
+      case "boshlang'ich":
+      case 'boshlangich':
+        return 'Beginner';
+      case 'intermediate':
+      case 'intermedio':
+      case 'intermediaire':
+      case "o'rta":
+      case 'orta':
+        return 'Intermediate';
+      case 'advanced':
+      case 'avanzato':
+      case 'avance':
+      case 'avanzado':
+      case 'yuqori':
+        return 'Advanced';
+      default:
+        return 'Beginner';
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -52,7 +80,9 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() {
       _userName = canShowIdentity ? (prefs.getString('profile_name') ?? '') : '';
       _profileUsername = prefs.getString('profile_username') ?? '';
-      _mathLevel = canShowIdentity ? (prefs.getString('profile_level') ?? 'Beginner') : 'Beginner';
+      _mathLevel = canShowIdentity
+          ? _normalizeLevel(prefs.getString('profile_level') ?? 'Beginner')
+          : 'Beginner';
       _profilePhotoPath = canShowIdentity ? (prefs.getString(_keyProfilePhoto) ?? '') : '';
       _sessionLoggedIn = hasSession;
     });
@@ -121,6 +151,7 @@ class _ProfilePageState extends State<ProfilePage> {
       final remoteName = (data['name'] as String?)?.trim() ?? '';
       final remoteUsername = (data['username'] as String?)?.trim() ?? '';
       final remoteLevel = (data['math_level'] as String?)?.trim() ?? '';
+      final normalizedRemoteLevel = _normalizeLevel(remoteLevel);
       final remoteAvatar = (data['avatar_url'] as String?)?.trim() ?? '';
       final isPlaceholderName = remoteName.toLowerCase() == 'mock user' ||
           remoteName.toLowerCase() == 'mathquest user';
@@ -130,7 +161,7 @@ class _ProfilePageState extends State<ProfilePage> {
         await prefs.setString('profile_name', remoteName);
       }
       if (remoteUsername.isNotEmpty) await prefs.setString('profile_username', remoteUsername);
-      if (remoteLevel.isNotEmpty) await prefs.setString('profile_level', remoteLevel);
+      if (remoteLevel.isNotEmpty) await prefs.setString('profile_level', normalizedRemoteLevel);
 
       String nextPhotoPath = _profilePhotoPath;
       if (remoteAvatar.isNotEmpty) {
@@ -148,7 +179,7 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         if (remoteName.isNotEmpty && !isPlaceholderName) _userName = remoteName;
         if (remoteUsername.isNotEmpty) _profileUsername = remoteUsername;
-        if (remoteLevel.isNotEmpty) _mathLevel = remoteLevel;
+        if (remoteLevel.isNotEmpty) _mathLevel = normalizedRemoteLevel;
         _profilePhotoPath = nextPhotoPath;
       });
     } catch (e) {
@@ -165,7 +196,7 @@ class _ProfilePageState extends State<ProfilePage> {
         data: {
           'name': _userName.trim(),
           'username': _profileUsername.trim().toLowerCase(),
-          'math_level': _mathLevel.trim(),
+          'math_level': _normalizeLevel(_mathLevel),
           'avatar_url': avatarDataUrl,
         },
         options: Options(headers: {'Authorization': 'Bearer $token'}),
@@ -198,7 +229,7 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   IconData _getLevelIcon(String level) {
-    switch (level) {
+    switch (_normalizeLevel(level)) {
       case 'Beginner':
         return Icons.eco;
       case 'Intermediate':
@@ -206,12 +237,12 @@ class _ProfilePageState extends State<ProfilePage> {
       case 'Advanced':
         return Icons.bolt;
       default:
-        return Icons.star;
+        return Icons.eco;
     }
   }
 
   String _localizedLevelName(String level) {
-    switch (level) {
+    switch (_normalizeLevel(level)) {
       case 'Beginner':
         return AppLocale.tr('level_beginner');
       case 'Intermediate':
@@ -219,7 +250,7 @@ class _ProfilePageState extends State<ProfilePage> {
       case 'Advanced':
         return AppLocale.tr('level_advanced');
       default:
-        return level;
+        return AppLocale.tr('level_beginner');
     }
   }
 
