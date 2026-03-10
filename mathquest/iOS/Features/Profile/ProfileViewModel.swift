@@ -62,8 +62,13 @@ final class ProfileViewModel: ObservableObject {
         if isLoggedIn {
             userName = UserDefaults.standard.string(forKey: "profile_name") ?? ""
             profileUsername = UserDefaults.standard.string(forKey: "profile_username") ?? ""
-            mathLevel = normalizedMathLevel(UserDefaults.standard.string(forKey: "profile_level") ?? "Beginner")
-            UserDefaults.standard.set(mathLevel, forKey: "profile_level")
+            if let storedLevel = UserDefaults.standard.object(forKey: "profile_level") as? String,
+               !storedLevel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                mathLevel = normalizedMathLevel(storedLevel)
+                UserDefaults.standard.set(mathLevel, forKey: "profile_level")
+            } else {
+                mathLevel = "Beginner"
+            }
 
             if let path = UserDefaults.standard.string(forKey: profilePhotoPathKey),
                let url = profilePhotoFileURL(filename: path),
@@ -137,8 +142,15 @@ final class ProfileViewModel: ObservableObject {
             }
             if let remoteLevel = remote.math_level?.trimmingCharacters(in: .whitespacesAndNewlines), !remoteLevel.isEmpty {
                 let normalizedLevel = normalizedMathLevel(remoteLevel)
-                mathLevel = normalizedLevel
-                UserDefaults.standard.set(normalizedLevel, forKey: "profile_level")
+                if let storedLevel = UserDefaults.standard.object(forKey: "profile_level") as? String,
+                   !storedLevel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    let localLevel = normalizedMathLevel(storedLevel)
+                    mathLevel = localLevel
+                    UserDefaults.standard.set(localLevel, forKey: "profile_level")
+                } else {
+                    mathLevel = normalizedLevel
+                    UserDefaults.standard.set(normalizedLevel, forKey: "profile_level")
+                }
             }
             if let remoteStreak = remote.streak_days {
                 streakDays = remoteStreak
@@ -246,6 +258,11 @@ final class ProfileViewModel: ObservableObject {
 
     private func profilePhotoFileURL(filename: String) -> URL? {
         FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first?.appendingPathComponent(filename)
+    }
+
+    func applyStoredMathLevel(_ raw: String) {
+        mathLevel = normalizedMathLevel(raw)
+        UserDefaults.standard.set(mathLevel, forKey: "profile_level")
     }
 
     private func normalizedMathLevel(_ raw: String) -> String {

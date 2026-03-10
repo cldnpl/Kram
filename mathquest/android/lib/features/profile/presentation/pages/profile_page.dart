@@ -152,16 +152,19 @@ class _ProfilePageState extends State<ProfilePage> {
       final remoteUsername = (data['username'] as String?)?.trim() ?? '';
       final remoteLevel = (data['math_level'] as String?)?.trim() ?? '';
       final normalizedRemoteLevel = _normalizeLevel(remoteLevel);
+      final prefs = await SharedPreferences.getInstance();
+      final localStoredLevel = (prefs.getString('profile_level') ?? '').trim();
+      final hasLocalLevel = localStoredLevel.isNotEmpty;
       final remoteAvatar = (data['avatar_url'] as String?)?.trim() ?? '';
       final isPlaceholderName = remoteName.toLowerCase() == 'mock user' ||
           remoteName.toLowerCase() == 'mathquest user';
-
-      final prefs = await SharedPreferences.getInstance();
       if (remoteName.isNotEmpty && !isPlaceholderName) {
         await prefs.setString('profile_name', remoteName);
       }
       if (remoteUsername.isNotEmpty) await prefs.setString('profile_username', remoteUsername);
-      if (remoteLevel.isNotEmpty) await prefs.setString('profile_level', normalizedRemoteLevel);
+      if (remoteLevel.isNotEmpty && !hasLocalLevel) {
+        await prefs.setString('profile_level', normalizedRemoteLevel);
+      }
 
       String nextPhotoPath = _profilePhotoPath;
       if (remoteAvatar.isNotEmpty) {
@@ -179,7 +182,11 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() {
         if (remoteName.isNotEmpty && !isPlaceholderName) _userName = remoteName;
         if (remoteUsername.isNotEmpty) _profileUsername = remoteUsername;
-        if (remoteLevel.isNotEmpty) _mathLevel = normalizedRemoteLevel;
+        if (hasLocalLevel) {
+          _mathLevel = _normalizeLevel(localStoredLevel);
+        } else if (remoteLevel.isNotEmpty) {
+          _mathLevel = normalizedRemoteLevel;
+        }
         _profilePhotoPath = nextPhotoPath;
       });
     } catch (e) {
@@ -495,7 +502,11 @@ class _ProfilePageState extends State<ProfilePage> {
                   icon: Icons.settings,
                   iconColor: Colors.grey,
                   title: AppLocale.tr('settings_title'),
-                  onTap: () => context.push('/settings'),
+                  onTap: () async {
+                    await context.push('/settings');
+                    if (!mounted) return;
+                    await _loadProfileData();
+                  },
                 ),
                 const SizedBox(height: 12),
                 _MenuRow(

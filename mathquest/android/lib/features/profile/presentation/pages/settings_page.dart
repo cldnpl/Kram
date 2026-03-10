@@ -92,6 +92,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final hasSession = prefs.getBool(_keySessionLoggedIn) ?? false;
     final hasAuthUser = FirebaseAuth.instance.currentUser != null;
     final isLoggedIn = hasSession || hasAuthUser;
+    final storedLevelRaw = (prefs.getString(_keyProfileLevel) ?? '').trim();
+    final hasStoredLevel = storedLevelRaw.isNotEmpty;
     setState(() {
       _sessionLoggedIn = hasSession;
       _profileName = isLoggedIn ? (prefs.getString(_keyProfileName) ?? '') : '';
@@ -107,7 +109,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ? _normalizeLevel(prefs.getString(_keyProfileLevel) ?? 'Beginner')
           : 'Beginner';
     });
-    if (isLoggedIn) {
+    if (isLoggedIn && hasStoredLevel) {
       await prefs.setString(_keyProfileLevel, _profileLevel);
     }
     await _syncRemoteProfile();
@@ -270,13 +272,15 @@ class _SettingsPageState extends State<SettingsPage> {
           remoteName.toLowerCase() == 'mathquest user';
 
       final prefs = await SharedPreferences.getInstance();
+      final localStoredLevel = (prefs.getString(_keyProfileLevel) ?? '').trim();
+      final hasLocalLevel = localStoredLevel.isNotEmpty;
       if (remoteName.isNotEmpty && !isPlaceholder) {
         await prefs.setString(_keyProfileName, remoteName);
       }
       if (remoteUsername.isNotEmpty) {
         await prefs.setString(_keyProfileUsername, remoteUsername);
       }
-      if (remoteLevel.isNotEmpty) {
+      if (remoteLevel.isNotEmpty && !hasLocalLevel) {
         await prefs.setString(_keyProfileLevel, normalizedRemoteLevel);
       }
 
@@ -290,7 +294,9 @@ class _SettingsPageState extends State<SettingsPage> {
           _profileUsername = remoteUsername;
           _usernameEditController.text = remoteUsername;
         }
-        if (remoteLevel.isNotEmpty) {
+        if (hasLocalLevel) {
+          _profileLevel = _normalizeLevel(localStoredLevel);
+        } else if (remoteLevel.isNotEmpty) {
           _profileLevel = normalizedRemoteLevel;
         }
       });

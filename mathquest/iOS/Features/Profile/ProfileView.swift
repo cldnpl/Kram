@@ -6,6 +6,7 @@ struct ProfileView: View {
     @EnvironmentObject private var authManager: AuthManager
     @EnvironmentObject private var tabSelection: TabSelection
     @AppStorage("session_logged_in") private var sessionLoggedIn = false
+    @AppStorage("profile_level") private var storedProfileLevel = "Beginner"
     @State private var showLogin = false
     @State private var showStreak = false
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -168,9 +169,13 @@ struct ProfileView: View {
         .navigationTitle(L10n.profileTab)
         .onAppear {
             viewModel.load()
+            viewModel.applyStoredMathLevel(storedProfileLevel)
         }
         .onChange(of: authManager.isAuthenticated) { _, _ in
             viewModel.load()
+        }
+        .onChange(of: storedProfileLevel) { _, newValue in
+            viewModel.applyStoredMathLevel(newValue)
         }
         .fullScreenCover(isPresented: $showLogin) {
             LoginView(
