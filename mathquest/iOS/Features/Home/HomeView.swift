@@ -12,7 +12,7 @@ struct HomeView: View {
     @AppStorage("session_logged_in") private var sessionLoggedIn = false
 
     private var greetingName: String {
-        (sessionLoggedIn || Auth.auth().currentUser != nil) ? profileName : ""
+        (sessionLoggedIn || Auth.auth().currentUser != nil) ? profileName : "User"
     }
 
     var body: some View {

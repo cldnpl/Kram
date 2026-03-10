@@ -55,6 +55,9 @@ struct ProfileView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
+                    } else {
+                        Text("User")
+                            .font(.system(size: 24, weight: .bold))
                     }
 
                     // Math level badge

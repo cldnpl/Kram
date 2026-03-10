@@ -172,7 +172,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final hasActiveSession = _sessionLoggedIn || FirebaseAuth.instance.currentUser != null;
-    final greetingName = hasActiveSession ? _profileName : '';
+    final greetingName = hasActiveSession ? _profileName : 'User';
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final progressRemaining = isDark ? Colors.black54 : Colors.black26;
 

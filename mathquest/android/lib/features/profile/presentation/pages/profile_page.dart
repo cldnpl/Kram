@@ -262,7 +262,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ? (_userName.isNotEmpty
                   ? _userName
                   : (user?.displayName ?? AppLocale.tr('user_fallback')))
-              : '';
+              : 'User';
           final email = isLoggedIn ? (user?.email ?? '') : '';
           final photoUrl = isLoggedIn ? user?.photoURL : null;
 
@@ -361,14 +361,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 16),
 
                 // Name
-                if (isLoggedIn && displayName.isNotEmpty)
-                  Text(
-                    displayName,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                Text(
+                  displayName,
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
+                ),
                 if (isLoggedIn && _profileUsername.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
