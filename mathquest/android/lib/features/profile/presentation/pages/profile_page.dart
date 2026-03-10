@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +24,7 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final DioClient _dio = DioClient();
+  User? _authUser;
   String _userName = '';
   String _profileUsername = '';
   String _mathLevel = 'Beginner';
@@ -35,7 +38,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
-    _loadProfileData();
+    _loadProfileData().then((_) => _syncRemoteProfile());
     _fetchStreak();
   }
 
@@ -75,8 +78,97 @@ class _ProfilePageState extends State<ProfilePage> {
     await File(xFile.path).copy(destFile.path);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyProfilePhoto, destFile.path);
+    try {
+      final bytes = await destFile.readAsBytes();
+      final avatarDataUrl = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+      await _syncRemoteProfilePhoto(avatarDataUrl);
+    } catch (_) {}
     if (!mounted) return;
     setState(() => _profilePhotoPath = destFile.path);
+  }
+
+  String? _resolveAuthToken({User? user}) {
+    final effectiveUser = user ?? _authUser;
+    final uid = effectiveUser?.uid ?? '';
+    if (uid.isNotEmpty) return uid;
+    final username = _profileUsername.trim().toLowerCase();
+    if (username.isNotEmpty) return 'username:$username';
+    return null;
+  }
+
+  Future<void> _syncRemoteProfile({User? user}) async {
+    final token = _resolveAuthToken(user: user);
+    if (token == null) return;
+    try {
+      final res = await _dio.dio.get(
+        'profile',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+      final data = Map<String, dynamic>.from(res.data as Map);
+      final remoteName = (data['name'] as String?)?.trim() ?? '';
+      final remoteUsername = (data['username'] as String?)?.trim() ?? '';
+      final remoteLevel = (data['math_level'] as String?)?.trim() ?? '';
+      final remoteAvatar = (data['avatar_url'] as String?)?.trim() ?? '';
+
+      final prefs = await SharedPreferences.getInstance();
+      if (remoteName.isNotEmpty) await prefs.setString('profile_name', remoteName);
+      if (remoteUsername.isNotEmpty) await prefs.setString('profile_username', remoteUsername);
+      if (remoteLevel.isNotEmpty) await prefs.setString('profile_level', remoteLevel);
+
+      String nextPhotoPath = _profilePhotoPath;
+      if (remoteAvatar.isNotEmpty) {
+        final bytes = _avatarBytesFromString(remoteAvatar);
+        if (bytes != null) {
+          final dir = await getApplicationDocumentsDirectory();
+          final destFile = File('${dir.path}/$_profilePhotoFilename');
+          await destFile.writeAsBytes(bytes, flush: true);
+          await prefs.setString(_keyProfilePhoto, destFile.path);
+          nextPhotoPath = destFile.path;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        if (remoteName.isNotEmpty) _userName = remoteName;
+        if (remoteUsername.isNotEmpty) _profileUsername = remoteUsername;
+        if (remoteLevel.isNotEmpty) _mathLevel = remoteLevel;
+        _profilePhotoPath = nextPhotoPath;
+      });
+    } catch (e) {
+      debugPrint('[Profile] remote profile sync error: $e');
+    }
+  }
+
+  Future<void> _syncRemoteProfilePhoto(String avatarDataUrl) async {
+    final token = _resolveAuthToken();
+    if (token == null) return;
+    try {
+      await _dio.dio.put(
+        'profile',
+        data: {
+          'name': _userName.trim(),
+          'username': _profileUsername.trim().toLowerCase(),
+          'math_level': _mathLevel.trim(),
+          'avatar_url': avatarDataUrl,
+        },
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+      );
+    } catch (e) {
+      debugPrint('[Profile] avatar upload sync error: $e');
+    }
+  }
+
+  List<int>? _avatarBytesFromString(String raw) {
+    try {
+      if (raw.startsWith('data:image') && raw.contains(',')) {
+        final comma = raw.indexOf(',');
+        final b64 = raw.substring(comma + 1);
+        return base64Decode(b64);
+      }
+      return base64Decode(raw);
+    } catch (_) {
+      return null;
+    }
   }
 
   String _getInitials(String name) {
@@ -119,11 +211,15 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
+          _authUser = state.user;
           if (state.status == AuthStatus.failure &&
               state.errorMessage != null) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.errorMessage!)),
             );
+          }
+          if (state.status == AuthStatus.authenticated) {
+            _syncRemoteProfile(user: state.user);
           }
         },
         builder: (context, state) {
