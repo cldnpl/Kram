@@ -1,6 +1,5 @@
 import SwiftUI
 import WebKit
-import UIKit
 
 // Dark purple (same as app gradient) for formula boxes (1st, 3rd, …)
 private let formulaBoxColor = Color(red: 102/255, green: 80/255, blue: 164/255)  // #6650A4
@@ -46,11 +45,9 @@ struct LessonDetailView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     ForEach(boxLines(from: content), id: \.self) { line in
                                         if isFormulaLine(line) {
-                                            FormulaLineTextView(
-                                                line: line,
-                                                color: UIColor(accentColor),
-                                                fontSize: 18
-                                            )
+                                            Text(line)
+                                                .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                                                .foregroundColor(accentColor)
                                         } else {
                                             renderInlineBold(line)
                                                 .font(.body)
@@ -337,36 +334,9 @@ private func computeBoxIndices(_ blocks: [ContentBlock]) -> [Int: Int] {
 }
 
 private func boxLines(from content: String) -> [String] {
-    let normalized = content.replacingOccurrences(of: "\r\n", with: "\n")
-    var out: [String] = []
-
-    for rawLine in normalized.components(separatedBy: "\n") {
-        let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
-        if line.isEmpty { continue }
-
-        if isFormulaLine(line) {
-            out.append(line)
-            continue
-        }
-
-        if isBulletLikeLine(line) || isStandaloneHeading(line) {
-            out.append(line)
-            continue
-        }
-
-        let split = splitLeadingBoldHeading(line)
-        if let heading = split.heading {
-            out.append(heading)
-            if let rest = split.rest, !rest.isEmpty {
-                out.append(contentsOf: splitBySentence(rest))
-            }
-            continue
-        }
-
-        out.append(contentsOf: splitBySentence(line))
-    }
-
-    return out
+    content.components(separatedBy: .newlines)
+        .map { $0.trimmingCharacters(in: .whitespaces) }
+        .filter { !$0.isEmpty }
 }
 
 private func paragraphs(from text: String) -> [String] {
@@ -516,127 +486,6 @@ private func boxStyleIsFormula(content: String, fallbackIndex: Int) -> Bool {
     if textLines > formulaLines { return false }
 
     return fallbackIndex % 2 == 0
-}
-
-private let fractionRegex = try! NSRegularExpression(
-    pattern: #"([A-Za-z0-9]+)\s*/\s*([A-Za-z0-9]+)"#
-)
-
-private struct FormulaLineTextView: UIViewRepresentable {
-    let line: String
-    let color: UIColor
-    let fontSize: CGFloat
-
-    func makeUIView(context: Context) -> UILabel {
-        let label = UILabel()
-        label.numberOfLines = 0
-        label.lineBreakMode = .byWordWrapping
-        return label
-    }
-
-    func updateUIView(_ uiView: UILabel, context: Context) {
-        let baseFont = UIFont.systemFont(ofSize: fontSize, weight: .semibold)
-        uiView.attributedText = renderedFormulaText(
-            line: line,
-            color: color,
-            baseFont: baseFont
-        )
-        uiView.textColor = color
-    }
-
-    private func renderedFormulaText(
-        line: String,
-        color: UIColor,
-        baseFont: UIFont
-    ) -> NSAttributedString {
-        let result = NSMutableAttributedString()
-        let fullRange = NSRange(line.startIndex..<line.endIndex, in: line)
-        var lastLocation = 0
-        let attrs: [NSAttributedString.Key: Any] = [
-            .font: baseFont,
-            .foregroundColor: color
-        ]
-
-        for match in fractionRegex.matches(in: line, range: fullRange) {
-            if match.range.location > lastLocation {
-                let prefixRange = NSRange(
-                    location: lastLocation,
-                    length: match.range.location - lastLocation
-                )
-                result.append(NSAttributedString(string: nsSubstring(line, range: prefixRange), attributes: attrs))
-            }
-
-            let numerator = nsSubstring(line, range: match.range(at: 1))
-            let denominator = nsSubstring(line, range: match.range(at: 2))
-            let fractionAttachment = makeFractionAttachment(
-                numerator: numerator,
-                denominator: denominator,
-                color: color,
-                baseFont: baseFont
-            )
-            result.append(NSAttributedString(attachment: fractionAttachment))
-            lastLocation = match.range.location + match.range.length
-        }
-
-        if lastLocation < fullRange.length {
-            let tailRange = NSRange(location: lastLocation, length: fullRange.length - lastLocation)
-            result.append(NSAttributedString(string: nsSubstring(line, range: tailRange), attributes: attrs))
-        }
-
-        return result
-    }
-
-    private func makeFractionAttachment(
-        numerator: String,
-        denominator: String,
-        color: UIColor,
-        baseFont: UIFont
-    ) -> NSTextAttachment {
-        let smallFont = UIFont.systemFont(ofSize: max(11, baseFont.pointSize * 0.64), weight: .semibold)
-        let textAttrs: [NSAttributedString.Key: Any] = [
-            .font: smallFont,
-            .foregroundColor: color
-        ]
-
-        let numeratorSize = (numerator as NSString).size(withAttributes: textAttrs)
-        let denominatorSize = (denominator as NSString).size(withAttributes: textAttrs)
-        let width = max(numeratorSize.width, denominatorSize.width) + 6
-        let lineHeight: CGFloat = 1.2
-        let padding: CGFloat = 2
-        let height = numeratorSize.height + denominatorSize.height + lineHeight + (padding * 2)
-
-        let renderer = UIGraphicsImageRenderer(size: CGSize(width: width, height: height))
-        let image = renderer.image { ctx in
-            let numX = (width - numeratorSize.width) / 2
-            let denX = (width - denominatorSize.width) / 2
-            let numY: CGFloat = 0
-            let lineY = numeratorSize.height + padding
-            let denY = lineY + lineHeight + padding
-
-            (numerator as NSString).draw(at: CGPoint(x: numX, y: numY), withAttributes: textAttrs)
-            ctx.cgContext.setStrokeColor(color.cgColor)
-            ctx.cgContext.setLineWidth(lineHeight)
-            ctx.cgContext.move(to: CGPoint(x: 1.5, y: lineY))
-            ctx.cgContext.addLine(to: CGPoint(x: width - 1.5, y: lineY))
-            ctx.cgContext.strokePath()
-            (denominator as NSString).draw(at: CGPoint(x: denX, y: denY), withAttributes: textAttrs)
-        }
-
-        let attachment = NSTextAttachment()
-        attachment.image = image
-        attachment.bounds = CGRect(
-            x: 0,
-            y: (baseFont.capHeight - height) / 2,
-            width: width,
-            height: height
-        )
-        return attachment
-    }
-
-    private func nsSubstring(_ text: String, range: NSRange) -> String {
-        guard let swiftRange = Range(range, in: text) else { return "" }
-        return String(text[swiftRange])
-    }
 }
 
 // MARK: - Diagram view (SVG: fetch then load as data to avoid encoding/load errors and red box)
