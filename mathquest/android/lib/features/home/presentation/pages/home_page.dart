@@ -17,6 +17,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final DioClient _dio = DioClient();
+  static const _keySessionLoggedIn = 'session_logged_in';
   List<Map<String, dynamic>> _categories = [];
   int _coinBalance = 0;
   int _streakDays = 0;
@@ -24,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   bool _loading = true;
   String? _error;
   String _profileName = '';
+  bool _sessionLoggedIn = false;
 
   @override
   void initState() {
@@ -47,12 +49,20 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadProfileName() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() => _profileName = prefs.getString('profile_name') ?? '');
+    final hasSession = prefs.getBool(_keySessionLoggedIn) ?? false;
+    final hasAuthUser = FirebaseAuth.instance.currentUser != null;
+    if (!mounted) return;
+    setState(() {
+      _sessionLoggedIn = hasSession;
+      _profileName = (hasSession || hasAuthUser) ? (prefs.getString('profile_name') ?? '') : '';
+    });
   }
 
   Future<void> _syncRemoteProfileName() async {
     final prefs = await SharedPreferences.getInstance();
+    final hasSession = prefs.getBool(_keySessionLoggedIn) ?? false;
     final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    if (uid.isEmpty && !hasSession) return;
     final username = (prefs.getString('profile_username') ?? '').trim().toLowerCase();
     final token = uid.isNotEmpty ? uid : (username.isNotEmpty ? 'username:$username' : '');
     if (token.isEmpty) return;
@@ -78,6 +88,7 @@ class _HomePageState extends State<HomePage> {
       _loading = true;
       _error = null;
     });
+    await _loadProfileName();
     final prefs = await SharedPreferences.getInstance();
     final lang = prefs.getString('settings_language') ?? 'en';
 
@@ -160,6 +171,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final hasActiveSession = _sessionLoggedIn || FirebaseAuth.instance.currentUser != null;
+    final greetingName = hasActiveSession ? _profileName : '';
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final progressRemaining = isDark ? Colors.black54 : Colors.black26;
 
@@ -200,7 +213,7 @@ class _HomePageState extends State<HomePage> {
                         child: Padding(
                           padding: const EdgeInsets.only(left: 20, top: 56),
                           child: Text(
-                            '${AppLocale.tr('greeting_prefix')}, ${_profileName.isEmpty ? AppLocale.tr('hi_there') : _profileName}!',
+                            '${AppLocale.tr('greeting_prefix')}, ${greetingName.isEmpty ? AppLocale.tr('hi_there') : greetingName}!',
                             style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.black,

@@ -20,54 +20,65 @@ struct SettingsView: View {
     @State private var isCheckingUsername = false
     @State private var profileSyncTask: Task<Void, Never>?
 
+    private var isLoggedIn: Bool {
+        authManager.isAuthenticated || sessionLoggedIn
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
                 settingsSection(title: L10n.profile) {
-                    VStack(spacing: 0) {
-                        HStack(spacing: 12) {
-                            Label(L10n.name, systemImage: "person.fill")
-                                .foregroundStyle(.primary)
-                            TextField(L10n.name, text: $profileName)
-                                .textFieldStyle(.plain)
-                                .font(.system(size: 17))
-                                .onChange(of: profileName) { _, newValue in
-                                    Task {
-                                        await _setProfileName(newValue)
+                    if isLoggedIn {
+                        VStack(spacing: 0) {
+                            HStack(spacing: 12) {
+                                Label(L10n.name, systemImage: "person.fill")
+                                    .foregroundStyle(.primary)
+                                TextField(L10n.name, text: $profileName)
+                                    .textFieldStyle(.plain)
+                                    .font(.system(size: 17))
+                                    .onChange(of: profileName) { _, newValue in
+                                        Task {
+                                            await _setProfileName(newValue)
+                                        }
                                     }
-                                }
-                        }
-                        .padding(.vertical, 4)
-
-                        Divider()
-                            .padding(.vertical, 8)
-
-                        HStack(spacing: 12) {
-                            Label(L10n.usernameLabel, systemImage: "at")
-                                .foregroundStyle(.primary)
-                            TextField(L10n.usernameLabel, text: $editingUsername)
-                                .textFieldStyle(.plain)
-                                .textInputAutocapitalization(.never)
-                                .autocorrectionDisabled()
-                                .font(.system(size: 17))
-                                .onChange(of: editingUsername) { _, newValue in
-                                    checkUsernameDebounced(newValue)
-                                }
-
-                            if isCheckingUsername {
-                                ProgressView()
-                                    .scaleEffect(0.7)
-                            } else if let available = isUsernameAvailable {
-                                Image(systemName: available ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                    .foregroundStyle(available ? .green : .red)
-                                    .font(.system(size: 18))
                             }
+                            .padding(.vertical, 4)
+
+                            Divider()
+                                .padding(.vertical, 8)
+
+                            HStack(spacing: 12) {
+                                Label(L10n.usernameLabel, systemImage: "at")
+                                    .foregroundStyle(.primary)
+                                TextField(L10n.usernameLabel, text: $editingUsername)
+                                    .textFieldStyle(.plain)
+                                    .textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled()
+                                    .font(.system(size: 17))
+                                    .onChange(of: editingUsername) { _, newValue in
+                                        checkUsernameDebounced(newValue)
+                                    }
+
+                                if isCheckingUsername {
+                                    ProgressView()
+                                        .scaleEffect(0.7)
+                                } else if let available = isUsernameAvailable {
+                                    Image(systemName: available ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                        .foregroundStyle(available ? .green : .red)
+                                        .font(.system(size: 18))
+                                }
+                            }
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 4)
+                    } else {
+                        Text(L10n.signInRequired)
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
                 .onAppear {
-                    editingUsername = profileUsername
+                    editingUsername = isLoggedIn ? profileUsername : ""
                 }
 
                 settingsSection(title: L10n.mathLevel) {
@@ -113,7 +124,7 @@ struct SettingsView: View {
                     }
                 }
 
-                if authManager.isAuthenticated || sessionLoggedIn {
+                if isLoggedIn {
                     settingsSection(title: L10n.account) {
                         Button(role: .destructive) {
                             showDeleteConfirmation = true
@@ -203,6 +214,7 @@ struct SettingsView: View {
     }
 
     private func resolveAuthToken() -> String? {
+        guard isLoggedIn else { return nil }
         if let uid = Auth.auth().currentUser?.uid, !uid.isEmpty {
             return uid
         }

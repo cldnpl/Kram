@@ -57,16 +57,25 @@ final class ProfileViewModel: ObservableObject {
     }
 
     func load() {
-        userName = UserDefaults.standard.string(forKey: "profile_name") ?? ""
-        profileUsername = UserDefaults.standard.string(forKey: "profile_username") ?? ""
-        mathLevel = UserDefaults.standard.string(forKey: "profile_level") ?? "Beginner"
+        let isLoggedIn = Auth.auth().currentUser != nil || UserDefaults.standard.bool(forKey: "session_logged_in")
 
-        if let path = UserDefaults.standard.string(forKey: profilePhotoPathKey),
-           let url = profilePhotoFileURL(filename: path),
-           let data = try? Data(contentsOf: url),
-           let image = UIImage(data: data) {
-            profileImage = image
+        if isLoggedIn {
+            userName = UserDefaults.standard.string(forKey: "profile_name") ?? ""
+            profileUsername = UserDefaults.standard.string(forKey: "profile_username") ?? ""
+            mathLevel = UserDefaults.standard.string(forKey: "profile_level") ?? "Beginner"
+
+            if let path = UserDefaults.standard.string(forKey: profilePhotoPathKey),
+               let url = profilePhotoFileURL(filename: path),
+               let data = try? Data(contentsOf: url),
+               let image = UIImage(data: data) {
+                profileImage = image
+            } else {
+                profileImage = nil
+            }
         } else {
+            userName = ""
+            profileUsername = ""
+            mathLevel = "Beginner"
             profileImage = nil
         }
 
@@ -81,9 +90,11 @@ final class ProfileViewModel: ObservableObject {
             userPhotoURL = nil
         }
 
-        Task {
-            await fetchRemoteProfile()
-            await fetchStreak()
+        if isLoggedIn {
+            Task {
+                await fetchRemoteProfile()
+                await fetchStreak()
+            }
         }
     }
 

@@ -10,64 +10,73 @@ struct ProfileView: View {
     @State private var showStreak = false
     @State private var selectedPhotoItem: PhotosPickerItem?
 
-    var body: some View {
-        let isAuthenticated = authManager.isAuthenticated
-        let isLoggedIn = isAuthenticated || sessionLoggedIn
+    private var isLoggedIn: Bool {
+        authManager.isAuthenticated || sessionLoggedIn
+    }
 
+    var body: some View {
         ScrollView {
             VStack(spacing: 24) {
                 // Profile header
                 VStack(spacing: 16) {
                     // Avatar (tap per cambiare foto)
-                    PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
-                        ZStack {
-                            avatarContent
-                            Image(systemName: "camera.circle.fill")
-                                .font(.system(size: 32))
-                                .foregroundStyle(.white)
-                                .shadow(color: .black.opacity(0.3), radius: 2)
-                                .offset(x: 38, y: 38)
+                    if isLoggedIn {
+                        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                            ZStack {
+                                avatarContent
+                                Image(systemName: "camera.circle.fill")
+                                    .font(.system(size: 32))
+                                    .foregroundStyle(.white)
+                                    .shadow(color: .black.opacity(0.3), radius: 2)
+                                    .offset(x: 38, y: 38)
+                            }
                         }
+                        .buttonStyle(.plain)
+                        .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
+                    } else {
+                        avatarContent
                     }
-                    .buttonStyle(.plain)
-                    .shadow(color: .black.opacity(0.1), radius: 10, y: 5)
 
                     // Name, username (solo se loggato), email
-                    VStack(spacing: 4) {
-                        Text(viewModel.userName.isEmpty ? L10n.userFallback : viewModel.userName)
-                            .font(.system(size: 24, weight: .bold))
+                    if isLoggedIn {
+                        VStack(spacing: 4) {
+                            Text(viewModel.userName.isEmpty ? L10n.userFallback : viewModel.userName)
+                                .font(.system(size: 24, weight: .bold))
 
-                        if isLoggedIn && !viewModel.profileUsername.isEmpty {
-                            Text("@\(viewModel.profileUsername)")
-                                .font(.system(size: 13))
-                                .foregroundStyle(.secondary)
-                        }
+                            if !viewModel.profileUsername.isEmpty {
+                                Text("@\(viewModel.profileUsername)")
+                                    .font(.system(size: 13))
+                                    .foregroundStyle(.secondary)
+                            }
 
-                        if !viewModel.userEmail.isEmpty {
-                            Text(viewModel.userEmail)
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                            if !viewModel.userEmail.isEmpty {
+                                Text(viewModel.userEmail)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     }
 
                     // Math level badge
-                    HStack(spacing: 6) {
-                        Image(systemName: levelIcon(for: viewModel.mathLevel))
-                            .font(.system(size: 12, weight: .semibold))
-                        Text(localizedLevelName(viewModel.mathLevel))
-                            .font(.system(size: 13, weight: .semibold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
-                    .background(
-                        LinearGradient(
-                            colors: [Color(red: 0.4, green: 0.3, blue: 0.9), Color(red: 0.6, green: 0.4, blue: 0.95)],
-                            startPoint: .leading,
-                            endPoint: .trailing
+                    if isLoggedIn {
+                        HStack(spacing: 6) {
+                            Image(systemName: levelIcon(for: viewModel.mathLevel))
+                                .font(.system(size: 12, weight: .semibold))
+                            Text(localizedLevelName(viewModel.mathLevel))
+                                .font(.system(size: 13, weight: .semibold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 6)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(red: 0.4, green: 0.3, blue: 0.9), Color(red: 0.6, green: 0.4, blue: 0.95)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
-                    )
-                    .clipShape(Capsule())
+                        .clipShape(Capsule())
+                    }
                 }
                 .padding(.top, 20)
 
@@ -193,7 +202,9 @@ struct ProfileView: View {
 
     @ViewBuilder
     private var avatarContent: some View {
-        if let image = viewModel.profileImage {
+        if !isLoggedIn {
+            anonymousAvatar
+        } else if let image = viewModel.profileImage {
             Image(uiImage: image)
                 .resizable()
                 .scaledToFill()
@@ -216,6 +227,17 @@ struct ProfileView: View {
             .clipShape(Circle())
         } else {
             initialsView
+        }
+    }
+
+    private var anonymousAvatar: some View {
+        ZStack {
+            Circle()
+                .fill(Color(.systemGray4))
+                .frame(width: 100, height: 100)
+            Image(systemName: "person.fill")
+                .font(.system(size: 38, weight: .semibold))
+                .foregroundStyle(.white)
         }
     }
 

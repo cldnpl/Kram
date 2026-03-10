@@ -1,4 +1,5 @@
 import SwiftUI
+import FirebaseAuth
 
 private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 
@@ -8,6 +9,11 @@ struct HomeView: View {
     @State private var showStreak = false
     @AppStorage("profile_name") private var profileName = ""
     @AppStorage("settings_language") private var language = "en"
+    @AppStorage("session_logged_in") private var sessionLoggedIn = false
+
+    private var greetingName: String {
+        (sessionLoggedIn || Auth.auth().currentUser != nil) ? profileName : ""
+    }
 
     var body: some View {
         NavigationStack {
@@ -27,7 +33,7 @@ struct HomeView: View {
 
                 VStack(spacing: 0) {
                     HStack {
-                        Text("\(L10n.greetingPrefix), \(profileName.isEmpty ? L10n.hiThere : profileName)!")
+                        Text("\(L10n.greetingPrefix), \(greetingName.isEmpty ? L10n.hiThere : greetingName)!")
                             .font(.largeTitle)
                             .fontWeight(.bold)
                             .foregroundStyle(.black)

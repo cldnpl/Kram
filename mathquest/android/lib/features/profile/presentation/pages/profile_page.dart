@@ -46,12 +46,15 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _loadProfileData() async {
     final prefs = await SharedPreferences.getInstance();
+    final hasSession = prefs.getBool(_keySessionLoggedIn) ?? false;
+    final hasAuthUser = FirebaseAuth.instance.currentUser != null;
+    final canShowIdentity = hasSession || hasAuthUser;
     setState(() {
-      _userName = prefs.getString('profile_name') ?? '';
+      _userName = canShowIdentity ? (prefs.getString('profile_name') ?? '') : '';
       _profileUsername = prefs.getString('profile_username') ?? '';
-      _mathLevel = prefs.getString('profile_level') ?? 'Beginner';
-      _profilePhotoPath = prefs.getString(_keyProfilePhoto) ?? '';
-      _sessionLoggedIn = prefs.getBool(_keySessionLoggedIn) ?? false;
+      _mathLevel = canShowIdentity ? (prefs.getString('profile_level') ?? 'Beginner') : 'Beginner';
+      _profilePhotoPath = canShowIdentity ? (prefs.getString(_keyProfilePhoto) ?? '') : '';
+      _sessionLoggedIn = hasSession;
     });
   }
 
@@ -73,6 +76,11 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _pickProfilePhoto() async {
+    if (!(_sessionLoggedIn || FirebaseAuth.instance.currentUser != null)) {
+      if (!mounted) return;
+      context.go('/login');
+      return;
+    }
     final picker = ImagePicker();
     final xFile = await picker.pickImage(source: ImageSource.gallery);
     if (xFile == null || !mounted) return;
@@ -91,6 +99,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   String? _resolveAuthToken({User? user}) {
+    final hasActiveSession = (user ?? _authUser) != null || _sessionLoggedIn;
+    if (!hasActiveSession) return null;
     final effectiveUser = user ?? _authUser;
     final uid = effectiveUser?.uid ?? '';
     if (uid.isNotEmpty) return uid;
@@ -248,10 +258,13 @@ class _ProfilePageState extends State<ProfilePage> {
         builder: (context, state) {
           final user = state.user;
           final isLoggedIn = state.status == AuthStatus.authenticated || _sessionLoggedIn;
-          final displayName =
-              _userName.isNotEmpty ? _userName : (user?.displayName ?? AppLocale.tr('user_fallback'));
-          final email = user?.email ?? '';
-          final photoUrl = user?.photoURL;
+          final displayName = isLoggedIn
+              ? (_userName.isNotEmpty
+                  ? _userName
+                  : (user?.displayName ?? AppLocale.tr('user_fallback')))
+              : '';
+          final email = isLoggedIn ? (user?.email ?? '') : '';
+          final photoUrl = isLoggedIn ? user?.photoURL : null;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -261,7 +274,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 10),
                 // Avatar (tap per cambiare foto)
                 GestureDetector(
-                  onTap: _pickProfilePhoto,
+                  onTap: isLoggedIn ? _pickProfilePhoto : null,
                   child: Stack(
                     clipBehavior: Clip.none,
                     children: [
@@ -276,7 +289,8 @@ class _ProfilePageState extends State<ProfilePage> {
                             ),
                           ],
                         ),
-                        child: _profilePhotoPath.isNotEmpty &&
+                        child: isLoggedIn &&
+                                _profilePhotoPath.isNotEmpty &&
                                 File(_profilePhotoPath).existsSync()
                             ? ClipOval(
                                 child: Image.file(
@@ -286,7 +300,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   fit: BoxFit.cover,
                                 ),
                               )
-                            : photoUrl != null
+                            : isLoggedIn && photoUrl != null
                                 ? CircleAvatar(
                                     radius: 50,
                                     backgroundImage: NetworkImage(photoUrl),
@@ -308,46 +322,53 @@ class _ProfilePageState extends State<ProfilePage> {
                                       ),
                                     ),
                                     child: Center(
-                                      child: Text(
-                                        _getInitials(displayName),
-                                        style: const TextStyle(
-                                          fontSize: 36,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                      child: isLoggedIn
+                                          ? Text(
+                                              _getInitials(displayName),
+                                              style: const TextStyle(
+                                                fontSize: 36,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            )
+                                          : const Icon(
+                                              Icons.person,
+                                              size: 48,
+                                              color: Colors.white,
+                                            ),
                                     ),
                                   ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF6650A4),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            size: 20,
-                            color: Colors.white,
+                      if (isLoggedIn)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF6650A4),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 20,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
-                      ),
                     ],
                   ),
                 ),
                 const SizedBox(height: 16),
 
                 // Name
-                Text(
-                  displayName,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                if (isLoggedIn && displayName.isNotEmpty)
+                  Text(
+                    displayName,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
                 if (isLoggedIn && _profileUsername.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
@@ -360,7 +381,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
 
                 // Email
-                if (email.isNotEmpty) ...[
+                if (isLoggedIn && email.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text(
                     email,
@@ -371,42 +392,43 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ],
 
-                const SizedBox(height: 12),
+                if (isLoggedIn) const SizedBox(height: 12),
 
                 // Math level badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF6650A4), Color(0xFF9980F0)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
+                if (isLoggedIn)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 6,
                     ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        _getLevelIcon(_mathLevel),
-                        size: 14,
-                        color: Colors.white,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF6650A4), Color(0xFF9980F0)],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _localizedLevelName(_mathLevel),
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _getLevelIcon(_mathLevel),
+                          size: 14,
                           color: Colors.white,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 6),
+                        Text(
+                          _localizedLevelName(_mathLevel),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
 
                 const SizedBox(height: 24),
 
