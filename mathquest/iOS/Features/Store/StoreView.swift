@@ -96,11 +96,11 @@ struct StoreView: View {
                     .foregroundStyle(.white)
             }
 
-            Text("Unlock Your Full Potential")
+            Text(L10n.storeUnlockTitle)
                 .font(.system(size: 24, weight: .bold))
                 .multilineTextAlignment(.center)
 
-            Text("Choose the plan that fits your learning goals")
+            Text(L10n.storeUnlockSubtitle)
                 .font(.system(size: 15))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -113,7 +113,7 @@ struct StoreView: View {
 
     private var featureComparison: some View {
         VStack(spacing: 0) {
-            Text("What's included")
+            Text(L10n.storeWhatsIncluded)
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -122,16 +122,16 @@ struct StoreView: View {
 
             VStack(spacing: 0) {
                 FeatureRow(
-                    feature: "Camera Scans",
-                    free: "5/day",
-                    pro: "10/day",
-                    max: "Unlimited"
+                    feature: L10n.storeFeatureCameraScans,
+                    free: L10n.storeValue5Day,
+                    pro: L10n.storeValue10Day,
+                    max: L10n.storeValueUnlimited
                 )
 
                 Divider().padding(.horizontal, 16)
 
                 FeatureRow(
-                    feature: "Lesson Rewards",
+                    feature: L10n.storeFeatureLessonRewards,
                     free: "25%",
                     pro: "60%",
                     max: "100%"
@@ -140,10 +140,10 @@ struct StoreView: View {
                 Divider().padding(.horizontal, 16)
 
                 FeatureRow(
-                    feature: "Lesson Refunds",
+                    feature: L10n.storeFeatureLessonRefunds,
                     free: nil,
                     pro: nil,
-                    max: "Full"
+                    max: L10n.storeValueFull
                 )
             }
             .background(Color(.systemBackground))
@@ -165,11 +165,11 @@ struct StoreView: View {
                     ProgressView()
                         .tint(.white)
                 } else if selectedTier == subscriptionManager.currentTier {
-                    Text("Current Plan")
+                    Text(L10n.storeCurrentPlan)
                 } else if selectedTier == .free {
-                    Text("Switch to Free")
+                    Text(L10n.storeSwitchFree)
                 } else {
-                    Text("Subscribe to \(selectedTier.displayName)")
+                    Text(L10n.storeSubscribeTo(selectedTier.displayName))
                 }
             }
             .font(.system(size: 17, weight: .semibold))
@@ -194,7 +194,7 @@ struct StoreView: View {
 
     private var footer: some View {
         VStack(spacing: 8) {
-            Button("Restore Purchases") {
+            Button(L10n.storeRestorePurchases) {
                 Task { await subscriptionManager.restorePurchases() }
             }
             .font(.system(size: 14))
@@ -209,7 +209,7 @@ struct StoreView: View {
                     .padding(.horizontal, 20)
             }
 
-            Text("Subscriptions renew monthly. Cancel anytime in Settings.")
+            Text(L10n.storeRenewNote)
                 .font(.system(size: 11))
                 .foregroundStyle(.tertiary)
                 .multilineTextAlignment(.center)
@@ -269,7 +269,7 @@ private struct PlanCard: View {
                             .foregroundStyle(.primary)
 
                         if isCurrent {
-                            Text("CURRENT")
+                            Text(L10n.storeBadgeCurrent)
                                 .font(.system(size: 9, weight: .bold))
                                 .foregroundStyle(.green)
                                 .padding(.horizontal, 6)
@@ -279,7 +279,7 @@ private struct PlanCard: View {
                         }
 
                         if tier == .max {
-                            Text("BEST")
+                            Text(L10n.storeBadgeBest)
                                 .font(.system(size: 9, weight: .bold))
                                 .foregroundStyle(.orange)
                                 .padding(.horizontal, 6)
@@ -303,11 +303,11 @@ private struct PlanCard: View {
                         Text(price)
                             .font(.system(size: 17, weight: .bold))
                             .foregroundStyle(.primary)
-                        Text("/month")
+                        Text(L10n.storePerMonth)
                             .font(.system(size: 11))
                             .foregroundStyle(.secondary)
                     } else {
-                        Text("Free")
+                        Text(L10n.storeFree)
                             .font(.system(size: 17, weight: .bold))
                             .foregroundStyle(.green)
                     }

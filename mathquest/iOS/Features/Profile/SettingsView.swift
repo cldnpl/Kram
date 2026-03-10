@@ -42,9 +42,9 @@ struct SettingsView: View {
                             .padding(.vertical, 8)
 
                         HStack(spacing: 12) {
-                            Label("Username", systemImage: "at")
+                            Label(L10n.usernameLabel, systemImage: "at")
                                 .foregroundStyle(.primary)
-                            TextField("Username", text: $editingUsername)
+                            TextField(L10n.usernameLabel, text: $editingUsername)
                                 .textFieldStyle(.plain)
                                 .textInputAutocapitalization(.never)
                                 .autocorrectionDisabled()
@@ -69,11 +69,11 @@ struct SettingsView: View {
                     editingUsername = profileUsername
                 }
 
-                settingsSection(title: "Math Level") {
+                settingsSection(title: L10n.mathLevel) {
                     VStack(spacing: 10) {
                         ForEach(["Beginner", "Intermediate", "Advanced"], id: \.self) { level in
                             mathLevelCard(
-                                level: level,
+                                level: localizedLevelName(for: level),
                                 description: mathLevelDescription(for: level),
                                 icon: mathLevelIcon(for: level),
                                 isSelected: profileLevel == level
@@ -113,11 +113,11 @@ struct SettingsView: View {
                 }
 
                 if authManager.isAuthenticated || !profileUsername.isEmpty {
-                    settingsSection(title: "Account") {
+                    settingsSection(title: L10n.account) {
                         Button(role: .destructive) {
                             showDeleteConfirmation = true
                         } label: {
-                            Label("Delete Account", systemImage: "trash.fill")
+                            Label(L10n.deleteAccount, systemImage: "trash.fill")
                                 .foregroundStyle(.red)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -130,13 +130,13 @@ struct SettingsView: View {
         .background(Color(.systemGroupedBackground))
         .navigationTitle(L10n.settingsTitle)
         .navigationBarTitleDisplayMode(.large)
-        .alert("Delete Account", isPresented: $showDeleteConfirmation) {
-            Button("Cancel", role: .cancel) {}
-            Button("Delete", role: .destructive) {
+        .alert(L10n.deleteAccount, isPresented: $showDeleteConfirmation) {
+            Button(L10n.cancel, role: .cancel) {}
+            Button(L10n.deleteAccount, role: .destructive) {
                 deleteAccount()
             }
         } message: {
-            Text("This will permanently delete your account and all data. This action cannot be undone.")
+            Text(L10n.deleteAccountMessage)
         }
     }
 
@@ -261,10 +261,19 @@ struct SettingsView: View {
 
     private func mathLevelDescription(for level: String) -> String {
         switch level {
-        case "Beginner": return "Basic arithmetic, fractions, decimals"
-        case "Intermediate": return "Algebra, geometry, basic equations"
-        case "Advanced": return "Calculus, trigonometry, advanced algebra"
+        case "Beginner": return L10n.levelDescBeginner
+        case "Intermediate": return L10n.levelDescIntermediate
+        case "Advanced": return L10n.levelDescAdvanced
         default: return ""
+        }
+    }
+
+    private func localizedLevelName(for level: String) -> String {
+        switch level {
+        case "Beginner": return L10n.levelBeginner
+        case "Intermediate": return L10n.levelIntermediate
+        case "Advanced": return L10n.levelAdvanced
+        default: return level
         }
     }
 

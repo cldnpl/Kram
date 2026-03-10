@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../data/camera_models.dart';
 import '../providers/camera_provider.dart';
 import '../widgets/camera_preview.dart';
@@ -182,7 +183,7 @@ class _CameraPageState extends State<CameraPage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                _provider.errorMessage ?? 'An error occurred',
+                _provider.errorMessage ?? AppLocale.tr('generic_error'),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -193,7 +194,7 @@ class _CameraPageState extends State<CameraPage> {
             const SizedBox(height: 24),
             FilledButton(
               onPressed: _provider.reset,
-              child: const Text('Try Again'),
+              child: Text(AppLocale.tr('try_again')),
             ),
           ],
         ),
@@ -221,7 +222,7 @@ class _CameraPageState extends State<CameraPage> {
                   const Icon(Icons.camera_alt, color: Colors.white, size: 18),
                   const SizedBox(width: 8),
                   Text(
-                    '${_provider.usesRemaining} of ${_provider.dailyLimit} uses remaining today',
+                    AppLocale.trFormat('camera_uses_remaining_format', [_provider.usesRemaining, _provider.dailyLimit]),
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ],

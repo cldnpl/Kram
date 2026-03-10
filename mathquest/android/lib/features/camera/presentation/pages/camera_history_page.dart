@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../data/camera_api.dart';
 import '../../data/camera_models.dart';
 import '../widgets/step_card.dart';
@@ -17,17 +18,17 @@ class CameraHistoryPage extends StatefulWidget {
 }
 
 class _CameraHistoryPageState extends State<CameraHistoryPage> {
-  final _dateFormat = DateFormat('MMM d, yyyy h:mm a');
+  final _dateFormat = DateFormat('MMM d, yyyy h:mm a', AppLocale.current);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('History'),
+        title: Text(AppLocale.tr('history_title')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Done'),
+            child: Text(AppLocale.tr('done')),
           ),
         ],
       ),
@@ -47,12 +48,12 @@ class _CameraHistoryPageState extends State<CameraHistoryPage> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No History Yet',
+            AppLocale.tr('history_empty_title'),
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
-            'Your solved math problems will appear here',
+            AppLocale.tr('history_empty_subtitle'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -101,7 +102,7 @@ class _CameraHistoryPageState extends State<CameraHistoryPage> {
       if (mounted) {
         Navigator.pop(context); // Close loading
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load detail: $e')),
+          SnackBar(content: Text('${AppLocale.tr('error')}: $e')),
         );
       }
     }
@@ -217,7 +218,7 @@ class _HistoryDetailSheetState extends State<_HistoryDetailSheet> {
                 child: Row(
                   children: [
                     Text(
-                      'Solution',
+                      AppLocale.tr('solution'),
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
@@ -239,7 +240,7 @@ class _HistoryDetailSheetState extends State<_HistoryDetailSheet> {
                   children: [
                     // Problem
                     Text(
-                      'Problem',
+                      AppLocale.tr('problem'),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             color: Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
@@ -262,7 +263,7 @@ class _HistoryDetailSheetState extends State<_HistoryDetailSheet> {
                     Row(
                       children: [
                         Text(
-                          'Difficulty',
+                          AppLocale.tr('difficulty'),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                               ),
@@ -275,7 +276,7 @@ class _HistoryDetailSheetState extends State<_HistoryDetailSheet> {
 
                     // Steps
                     Text(
-                      'Solution Steps',
+                      AppLocale.tr('solution_steps'),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),

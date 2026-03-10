@@ -1,5 +1,6 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import '../../../../core/l10n/app_locale.dart';
 
 class CameraPreviewWidget extends StatelessWidget {
   const CameraPreviewWidget({
@@ -138,8 +139,8 @@ class _ProcessingOverlayState extends State<ProcessingOverlay>
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'Solving...',
+            Text(
+              AppLocale.tr('solving'),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,

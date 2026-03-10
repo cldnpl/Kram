@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
 
     try {
       debugPrint('[Home] fetching lessons...');
-      final res = await _dio.dio.get('lessons?lang=$lang', options: _authOptions());
+      final res = await _fetchLessonsWithRetry(lang);
       final data = res.data as Map<String, dynamic>;
       final list = data['categories'] as List<dynamic>? ?? [];
       _categories =
@@ -133,6 +133,25 @@ class _HomePageState extends State<HomePage> {
 
   dynamic _authOptions() {
     return Options(headers: {'Authorization': 'Bearer mock-dev-token'});
+  }
+
+  Future<Response<dynamic>> _fetchLessonsWithRetry(String lang, {int attempts = 3}) async {
+    DioException? lastDioError;
+    Object? lastGenericError;
+    for (int i = 0; i < attempts; i++) {
+      try {
+        return await _dio.dio.get('lessons?lang=$lang', options: _authOptions());
+      } on DioException catch (e) {
+        lastDioError = e;
+      } catch (e) {
+        lastGenericError = e;
+      }
+      if (i < attempts - 1) {
+        await Future.delayed(const Duration(milliseconds: 450));
+      }
+    }
+    if (lastDioError != null) throw lastDioError!;
+    throw lastGenericError ?? Exception('lessons_fetch_failed');
   }
 
   int _completedCount(Map<String, dynamic> category) {

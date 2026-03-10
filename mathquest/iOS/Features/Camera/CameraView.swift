@@ -114,7 +114,7 @@ struct CameraView: View {
                     let data = try await newItem.loadTransferable(type: Data.self)
                     guard let data,
                           let image = UIImage(data: data) else {
-                        viewModel.setError("Failed to load selected image")
+                        viewModel.setError(L10n.failedLoadImage)
                         return
                     }
 
@@ -123,7 +123,7 @@ struct CameraView: View {
                         showGalleryCropper = true
                     }
                 } catch {
-                    viewModel.setError("Failed to load selected image")
+                    viewModel.setError(L10n.failedLoadImage)
                 }
 
                 await MainActor.run {
@@ -173,9 +173,9 @@ struct CameraView: View {
                         Image(systemName: "camera.fill")
                             .font(.system(size: 60))
                             .foregroundColor(.gray)
-                        Text("Camera access required")
+                        Text(L10n.cameraAccessRequired)
                             .foregroundColor(.white)
-                        Button("Open Settings") {
+                        Button(L10n.openSettings) {
                             if let url = URL(string: UIApplication.openSettingsURLString) {
                                 UIApplication.shared.open(url)
                             }
@@ -278,7 +278,7 @@ struct CameraView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
 
-                        Button("Try Again") {
+                        Button(L10n.tryAgain) {
                             viewModel.reset()
                         }
                         .buttonStyle(.borderedProminent)
@@ -296,9 +296,9 @@ struct CameraView: View {
             HStack {
                 Image(systemName: "camera.fill")
                 if hasUnlimitedCameraUsage {
-                    Text("Unlimited captures available today")
+                    Text(L10n.cameraUnlimited)
                 } else {
-                    Text("\(viewModel.usesRemaining) of \(viewModel.dailyLimit) uses remaining today")
+                    Text(L10n.cameraUsesRemaining(viewModel.usesRemaining, viewModel.dailyLimit))
                 }
             }
             .font(.subheadline)
@@ -315,7 +315,7 @@ struct CameraView: View {
                         VStack(spacing: 6) {
                             Image(systemName: "photo.on.rectangle.angled")
                                 .font(.title2)
-                            Text("Gallery")
+                            Text(L10n.gallery)
                                 .font(.caption2)
                         }
                         .foregroundColor(.white)
@@ -364,28 +364,28 @@ struct CameraView: View {
                 .frame(width: 40, height: 5)
                 .frame(maxWidth: .infinity)
 
-            Text("Use Camera for Math Scanning")
+            Text(L10n.cameraPermissionTitle)
                 .font(.title3.bold())
 
-            Text("Allow camera access so Kram can scan problems and also detect text live while you point the camera.")
+            Text(L10n.cameraPermissionSubtitle)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
             VStack(alignment: .leading, spacing: 8) {
-                Label("Capture handwritten or printed math problems", systemImage: "camera.viewfinder")
-                Label("Preview recognized text before taking a photo", systemImage: "text.viewfinder")
+                Label(L10n.cameraPermissionCaptureLabel, systemImage: "camera.viewfinder")
+                Label(L10n.cameraPermissionPreviewLabel, systemImage: "text.viewfinder")
             }
             .font(.subheadline)
 
             Spacer(minLength: 6)
 
             HStack(spacing: 12) {
-                Button("Not Now") {
+                Button(L10n.notNow) {
                     viewModel.dismissCameraPermissionSheet()
                 }
                 .buttonStyle(.bordered)
 
-                Button("Continue") {
+                Button(L10n.continue) {
                     Task {
                         await viewModel.requestCameraPermissionFromSheet()
                     }
@@ -771,7 +771,7 @@ private struct GalleryCropSheet: View {
 
                     VStack {
                         Spacer()
-                        Text("Drag to move crop. Pinch to resize.")
+                        Text(L10n.dragMoveCrop)
                             .font(.footnote)
                             .foregroundColor(.white.opacity(0.9))
                             .padding(.horizontal, 14)
@@ -788,14 +788,14 @@ private struct GalleryCropSheet: View {
                     syncLayout(with: fittedImageFrame(in: newSize))
                 }
             }
-            .navigationTitle("Crop")
+            .navigationTitle(L10n.crop)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel", action: onCancel)
+                    Button(L10n.cancel, action: onCancel)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Use Crop") {
+                    Button(L10n.useCrop) {
                         onUseCrop(croppedImage() ?? image)
                     }
                 }
@@ -1047,14 +1047,14 @@ private struct CameraSolutionPage: View {
         ScrollView {
             VStack(spacing: 16) {
                 HStack {
-                    Text("Solution")
+                    Text(L10n.solution)
                         .font(.title2.bold())
                     Spacer()
                     DifficultyBadge(level: response.difficultyLevel)
                 }
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Problem")
+                    Text(L10n.problem)
                         .font(.caption)
                         .foregroundColor(.secondary)
                     Text(response.problem)
@@ -1065,7 +1065,7 @@ private struct CameraSolutionPage: View {
                 AnswerCardView(answer: response.solution, isVisible: true)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Steps")
+                    Text(L10n.steps)
                         .font(.headline)
 
                     ForEach(Array(response.steps.enumerated()), id: \.offset) { index, step in
@@ -1097,7 +1097,7 @@ private struct CameraSolutionPage: View {
             }
             .padding()
         }
-        .navigationTitle("Solved")
+        .navigationTitle(L10n.solved)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await animateSteps()

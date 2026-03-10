@@ -87,7 +87,7 @@ struct LoginView: View {
                         .font(.system(size: 42, weight: .bold, design: .rounded))
                         .foregroundStyle(.white)
                     
-                    Text("Master math, one step at a time")
+                    Text(L10n.masterTagline)
                         .font(.system(size: 17, weight: .medium))
                         .foregroundStyle(.white.opacity(0.85))
                 }
@@ -99,7 +99,7 @@ struct LoginView: View {
                     Button {
                         showUsernameLogin = true
                     } label: {
-                        Text("Continue with username")
+                        Text(L10n.continueUsername)
                             .font(.system(size: 17, weight: .semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
@@ -118,7 +118,7 @@ struct LoginView: View {
                         HStack(spacing: 12) {
                             Image(systemName: "g.circle.fill")
                                 .font(.system(size: 22))
-                            Text("Continue with Google")
+                            Text(L10n.continueGoogle)
                                 .font(.system(size: 17, weight: .semibold))
                         }
                         .foregroundStyle(.black.opacity(0.8))
@@ -163,7 +163,7 @@ struct LoginView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("Continue as guest")
+                    Text(L10n.continueGuest)
                         .font(.system(size: 15, weight: .semibold))
                         .foregroundStyle(.white.opacity(0.65))
                 }

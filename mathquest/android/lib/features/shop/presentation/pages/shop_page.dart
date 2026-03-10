@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/theme/app_colors.dart';
 
 const _appPurple = AppColors.appPurple;
@@ -14,48 +15,50 @@ class ShopPage extends StatefulWidget {
 class _ShopPageState extends State<ShopPage> {
   int _selectedIndex = 1; // Default to Pro
 
-  static const _plans = [
+  List<_Plan> get _plans => [
     _Plan(
-      name: 'Free',
+      name: AppLocale.tr('store_free'),
       price: null,
-      priceLabel: 'Free',
+      priceLabel: AppLocale.tr('store_free'),
       icon: Icons.eco,
       iconColor: Colors.green,
       badge: null,
-      features: ['5 camera scans/day', '25% lesson rewards', 'Basic features'],
-      summary: '5 camera scans/day and standard lesson rewards',
+      summary: AppLocale.tr('store_summary_free'),
     ),
     _Plan(
-      name: 'Pro',
+      name: AppLocale.tr('store_pro'),
       price: 3.99,
       priceLabel: '\$3.99',
       icon: Icons.bolt,
       iconColor: AppColors.appPurple,
       badge: null,
-      features: ['10 camera scans/day', '60% lesson rewards', 'Priority support'],
-      summary: '10 camera scans/day and boosted lesson rewards',
+      summary: AppLocale.tr('store_summary_pro'),
     ),
     _Plan(
-      name: 'Max',
+      name: AppLocale.tr('store_max'),
       price: 8.99,
       priceLabel: '\$8.99',
       icon: Icons.workspace_premium,
       iconColor: Colors.orange,
-      badge: 'BEST',
-      features: [
-        'Unlimited camera scans',
-        '100% lesson rewards',
-        'Full lesson refunds',
-        'All Pro features',
-      ],
-      summary: 'Unlimited camera scans and full lesson refunds',
+      badge: AppLocale.tr('store_badge_best'),
+      summary: AppLocale.tr('store_summary_max'),
     ),
   ];
 
-  static const _comparisonFeatures = [
-    _ComparisonRow(feature: 'Camera Scans', free: '5/day', pro: '10/day', max: 'Unlimited'),
-    _ComparisonRow(feature: 'Lesson Rewards', free: '25%', pro: '60%', max: '100%'),
-    _ComparisonRow(feature: 'Lesson Refunds', free: '-', pro: '-', max: 'Full'),
+  List<_ComparisonRow> get _comparisonFeatures => [
+    _ComparisonRow(
+      feature: AppLocale.tr('store_feature_camera_scans'),
+      free: AppLocale.tr('store_value_5_day'),
+      pro: AppLocale.tr('store_value_10_day'),
+      max: AppLocale.tr('store_value_unlimited'),
+    ),
+    _ComparisonRow(feature: AppLocale.tr('store_feature_lesson_rewards'), free: '25%', pro: '60%', max: '100%'),
+    _ComparisonRow(
+      feature: AppLocale.tr('store_feature_lesson_refunds'),
+      free: '-',
+      pro: '-',
+      max: AppLocale.tr('store_value_full'),
+    ),
   ];
 
   @override
@@ -73,19 +76,14 @@ class _ShopPageState extends State<ShopPage> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Hero header
             _buildHeader(),
             const SizedBox(height: 24),
-            // Plan cards
             _buildPlanCards(),
             const SizedBox(height: 24),
-            // Feature comparison
             _buildComparison(),
             const SizedBox(height: 24),
-            // Subscribe button
             _buildSubscribeButton(),
             const SizedBox(height: 16),
-            // Footer
             _buildFooter(),
             const SizedBox(height: 40),
           ],
@@ -111,14 +109,14 @@ class _ShopPageState extends State<ShopPage> {
           child: const Icon(Icons.workspace_premium, size: 36, color: Colors.white),
         ),
         const SizedBox(height: 12),
-        const Text(
-          'Unlock Your Full Potential',
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        Text(
+          AppLocale.tr('store_unlock_title'),
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 6),
         Text(
-          'Choose the plan that fits your learning goals',
+          AppLocale.tr('store_unlock_subtitle'),
           style: TextStyle(fontSize: 15, color: Colors.grey.shade600),
           textAlign: TextAlign.center,
         ),
@@ -127,18 +125,19 @@ class _ShopPageState extends State<ShopPage> {
   }
 
   Widget _buildPlanCards() {
+    final plans = _plans;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
-        children: List.generate(_plans.length, (i) {
-          final plan = _plans[i];
+        children: List.generate(plans.length, (i) {
+          final plan = plans[i];
           final isSelected = _selectedIndex == i;
           return Padding(
             padding: const EdgeInsets.only(bottom: 12),
             child: _PlanCard(
               plan: plan,
               isSelected: isSelected,
-              isCurrent: false, // TODO: check actual subscription
+              isCurrent: false,
               onTap: () => setState(() => _selectedIndex = i),
             ),
           );
@@ -154,7 +153,7 @@ class _ShopPageState extends State<ShopPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "What's included",
+            AppLocale.tr('store_whats_included'),
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
@@ -169,15 +168,14 @@ class _ShopPageState extends State<ShopPage> {
             ),
             child: Column(
               children: [
-                // Column headers
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
                   child: Row(
                     children: [
                       const Expanded(child: SizedBox()),
-                      _comparisonHeader('Free', Colors.green),
-                      _comparisonHeader('Pro', AppColors.appPurple),
-                      _comparisonHeader('Max', Colors.orange, width: 70),
+                      _comparisonHeader(AppLocale.tr('store_free'), Colors.green),
+                      _comparisonHeader(AppLocale.tr('store_pro'), AppColors.appPurple),
+                      _comparisonHeader(AppLocale.tr('store_max'), Colors.orange, width: 70),
                     ],
                   ),
                 ),
@@ -265,7 +263,9 @@ class _ShopPageState extends State<ShopPage> {
   Widget _buildSubscribeButton() {
     final plan = _plans[_selectedIndex];
     final isFree = plan.price == null;
-    final label = isFree ? 'Switch to Free' : 'Subscribe to ${plan.name}';
+    final label = isFree
+        ? AppLocale.tr('store_switch_free')
+        : AppLocale.trFormat('store_subscribe_format', [plan.name]);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -274,9 +274,8 @@ class _ShopPageState extends State<ShopPage> {
         height: 54,
         child: ElevatedButton(
           onPressed: () {
-            // TODO: integrate in-app purchase
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('${plan.name} plan selected')),
+              SnackBar(content: Text(label)),
             );
           },
           style: ElevatedButton.styleFrom(
@@ -302,13 +301,13 @@ class _ShopPageState extends State<ShopPage> {
             // TODO: restore purchases
           },
           child: Text(
-            'Restore Purchases',
+            AppLocale.tr('store_restore'),
             style: TextStyle(fontSize: 14, color: _appPurple),
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          'Subscriptions renew monthly. Cancel anytime in Settings.',
+          AppLocale.tr('store_note'),
           style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
           textAlign: TextAlign.center,
         ),
@@ -317,8 +316,6 @@ class _ShopPageState extends State<ShopPage> {
   }
 }
 
-// MARK: - Data models
-
 class _Plan {
   final String name;
   final double? price;
@@ -326,7 +323,6 @@ class _Plan {
   final IconData icon;
   final Color iconColor;
   final String? badge;
-  final List<String> features;
   final String summary;
 
   const _Plan({
@@ -336,7 +332,6 @@ class _Plan {
     required this.icon,
     required this.iconColor,
     required this.badge,
-    required this.features,
     required this.summary,
   });
 }
@@ -354,8 +349,6 @@ class _ComparisonRow {
     required this.max,
   });
 }
-
-// MARK: - Plan Card Widget
 
 class _PlanCard extends StatelessWidget {
   final _Plan plan;
@@ -386,7 +379,6 @@ class _PlanCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Icon
             Container(
               width: 44,
               height: 44,
@@ -397,7 +389,6 @@ class _PlanCard extends StatelessWidget {
               child: Icon(plan.icon, size: 20, color: plan.iconColor),
             ),
             const SizedBox(width: 14),
-            // Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,9 +407,9 @@ class _PlanCard extends StatelessWidget {
                             color: Colors.green.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Text(
-                            'CURRENT',
-                            style: TextStyle(
+                          child: Text(
+                            AppLocale.tr('store_badge_current'),
+                            style: const TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
                               color: Colors.green,
@@ -457,7 +448,6 @@ class _PlanCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            // Price
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -471,7 +461,7 @@ class _PlanCard extends StatelessWidget {
                 ),
                 if (plan.price != null)
                   Text(
-                    '/month',
+                    AppLocale.tr('store_per_month'),
                     style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
                   ),
               ],

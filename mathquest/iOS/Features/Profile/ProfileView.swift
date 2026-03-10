@@ -33,7 +33,7 @@ struct ProfileView: View {
 
                     // Name, username (solo se loggato), email
                     VStack(spacing: 4) {
-                        Text(viewModel.userName.isEmpty ? "User" : viewModel.userName)
+                        Text(viewModel.userName.isEmpty ? L10n.userFallback : viewModel.userName)
                             .font(.system(size: 24, weight: .bold))
 
                         if isLoggedIn && !viewModel.profileUsername.isEmpty {
@@ -53,7 +53,7 @@ struct ProfileView: View {
                     HStack(spacing: 6) {
                         Image(systemName: levelIcon(for: viewModel.mathLevel))
                             .font(.system(size: 12, weight: .semibold))
-                        Text(viewModel.mathLevel)
+                        Text(localizedLevelName(viewModel.mathLevel))
                             .font(.system(size: 13, weight: .semibold))
                     }
                     .foregroundStyle(.white)
@@ -78,7 +78,7 @@ struct ProfileView: View {
                         StatCard(
                             icon: "flame.fill",
                             value: "\(viewModel.streakDays)",
-                            label: "Day Streak",
+                            label: L10n.dayStreak,
                             color: .orange
                         )
                     }
@@ -87,7 +87,7 @@ struct ProfileView: View {
                     StatCard(
                         icon: "book.fill",
                         value: "\(viewModel.lessonsCompleted)",
-                        label: "Lessons",
+                        label: L10n.lessonsCompleted,
                         color: Color(red: 0.4, green: 0.3, blue: 0.9)
                     )
                 }
@@ -114,11 +114,11 @@ struct ProfileView: View {
                         SettingsView()
                     }
 
-                    MenuRow(icon: "questionmark.circle.fill", title: "Help & Support", color: .blue) {
+                    MenuRow(icon: "questionmark.circle.fill", title: L10n.helpSupport, color: .blue) {
                         EmptyView()
                     }
 
-                    MenuRow(icon: "star.fill", title: "Rate the App", color: .yellow) {
+                    MenuRow(icon: "star.fill", title: L10n.rateApp, color: .yellow) {
                         EmptyView()
                     }
                 }
@@ -245,6 +245,19 @@ struct ProfileView: View {
             return "bolt.fill"
         default:
             return "star.fill"
+        }
+    }
+
+    private func localizedLevelName(_ level: String) -> String {
+        switch level {
+        case "Beginner":
+            return L10n.levelBeginner
+        case "Intermediate":
+            return L10n.levelIntermediate
+        case "Advanced":
+            return L10n.levelAdvanced
+        default:
+            return level
         }
     }
 }

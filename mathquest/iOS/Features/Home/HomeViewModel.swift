@@ -83,6 +83,21 @@ final class HomeViewModel: ObservableObject {
 
     private let client = APIClient()
 
+    private func fetchLessonsWithRetry(lang: String, attempts: Int = 3) async throws -> CategoriesResponse {
+        var lastError: Error?
+        for i in 0..<attempts {
+            do {
+                return try await client.request("lessons?lang=\(lang)")
+            } catch {
+                lastError = error
+                if i < attempts - 1 {
+                    try? await Task.sleep(nanoseconds: 450_000_000)
+                }
+            }
+        }
+        throw lastError ?? URLError(.badServerResponse)
+    }
+
     func load() async {
         print("[Home] load() called")
         isLoading = true
@@ -96,7 +111,7 @@ final class HomeViewModel: ObservableObject {
             await client.setToken("mock-dev-token")
             let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
             print("[Home] fetching lessons from: \(APIConfig.baseURLString)/lessons?lang=\(lang)")
-            let res: CategoriesResponse = try await client.request("lessons?lang=\(lang)")
+            let res: CategoriesResponse = try await fetchLessonsWithRetry(lang: lang)
             categories = res.categories.map(\.toItem)
             print("[Home] got \(categories.count) categories")
         } catch {

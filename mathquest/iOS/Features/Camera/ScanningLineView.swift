@@ -48,7 +48,7 @@ struct ProcessingOverlay: View {
                     .rotationEffect(.degrees(rotation))
             }
 
-            Text("Solving...")
+            Text(L10n.solving)
                 .font(.headline)
                 .foregroundColor(.white)
         }

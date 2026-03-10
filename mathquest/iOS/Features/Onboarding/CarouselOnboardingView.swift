@@ -5,32 +5,34 @@ struct CarouselOnboardingView: View {
     let onComplete: () -> Void
     @State private var currentIndex = 0
 
-    private let slides: [CarouselSlide] = [
+    private var slides: [CarouselSlide] {
+        [
         .init(
-            title: "Scan math in seconds",
-            subtitle: "Capture equations with your camera and get guided solutions instantly.",
+            title: L10n.onboardingTitle1,
+            subtitle: L10n.onboardingSubtitle1,
             icon: "camera.viewfinder",
             gradientColors: [Color(red: 0.4, green: 0.3, blue: 0.9), Color(red: 0.6, green: 0.4, blue: 0.95)]
         ),
         .init(
-            title: "Learn step by step",
-            subtitle: "Follow structured lessons from beginner concepts to advanced topics.",
+            title: L10n.onboardingTitle2,
+            subtitle: L10n.onboardingSubtitle2,
             icon: "book.pages",
             gradientColors: [Color(red: 0.2, green: 0.6, blue: 0.9), Color(red: 0.4, green: 0.8, blue: 0.95)]
         ),
         .init(
-            title: "Build streaks and progress",
-            subtitle: "Track consistency, complete lessons, and improve daily.",
+            title: L10n.onboardingTitle3,
+            subtitle: L10n.onboardingSubtitle3,
             icon: "flame.fill",
             gradientColors: [Color(red: 0.95, green: 0.5, blue: 0.2), Color(red: 0.95, green: 0.7, blue: 0.3)]
         ),
     ]
+    }
 
     var body: some View {
         VStack(spacing: 20) {
             HStack {
                 Spacer()
-                Button("Skip") {
+                Button(L10n.skip) {
                     onComplete()
                 }
                 .font(.system(size: 16, weight: .medium))
@@ -64,7 +66,7 @@ struct CarouselOnboardingView: View {
                     }
                 }
             } label: {
-                Text(currentIndex == slides.count - 1 ? "Get Started" : "Next")
+                Text(currentIndex == slides.count - 1 ? L10n.getStarted : L10n.next)
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundStyle(.white)
                     .frame(maxWidth: .infinity)

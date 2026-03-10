@@ -46,7 +46,7 @@ struct UsernameLoginView: View {
                     .padding(.top, 16)
                 }
 
-                Text("Login")
+                Text(L10n.login)
                     .font(.system(size: 34, weight: .bold))
                     .foregroundStyle(.black)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -56,10 +56,10 @@ struct UsernameLoginView: View {
 
                 VStack(spacing: 0) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Username")
+                        Text(L10n.usernameLabel)
                             .font(.system(size: 18, weight: .medium))
                             .foregroundStyle(.black)
-                        TextField("Insert username", text: $username)
+                        TextField(L10n.insertUsername, text: $username)
                             .textFieldStyle(.roundedBorder)
                             .font(.system(size: 17))
                             .textInputAutocapitalization(.never)
@@ -75,10 +75,10 @@ struct UsernameLoginView: View {
                     .padding(.top, 20)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Password")
+                        Text(L10n.passwordLabel)
                             .font(.system(size: 18, weight: .medium))
                             .foregroundStyle(.black)
-                        SecureField("Insert password", text: $password)
+                        SecureField(L10n.insertPassword, text: $password)
                             .textFieldStyle(.roundedBorder)
                             .font(.system(size: 17))
                             .cornerRadius(10)
@@ -104,7 +104,7 @@ struct UsernameLoginView: View {
                         UserDefaults.standard.set(u, forKey: "profile_username")
                         (onDismiss ?? { dismiss() })()
                     } label: {
-                        Text("Login")
+                        Text(L10n.login)
                             .font(.system(size: 17, weight: .semibold))
                             .foregroundStyle(.white)
                             .frame(width: 300, height: 50)

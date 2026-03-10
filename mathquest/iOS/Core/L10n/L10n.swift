@@ -22,6 +22,10 @@ enum L10n {
                 "it": "Nome", "en": "Name", "fr": "Nom",
                 "es": "Nombre", "uz": "Ism"
             ],
+            "age": [
+                "it": "Età", "en": "Age", "fr": "Âge",
+                "es": "Edad", "uz": "Yosh"
+            ],
             "study_preferences": [
                 "it": "Preferenze di Studio", "en": "Study Preferences", "fr": "Préférences d'étude",
                 "es": "Preferencias de estudio", "uz": "O'qish sozlamalari"
@@ -102,6 +106,121 @@ enum L10n {
             "already_have_account": ["it": "Hai già un account?", "en": "Already have an account?", "fr": "Déjà un compte?", "es": "¿Ya tienes cuenta?", "uz": "Allaqachon hisobingiz bormi?"],
             "create_one": ["it": "Creane uno", "en": "Create one", "fr": "Créer un compte", "es": "Crear una", "uz": "Yaratish"],
             "login": ["it": "Accedi", "en": "Login", "fr": "Connexion", "es": "Iniciar sesión", "uz": "Kirish"],
+            "username_label": ["it": "Username", "en": "Username", "fr": "Nom d'utilisateur", "es": "Nombre de usuario", "uz": "Foydalanuvchi nomi"],
+            "password_label": ["it": "Password", "en": "Password", "fr": "Mot de passe", "es": "Contraseña", "uz": "Parol"],
+            "confirm_password": ["it": "Conferma password", "en": "Confirm password", "fr": "Confirmer le mot de passe", "es": "Confirmar contraseña", "uz": "Parolni tasdiqlang"],
+            "insert_username": ["it": "Inserisci username", "en": "Insert username", "fr": "Entrez le nom d'utilisateur", "es": "Introduce el usuario", "uz": "Foydalanuvchi nomini kiriting"],
+            "insert_password": ["it": "Inserisci password", "en": "Insert password", "fr": "Entrez le mot de passe", "es": "Introduce la contraseña", "uz": "Parolni kiriting"],
+            "master_tagline": ["it": "Domina la matematica, un passo alla volta", "en": "Master math, one step at a time", "fr": "Maîtrisez les maths, étape par étape", "es": "Domina las matemáticas, paso a paso", "uz": "Matematikani bosqichma-bosqich egallang"],
+            "continue_username": ["it": "Continua con username", "en": "Continue with username", "fr": "Continuer avec un nom d'utilisateur", "es": "Continuar con nombre de usuario", "uz": "Foydalanuvchi nomi bilan davom etish"],
+            "continue_google": ["it": "Continua con Google", "en": "Continue with Google", "fr": "Continuer avec Google", "es": "Continuar con Google", "uz": "Google bilan davom etish"],
+            "continue_guest": ["it": "Continua come ospite", "en": "Continue as guest", "fr": "Continuer en tant qu'invité", "es": "Continuar como invitado", "uz": "Mehmon sifatida davom etish"],
+            "view_onboarding_again": ["it": "Rivedi onboarding", "en": "View onboarding again", "fr": "Revoir l'onboarding", "es": "Ver onboarding de nuevo", "uz": "Onboardingni qayta ko'rish"],
+            "user_fallback": ["it": "Utente", "en": "User", "fr": "Utilisateur", "es": "Usuario", "uz": "Foydalanuvchi"],
+            "day_streak": ["it": "Serie Giornaliera", "en": "Day Streak", "fr": "Série quotidienne", "es": "Racha diaria", "uz": "Kunlik seriya"],
+            "help_support": ["it": "Aiuto e supporto", "en": "Help & Support", "fr": "Aide et support", "es": "Ayuda y soporte", "uz": "Yordam va qo'llab-quvvatlash"],
+            "rate_app": ["it": "Valuta l'app", "en": "Rate the App", "fr": "Noter l'app", "es": "Califica la app", "uz": "Ilovani baholash"],
+            "math_level": ["it": "Livello di matematica", "en": "Math Level", "fr": "Niveau de maths", "es": "Nivel de matemáticas", "uz": "Matematika darajasi"],
+            "account": ["it": "Account", "en": "Account", "fr": "Compte", "es": "Cuenta", "uz": "Hisob"],
+            "delete_account": ["it": "Elimina account", "en": "Delete Account", "fr": "Supprimer le compte", "es": "Eliminar cuenta", "uz": "Hisobni o'chirish"],
+            "delete_account_message": ["it": "Questo eliminerà definitivamente il tuo account e tutti i dati. L'azione non può essere annullata.", "en": "This will permanently delete your account and all data. This action cannot be undone.", "fr": "Cela supprimera définitivement votre compte et toutes les données. Cette action est irréversible.", "es": "Esto eliminará permanentemente tu cuenta y todos los datos. Esta acción no se puede deshacer.", "uz": "Bu hisobingiz va barcha ma'lumotlarni butunlay o'chiradi. Bu amalni ortga qaytarib bo'lmaydi."],
+            "store_unlock_title": ["it": "Sblocca tutto il tuo potenziale", "en": "Unlock Your Full Potential", "fr": "Libérez tout votre potentiel", "es": "Desbloquea todo tu potencial", "uz": "To'liq salohiyatingizni oching"],
+            "store_unlock_subtitle": ["it": "Scegli il piano adatto ai tuoi obiettivi di studio", "en": "Choose the plan that fits your learning goals", "fr": "Choisissez le plan adapté à vos objectifs", "es": "Elige el plan que se adapta a tus objetivos", "uz": "Maqsadlaringizga mos rejani tanlang"],
+            "store_whats_included": ["it": "Cosa include", "en": "What's included", "fr": "Ce qui est inclus", "es": "Qué incluye", "uz": "Nimalar kiritilgan"],
+            "store_current_plan": ["it": "Piano attuale", "en": "Current Plan", "fr": "Plan actuel", "es": "Plan actual", "uz": "Joriy reja"],
+            "store_switch_free": ["it": "Passa a Free", "en": "Switch to Free", "fr": "Passer à Free", "es": "Cambiar a Free", "uz": "Free rejaga o'tish"],
+            "store_subscribe_format": ["it": "Abbonati a %@", "en": "Subscribe to %@", "fr": "S'abonner à %@", "es": "Suscribirse a %@", "uz": "%@ ga obuna bo'lish"],
+            "store_restore": ["it": "Ripristina acquisti", "en": "Restore Purchases", "fr": "Restaurer les achats", "es": "Restaurar compras", "uz": "Xaridlarni tiklash"],
+            "store_note": ["it": "Gli abbonamenti si rinnovano mensilmente. Annulla in qualsiasi momento in Impostazioni.", "en": "Subscriptions renew monthly. Cancel anytime in Settings.", "fr": "Les abonnements se renouvellent chaque mois. Annulez à tout moment dans Réglages.", "es": "Las suscripciones se renuevan mensualmente. Cancela cuando quieras en Ajustes.", "uz": "Obunalar har oy yangilanadi. Istalgan payt sozlamalarda bekor qilishingiz mumkin."],
+            "store_badge_current": ["it": "ATTUALE", "en": "CURRENT", "fr": "ACTUEL", "es": "ACTUAL", "uz": "JORIY"],
+            "store_badge_best": ["it": "MIGLIORE", "en": "BEST", "fr": "MEILLEUR", "es": "MEJOR", "uz": "ENG YAXSHI"],
+            "store_per_month": ["it": "/mese", "en": "/month", "fr": "/mois", "es": "/mes", "uz": "/oy"],
+            "store_feature_camera_scans": ["it": "Scansioni camera", "en": "Camera Scans", "fr": "Scans caméra", "es": "Escaneos de cámara", "uz": "Kamera skanlari"],
+            "store_feature_lesson_rewards": ["it": "Ricompense lezioni", "en": "Lesson Rewards", "fr": "Récompenses des leçons", "es": "Recompensas de lecciones", "uz": "Dars mukofotlari"],
+            "store_feature_lesson_refunds": ["it": "Rimborso lezioni", "en": "Lesson Refunds", "fr": "Remboursements des leçons", "es": "Reembolso de lecciones", "uz": "Dars qaytarimlari"],
+            "store_value_5_day": ["it": "5/giorno", "en": "5/day", "fr": "5/jour", "es": "5/día", "uz": "5/kun"],
+            "store_value_10_day": ["it": "10/giorno", "en": "10/day", "fr": "10/jour", "es": "10/día", "uz": "10/kun"],
+            "store_value_unlimited": ["it": "Illimitate", "en": "Unlimited", "fr": "Illimité", "es": "Ilimitado", "uz": "Cheksiz"],
+            "store_value_full": ["it": "Completo", "en": "Full", "fr": "Complet", "es": "Completo", "uz": "To'liq"],
+            "store_free": ["it": "Gratis", "en": "Free", "fr": "Gratuit", "es": "Gratis", "uz": "Bepul"],
+            "store_pro": ["it": "Pro", "en": "Pro", "fr": "Pro", "es": "Pro", "uz": "Pro"],
+            "store_max": ["it": "Max", "en": "Max", "fr": "Max", "es": "Max", "uz": "Max"],
+            "store_summary_free": ["it": "5 scansioni camera/giorno e ricompense standard", "en": "5 camera scans/day and standard lesson rewards", "fr": "5 scans caméra/jour et récompenses standard", "es": "5 escaneos de cámara/día y recompensas estándar", "uz": "Kuniga 5 ta kamera skani va standart mukofotlar"],
+            "store_summary_pro": ["it": "10 scansioni camera/giorno e ricompense aumentate", "en": "10 camera scans/day and boosted lesson rewards", "fr": "10 scans caméra/jour et récompenses augmentées", "es": "10 escaneos de cámara/día y recompensas mejoradas", "uz": "Kuniga 10 ta kamera skani va oshirilgan mukofotlar"],
+            "store_summary_max": ["it": "Scansioni camera illimitate e rimborso completo lezioni", "en": "Unlimited camera scans and full lesson refunds", "fr": "Scans caméra illimités et remboursement complet", "es": "Escaneos ilimitados y reembolso completo", "uz": "Cheksiz kamera skanlari va to'liq qaytarim"],
+            "setup_profile_title": ["it": "Configura il tuo profilo", "en": "Set up your profile", "fr": "Configurez votre profil", "es": "Configura tu perfil", "uz": "Profilingizni sozlang"],
+            "setup_profile_subtitle": ["it": "Dicci qualcosa su di te per personalizzare l'esperienza", "en": "Tell us a bit about yourself so we can personalize your learning experience", "fr": "Parlez-nous de vous pour personnaliser l'expérience", "es": "Cuéntanos sobre ti para personalizar tu experiencia", "uz": "Tajriba shaxsiylashishi uchun o'zingiz haqida ayting"],
+            "your_name": ["it": "Il tuo nome", "en": "Your Name", "fr": "Votre nom", "es": "Tu nombre", "uz": "Ismingiz"],
+            "enter_name": ["it": "Inserisci il tuo nome", "en": "Enter your name", "fr": "Entrez votre nom", "es": "Introduce tu nombre", "uz": "Ismingizni kiriting"],
+            "choose_username": ["it": "Scegli uno username", "en": "Choose a username", "fr": "Choisissez un nom d'utilisateur", "es": "Elige un nombre de usuario", "uz": "Foydalanuvchi nomini tanlang"],
+            "username_taken": ["it": "Username già in uso", "en": "Username is already taken", "fr": "Nom d'utilisateur déjà pris", "es": "El usuario ya está en uso", "uz": "Foydalanuvchi nomi band"],
+            "continue": ["it": "Continua", "en": "Continue", "fr": "Continuer", "es": "Continuar", "uz": "Davom etish"],
+            "skip": ["it": "Salta", "en": "Skip", "fr": "Passer", "es": "Saltar", "uz": "O'tkazib yuborish"],
+            "next": ["it": "Avanti", "en": "Next", "fr": "Suivant", "es": "Siguiente", "uz": "Keyingi"],
+            "get_started": ["it": "Inizia", "en": "Get Started", "fr": "Commencer", "es": "Comenzar", "uz": "Boshlash"],
+            "onboarding_title_1": ["it": "Scansiona matematica in pochi secondi", "en": "Scan math in seconds", "fr": "Scannez les maths en quelques secondes", "es": "Escanea matemáticas en segundos", "uz": "Matematikani soniyalarda skan qiling"],
+            "onboarding_subtitle_1": ["it": "Cattura equazioni con la camera e ottieni soluzioni guidate.", "en": "Capture equations with your camera and get guided solutions instantly.", "fr": "Capturez des équations avec la caméra et obtenez des solutions guidées.", "es": "Captura ecuaciones con tu cámara y obtén soluciones guiadas.", "uz": "Kamera bilan tenglamalarni tutib, yo'naltirilgan yechim oling."],
+            "onboarding_title_2": ["it": "Impara passo dopo passo", "en": "Learn step by step", "fr": "Apprenez pas à pas", "es": "Aprende paso a paso", "uz": "Bosqichma-bosqich o'rganing"],
+            "onboarding_subtitle_2": ["it": "Segui lezioni strutturate dal base all'avanzato.", "en": "Follow structured lessons from beginner concepts to advanced topics.", "fr": "Suivez des leçons structurées du débutant à l'avancé.", "es": "Sigue lecciones estructuradas de básico a avanzado.", "uz": "Boshlang'ichdan ilg'orgacha tuzilgan darslarni o'ting."],
+            "onboarding_title_3": ["it": "Costruisci serie e progressi", "en": "Build streaks and progress", "fr": "Construisez des séries et progressez", "es": "Crea rachas y progreso", "uz": "Seriya yarating va o'sing"],
+            "onboarding_subtitle_3": ["it": "Tieni traccia della costanza, completa lezioni e migliora ogni giorno.", "en": "Track consistency, complete lessons, and improve daily.", "fr": "Suivez votre régularité, terminez des leçons et progressez.", "es": "Sigue tu constancia, completa lecciones y mejora a diario.", "uz": "Doimiylikni kuzating, darslarni tugating va har kuni yaxshilang."],
+            "sign_in_not_connected": ["it": "Accesso non ancora collegato. Usa Google o Apple per ora.", "en": "Sign in not yet connected. Use Google or Apple for now.", "fr": "Connexion non encore configurée. Utilisez Google ou Apple pour l'instant.", "es": "Inicio de sesión aún no conectado. Usa Google o Apple por ahora.", "uz": "Kirish hali ulanmagan. Hozircha Google yoki Apple dan foydalaning."],
+            "register_not_connected": ["it": "Registrazione non ancora collegata. Usa Google o Apple per ora.", "en": "Registration not yet connected. Use Google or Apple for now.", "fr": "Inscription non encore configurée. Utilisez Google ou Apple pour l'instant.", "es": "Registro aún no conectado. Usa Google o Apple por ahora.", "uz": "Ro'yxatdan o'tish hali ulanmagan. Hozircha Google yoki Apple dan foydalaning."],
+            "passwords_not_match": ["it": "Le password non corrispondono.", "en": "Passwords do not match.", "fr": "Les mots de passe ne correspondent pas.", "es": "Las contraseñas no coinciden.", "uz": "Parollar mos emas."],
+            "lessons_completed": ["it": "Lezioni", "en": "Lessons", "fr": "Leçons", "es": "Lecciones", "uz": "Darslar"],
+            "level_beginner": ["it": "Principiante", "en": "Beginner", "fr": "Débutant", "es": "Principiante", "uz": "Boshlang'ich"],
+            "level_intermediate": ["it": "Intermedio", "en": "Intermediate", "fr": "Intermédiaire", "es": "Intermedio", "uz": "O'rta"],
+            "level_advanced": ["it": "Avanzato", "en": "Advanced", "fr": "Avancé", "es": "Avanzado", "uz": "Yuqori"],
+            "level_desc_beginner": ["it": "Aritmetica di base, frazioni, decimali", "en": "Basic arithmetic, fractions, decimals", "fr": "Arithmétique de base, fractions, décimales", "es": "Aritmética básica, fracciones, decimales", "uz": "Asosiy arifmetika, kasrlar, o'nliklar"],
+            "level_desc_intermediate": ["it": "Algebra, geometria, equazioni di base", "en": "Algebra, geometry, basic equations", "fr": "Algèbre, géométrie, équations de base", "es": "Álgebra, geometría, ecuaciones básicas", "uz": "Algebra, geometriya, asosiy tenglamalar"],
+            "level_desc_advanced": ["it": "Calcolo, trigonometria, algebra avanzata", "en": "Calculus, trigonometry, advanced algebra", "fr": "Calcul, trigonométrie, algèbre avancée", "es": "Cálculo, trigonometría, álgebra avanzada", "uz": "Hisoblash, trigonometriya, ilg'or algebra"],
+            "community_title": ["it": "Community", "en": "Community", "fr": "Communauté", "es": "Comunidad", "uz": "Hamjamiyat"],
+            "community_add_friend": ["it": "Aggiungi un amico", "en": "Add a friend", "fr": "Ajouter un ami", "es": "Agregar un amigo", "uz": "Do'st qo'shish"],
+            "community_global_arena": ["it": "Arena globale", "en": "Global arena", "fr": "Arène mondiale", "es": "Arena global", "uz": "Global arena"],
+            "community_challenge_friend": ["it": "Sfida un amico", "en": "Challenge a friend", "fr": "Défier un ami", "es": "Desafía a un amigo", "uz": "Do'stingizni chaqiring"],
+            "community_pending_title": ["it": "In sospeso", "en": "Pending", "fr": "En attente", "es": "Pendiente", "uz": "Kutilmoqda"],
+            "community_pending_status": ["it": "In sospeso", "en": "Pending", "fr": "En attente", "es": "Pendiente", "uz": "Kutilmoqda"],
+            "community_pending_request_format": ["it": "Richiesta di amicizia a @%@ in sospeso.", "en": "Friend request to @%@ is pending.", "fr": "Demande d'ami à @%@ en attente.", "es": "La solicitud de amistad a @%@ está pendiente.", "uz": "@%@ ga do'stlik so'rovi kutilmoqda."],
+            "history_title": ["it": "Cronologia", "en": "History", "fr": "Historique", "es": "Historial", "uz": "Tarix"],
+            "done": ["it": "Fatto", "en": "Done", "fr": "Terminé", "es": "Hecho", "uz": "Bajarildi"],
+            "history_empty_title": ["it": "Nessuna cronologia", "en": "No History Yet", "fr": "Pas encore d'historique", "es": "Sin historial aún", "uz": "Hali tarix yo'q"],
+            "history_empty_subtitle": ["it": "I problemi risolti appariranno qui", "en": "Your solved math problems will appear here", "fr": "Vos problèmes résolus apparaîtront ici", "es": "Tus problemas resueltos aparecerán aquí", "uz": "Yechilgan masalalaringiz shu yerda ko'rinadi"],
+            "problem": ["it": "Problema", "en": "Problem", "fr": "Problème", "es": "Problema", "uz": "Masala"],
+            "solution_steps": ["it": "Passaggi della soluzione", "en": "Solution Steps", "fr": "Étapes de solution", "es": "Pasos de solución", "uz": "Yechim bosqichlari"],
+            "solution": ["it": "Soluzione", "en": "Solution", "fr": "Solution", "es": "Solución", "uz": "Yechim"],
+            "solved": ["it": "Risolto", "en": "Solved", "fr": "Résolu", "es": "Resuelto", "uz": "Yechildi"],
+            "answer": ["it": "Risposta", "en": "Answer", "fr": "Réponse", "es": "Respuesta", "uz": "Javob"],
+            "steps": ["it": "Passaggi", "en": "Steps", "fr": "Étapes", "es": "Pasos", "uz": "Bosqichlar"],
+            "solving": ["it": "Risoluzione...", "en": "Solving...", "fr": "Résolution...", "es": "Resolviendo...", "uz": "Yechilmoqda..."],
+            "camera_access_required": ["it": "Accesso fotocamera richiesto", "en": "Camera access required", "fr": "Accès caméra requis", "es": "Se requiere acceso a la cámara", "uz": "Kameraga ruxsat kerak"],
+            "open_settings": ["it": "Apri impostazioni", "en": "Open Settings", "fr": "Ouvrir les réglages", "es": "Abrir ajustes", "uz": "Sozlamalarni ochish"],
+            "try_again": ["it": "Riprova", "en": "Try Again", "fr": "Réessayer", "es": "Intentar de nuevo", "uz": "Qayta urinib ko'ring"],
+            "camera_unlimited": ["it": "Catture illimitate disponibili oggi", "en": "Unlimited captures available today", "fr": "Captures illimitées disponibles aujourd'hui", "es": "Capturas ilimitadas disponibles hoy", "uz": "Bugun cheksiz suratga olish mavjud"],
+            "camera_uses_remaining_format": ["it": "%d di %d utilizzi disponibili oggi", "en": "%d of %d uses remaining today", "fr": "%d sur %d utilisations restantes aujourd'hui", "es": "%d de %d usos restantes hoy", "uz": "Bugun %d tadan %d tasi qoldi"],
+            "gallery": ["it": "Galleria", "en": "Gallery", "fr": "Galerie", "es": "Galería", "uz": "Galereya"],
+            "camera_permission_title": ["it": "Usa la fotocamera per la scansione matematica", "en": "Use Camera for Math Scanning", "fr": "Utilisez la caméra pour scanner les maths", "es": "Usa la cámara para escanear matemáticas", "uz": "Matematikani skan qilish uchun kameradan foydalaning"],
+            "camera_permission_subtitle": ["it": "Consenti l'accesso alla fotocamera per scansionare problemi e rilevare testo in tempo reale.", "en": "Allow camera access so Kram can scan problems and also detect text live while you point the camera.", "fr": "Autorisez la caméra pour scanner des problèmes et détecter du texte en direct.", "es": "Permite el acceso a la cámara para escanear problemas y detectar texto en vivo.", "uz": "Masalalarni skan qilish va matnni jonli aniqlash uchun kameraga ruxsat bering."],
+            "camera_permission_capture_label": ["it": "Cattura problemi scritti a mano o stampati", "en": "Capture handwritten or printed math problems", "fr": "Capturez des problèmes manuscrits ou imprimés", "es": "Captura problemas matemáticos escritos o impresos", "uz": "Qo'lda yoki bosma matematik masalalarni suratga oling"],
+            "camera_permission_preview_label": ["it": "Anteprima del testo riconosciuto prima della foto", "en": "Preview recognized text before taking a photo", "fr": "Prévisualisez le texte reconnu avant la photo", "es": "Vista previa del texto reconocido antes de la foto", "uz": "Rasmga olishdan oldin aniqlangan matnni ko'ring"],
+            "crop": ["it": "Ritaglia", "en": "Crop", "fr": "Recadrer", "es": "Recortar", "uz": "Kesish"],
+            "drag_move_crop": ["it": "Trascina per spostare il ritaglio. Pizzica per ridimensionare.", "en": "Drag to move crop. Pinch to resize.", "fr": "Faites glisser pour déplacer le cadre. Pincez pour redimensionner.", "es": "Arrastra para mover el recorte. Pellizca para cambiar tamaño.", "uz": "Kesmani ko'chirish uchun torting. O'lchamni o'zgartirish uchun chimchilang."],
+            "use_crop": ["it": "Usa ritaglio", "en": "Use Crop", "fr": "Utiliser le recadrage", "es": "Usar recorte", "uz": "Kesmani ishlatish"],
+            "failed_load_image": ["it": "Impossibile caricare l'immagine selezionata", "en": "Failed to load selected image", "fr": "Impossible de charger l'image sélectionnée", "es": "No se pudo cargar la imagen seleccionada", "uz": "Tanlangan rasmni yuklab bo'lmadi"],
+            "difficulty_elementary": ["it": "Elementare", "en": "Elementary", "fr": "Élémentaire", "es": "Elemental", "uz": "Boshlang'ich"],
+            "difficulty_middle_school": ["it": "Scuola media", "en": "Middle School", "fr": "Collège", "es": "Secundaria", "uz": "O'rta maktab"],
+            "difficulty_high_school": ["it": "Scuola superiore", "en": "High School", "fr": "Lycée", "es": "Bachillerato", "uz": "Yuqori sinf"],
+            "difficulty_college": ["it": "Università", "en": "College", "fr": "Université", "es": "Universidad", "uz": "Universitet"],
+            "streak_title": ["it": "Serie", "en": "Streak", "fr": "Série", "es": "Racha", "uz": "Seriya"],
+            "active_today": ["it": "Attivo oggi", "en": "Active today", "fr": "Actif aujourd'hui", "es": "Activo hoy", "uz": "Bugun faol"],
+            "not_active_today": ["it": "Non ancora attivo oggi", "en": "Not active yet today", "fr": "Pas encore actif aujourd'hui", "es": "Aún no activo hoy", "uz": "Bugun hali faol emas"],
+            "this_month": ["it": "Questo mese", "en": "This Month", "fr": "Ce mois-ci", "es": "Este mes", "uz": "Bu oy"],
+            "active_days": ["it": "giorni attivi", "en": "active days", "fr": "jours actifs", "es": "días activos", "uz": "faol kunlar"],
+            "best_streak": ["it": "Miglior serie", "en": "Best Streak", "fr": "Meilleure série", "es": "Mejor racha", "uz": "Eng yaxshi seriya"],
+            "days": ["it": "giorni", "en": "days", "fr": "jours", "es": "días", "uz": "kun"],
+            "test_dynamic_island": ["it": "Test Dynamic Island", "en": "Test Dynamic Island", "fr": "Tester Dynamic Island", "es": "Probar Dynamic Island", "uz": "Dynamic Island testi"],
+            "stop_live_activity": ["it": "Ferma Live Activity", "en": "Stop Live Activity", "fr": "Arrêter l'activité live", "es": "Detener actividad en vivo", "uz": "Live Activity ni to'xtatish"],
+            "rewards_title": ["it": "Task e ricompense", "en": "Tasks and rewards", "fr": "Tâches et récompenses", "es": "Tareas y recompensas", "uz": "Vazifalar va mukofotlar"],
+            "rewards_nav_title": ["it": "Ricompense", "en": "Rewards", "fr": "Récompenses", "es": "Recompensas", "uz": "Mukofotlar"],
         ]
         let lang = currentLanguage
         let dict = table[key] ?? [:]
@@ -111,6 +230,7 @@ enum L10n {
     static var settingsTitle: String { string("settings_title") }
     static var profile: String { string("profile") }
     static var name: String { string("name") }
+    static var age: String { string("age") }
     static var studyPreferences: String { string("study_preferences") }
     static var difficulty: String { string("difficulty") }
     static var difficultyEasy: String { string("difficulty_easy") }
@@ -158,4 +278,119 @@ enum L10n {
     static var alreadyHaveAccount: String { string("already_have_account") }
     static var createOne: String { string("create_one") }
     static var login: String { string("login") }
+    static var usernameLabel: String { string("username_label") }
+    static var passwordLabel: String { string("password_label") }
+    static var confirmPassword: String { string("confirm_password") }
+    static var insertUsername: String { string("insert_username") }
+    static var insertPassword: String { string("insert_password") }
+    static var masterTagline: String { string("master_tagline") }
+    static var continueUsername: String { string("continue_username") }
+    static var continueGoogle: String { string("continue_google") }
+    static var continueGuest: String { string("continue_guest") }
+    static var viewOnboardingAgain: String { string("view_onboarding_again") }
+    static var userFallback: String { string("user_fallback") }
+    static var dayStreak: String { string("day_streak") }
+    static var helpSupport: String { string("help_support") }
+    static var rateApp: String { string("rate_app") }
+    static var mathLevel: String { string("math_level") }
+    static var account: String { string("account") }
+    static var deleteAccount: String { string("delete_account") }
+    static var deleteAccountMessage: String { string("delete_account_message") }
+    static var storeUnlockTitle: String { string("store_unlock_title") }
+    static var storeUnlockSubtitle: String { string("store_unlock_subtitle") }
+    static var storeWhatsIncluded: String { string("store_whats_included") }
+    static var storeCurrentPlan: String { string("store_current_plan") }
+    static var storeSwitchFree: String { string("store_switch_free") }
+    static func storeSubscribeTo(_ plan: String) -> String { String(format: string("store_subscribe_format"), plan) }
+    static var storeRestorePurchases: String { string("store_restore") }
+    static var storeRenewNote: String { string("store_note") }
+    static var storeBadgeCurrent: String { string("store_badge_current") }
+    static var storeBadgeBest: String { string("store_badge_best") }
+    static var storePerMonth: String { string("store_per_month") }
+    static var storeFeatureCameraScans: String { string("store_feature_camera_scans") }
+    static var storeFeatureLessonRewards: String { string("store_feature_lesson_rewards") }
+    static var storeFeatureLessonRefunds: String { string("store_feature_lesson_refunds") }
+    static var storeValue5Day: String { string("store_value_5_day") }
+    static var storeValue10Day: String { string("store_value_10_day") }
+    static var storeValueUnlimited: String { string("store_value_unlimited") }
+    static var storeValueFull: String { string("store_value_full") }
+    static var storeFree: String { string("store_free") }
+    static var storePro: String { string("store_pro") }
+    static var storeMax: String { string("store_max") }
+    static var storeSummaryFree: String { string("store_summary_free") }
+    static var storeSummaryPro: String { string("store_summary_pro") }
+    static var storeSummaryMax: String { string("store_summary_max") }
+    static var setupProfileTitle: String { string("setup_profile_title") }
+    static var setupProfileSubtitle: String { string("setup_profile_subtitle") }
+    static var yourName: String { string("your_name") }
+    static var enterName: String { string("enter_name") }
+    static var chooseUsername: String { string("choose_username") }
+    static var usernameTaken: String { string("username_taken") }
+    static var `continue`: String { string("continue") }
+    static var skip: String { string("skip") }
+    static var next: String { string("next") }
+    static var getStarted: String { string("get_started") }
+    static var onboardingTitle1: String { string("onboarding_title_1") }
+    static var onboardingSubtitle1: String { string("onboarding_subtitle_1") }
+    static var onboardingTitle2: String { string("onboarding_title_2") }
+    static var onboardingSubtitle2: String { string("onboarding_subtitle_2") }
+    static var onboardingTitle3: String { string("onboarding_title_3") }
+    static var onboardingSubtitle3: String { string("onboarding_subtitle_3") }
+    static var signInNotConnected: String { string("sign_in_not_connected") }
+    static var registerNotConnected: String { string("register_not_connected") }
+    static var passwordsNotMatch: String { string("passwords_not_match") }
+    static var lessonsCompleted: String { string("lessons_completed") }
+    static var levelBeginner: String { string("level_beginner") }
+    static var levelIntermediate: String { string("level_intermediate") }
+    static var levelAdvanced: String { string("level_advanced") }
+    static var levelDescBeginner: String { string("level_desc_beginner") }
+    static var levelDescIntermediate: String { string("level_desc_intermediate") }
+    static var levelDescAdvanced: String { string("level_desc_advanced") }
+    static var communityTitle: String { string("community_title") }
+    static var communityAddFriend: String { string("community_add_friend") }
+    static var communityGlobalArena: String { string("community_global_arena") }
+    static var communityChallengeFriend: String { string("community_challenge_friend") }
+    static var communityPendingTitle: String { string("community_pending_title") }
+    static var communityPendingStatus: String { string("community_pending_status") }
+    static func communityPendingRequest(_ username: String) -> String { String(format: string("community_pending_request_format"), username) }
+    static var historyTitle: String { string("history_title") }
+    static var done: String { string("done") }
+    static var historyEmptyTitle: String { string("history_empty_title") }
+    static var historyEmptySubtitle: String { string("history_empty_subtitle") }
+    static var problem: String { string("problem") }
+    static var solutionSteps: String { string("solution_steps") }
+    static var solution: String { string("solution") }
+    static var solved: String { string("solved") }
+    static var answer: String { string("answer") }
+    static var steps: String { string("steps") }
+    static var solving: String { string("solving") }
+    static var cameraAccessRequired: String { string("camera_access_required") }
+    static var openSettings: String { string("open_settings") }
+    static var tryAgain: String { string("try_again") }
+    static var cameraUnlimited: String { string("camera_unlimited") }
+    static func cameraUsesRemaining(_ remaining: Int, _ total: Int) -> String { String(format: string("camera_uses_remaining_format"), remaining, total) }
+    static var gallery: String { string("gallery") }
+    static var cameraPermissionTitle: String { string("camera_permission_title") }
+    static var cameraPermissionSubtitle: String { string("camera_permission_subtitle") }
+    static var cameraPermissionCaptureLabel: String { string("camera_permission_capture_label") }
+    static var cameraPermissionPreviewLabel: String { string("camera_permission_preview_label") }
+    static var crop: String { string("crop") }
+    static var dragMoveCrop: String { string("drag_move_crop") }
+    static var useCrop: String { string("use_crop") }
+    static var failedLoadImage: String { string("failed_load_image") }
+    static var difficultyElementary: String { string("difficulty_elementary") }
+    static var difficultyMiddleSchool: String { string("difficulty_middle_school") }
+    static var difficultyHighSchool: String { string("difficulty_high_school") }
+    static var difficultyCollege: String { string("difficulty_college") }
+    static var streakTitle: String { string("streak_title") }
+    static var activeToday: String { string("active_today") }
+    static var notActiveToday: String { string("not_active_today") }
+    static var thisMonth: String { string("this_month") }
+    static var activeDays: String { string("active_days") }
+    static var bestStreak: String { string("best_streak") }
+    static var days: String { string("days") }
+    static var testDynamicIsland: String { string("test_dynamic_island") }
+    static var stopLiveActivity: String { string("stop_live_activity") }
+    static var rewardsTitle: String { string("rewards_title") }
+    static var rewardsNavTitle: String { string("rewards_nav_title") }
 }

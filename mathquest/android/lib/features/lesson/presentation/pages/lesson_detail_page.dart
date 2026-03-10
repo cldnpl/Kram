@@ -455,7 +455,7 @@ class _LessonDiagramWidgetState extends State<_LessonDiagramWidget> {
             border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
           ),
           child: _failed
-              ? const Center(child: Text('Diagram not available', style: TextStyle(fontSize: 12, color: Colors.grey)))
+              ? Center(child: Text(AppLocale.tr('diagram_not_available'), style: const TextStyle(fontSize: 12, color: Colors.grey)))
               : _controller == null
                   ? const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
                   : WebViewWidget(controller: _controller!),

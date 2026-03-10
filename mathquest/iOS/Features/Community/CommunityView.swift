@@ -53,7 +53,7 @@ struct CommunityView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Text("Community")
+                Text(L10n.communityTitle)
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundStyle(.black)
@@ -63,7 +63,7 @@ struct CommunityView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        TextField("Add a friend", text: $searchText)
+                        TextField(L10n.communityAddFriend, text: $searchText)
                             .textFieldStyle(.plain)
                             .padding(12)
                             .background(Color(.systemGray6))
@@ -95,14 +95,14 @@ struct CommunityView: View {
                         }
 
                         CommunityCard(
-                            title: "Global arena",
+                            title: L10n.communityGlobalArena,
                             icon: "globe",
                             action: {}
                         )
                         .frame(maxWidth: .infinity, minHeight: 150)
 
                         CommunityCard(
-                            title: "Challenge a friend",
+                            title: L10n.communityChallengeFriend,
                             icon: "person.2.wave.2.fill",
                             action: {}
                         )
@@ -117,10 +117,10 @@ struct CommunityView: View {
                 .background(Color.clear)
             }
         }
-        .alert("Pending", isPresented: $showPendingAlert) {
-            Button("OK", role: .cancel) {}
+        .alert(L10n.communityPendingTitle, isPresented: $showPendingAlert) {
+            Button(L10n.ok, role: .cancel) {}
         } message: {
-            Text("Friend request to @\(pendingUsername ?? "") is pending.")
+            Text(L10n.communityPendingRequest(pendingUsername ?? ""))
         }
     }
 
@@ -174,7 +174,7 @@ private struct UserSearchRow: View {
                 .font(.title2)
                 .foregroundStyle(appPurple)
         case .pending:
-            Text("Pending")
+            Text(L10n.communityPendingStatus)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         case .friends:

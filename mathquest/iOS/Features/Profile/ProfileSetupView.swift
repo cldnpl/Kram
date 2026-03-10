@@ -33,10 +33,10 @@ struct ProfileSetupView: View {
                                 .foregroundStyle(.white)
                         }
 
-                        Text("Set up your profile")
+                        Text(L10n.setupProfileTitle)
                             .font(.system(size: 28, weight: .bold))
 
-                        Text("Tell us a bit about yourself so we can personalize your learning experience")
+                        Text(L10n.setupProfileSubtitle)
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
@@ -48,11 +48,11 @@ struct ProfileSetupView: View {
                     VStack(spacing: 20) {
                         // Name field
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Your Name")
+                            Text(L10n.yourName)
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundStyle(.secondary)
 
-                            TextField("Enter your name", text: $viewModel.name)
+                            TextField(L10n.enterName, text: $viewModel.name)
                                 .textInputAutocapitalization(.words)
                                 .font(.system(size: 17))
                                 .padding()
@@ -63,12 +63,12 @@ struct ProfileSetupView: View {
 
                         // Username field
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Username")
+                            Text(L10n.usernameLabel)
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundStyle(.secondary)
 
                             HStack {
-                                TextField("Choose a username", text: $viewModel.username)
+                                TextField(L10n.chooseUsername, text: $viewModel.username)
                                     .textInputAutocapitalization(.never)
                                     .autocorrectionDisabled()
                                     .font(.system(size: 17))
@@ -91,7 +91,7 @@ struct ProfileSetupView: View {
                             .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
 
                             if let available = viewModel.isUsernameAvailable, !available {
-                                Text("Username is already taken")
+                                Text(L10n.usernameTaken)
                                     .font(.caption)
                                     .foregroundStyle(.red)
                             }
@@ -99,13 +99,14 @@ struct ProfileSetupView: View {
 
                         // Math level picker
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Math Level")
+                            Text(L10n.mathLevel)
                                 .font(.system(size: 14, weight: .semibold))
                                 .foregroundStyle(.secondary)
 
                             VStack(spacing: 10) {
                                 ForEach(viewModel.levels, id: \.self) { level in
                                     LevelOptionButton(
+                                        title: localizedLevelTitle(level),
                                         level: level,
                                         description: levelDescription(for: level),
                                         icon: levelIcon(for: level),
@@ -138,7 +139,7 @@ struct ProfileSetupView: View {
                                 ProgressView()
                                     .tint(.white)
                             } else {
-                                Text("Continue")
+                                Text(L10n.continue)
                                     .font(.system(size: 17, weight: .semibold))
                             }
                         }
@@ -168,13 +169,26 @@ struct ProfileSetupView: View {
     private func levelDescription(for level: String) -> String {
         switch level {
         case "Beginner":
-            return "Basic arithmetic, fractions, decimals"
+            return L10n.levelDescBeginner
         case "Intermediate":
-            return "Algebra, geometry, basic equations"
+            return L10n.levelDescIntermediate
         case "Advanced":
-            return "Calculus, trigonometry, advanced algebra"
+            return L10n.levelDescAdvanced
         default:
             return ""
+        }
+    }
+
+    private func localizedLevelTitle(_ level: String) -> String {
+        switch level {
+        case "Beginner":
+            return L10n.levelBeginner
+        case "Intermediate":
+            return L10n.levelIntermediate
+        case "Advanced":
+            return L10n.levelAdvanced
+        default:
+            return level
         }
     }
 
@@ -193,6 +207,7 @@ struct ProfileSetupView: View {
 }
 
 private struct LevelOptionButton: View {
+    let title: String
     let level: String
     let description: String
     let icon: String
@@ -225,7 +240,7 @@ private struct LevelOptionButton: View {
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(level)
+                    Text(title)
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(isSelected ? .primary : .secondary)
 

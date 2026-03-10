@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/network/dio_client.dart';
 
 /// Stessa schermata di UsernameLoginView (iOS): login/register con username e password.
@@ -24,7 +25,6 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
 
   static const _keyUsername = 'profile_username';
   static const _keyName = 'profile_name';
-  static const _usernameAlreadyExistsMessage = 'Nome utente già esistente';
 
   // Stessi colori iOS: appPurple (0.4, 0.3, 0.9), background white 0.95
   static const _appPurple = Color(0xFF664DE6);
@@ -64,7 +64,7 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
       final status = e.response?.statusCode;
       setState(() {
         _isRegistering = false;
-        _errorMessage = status == 409 ? _usernameAlreadyExistsMessage : 'Errore di rete. Riprova.';
+        _errorMessage = status == 409 ? AppLocale.tr('username_exists') : AppLocale.tr('network_retry');
       });
       return;
     }
@@ -80,7 +80,7 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
       if (!mounted) return;
       context.go('/');
     } else {
-      setState(() => _errorMessage = 'Errore di rete. Riprova.');
+      setState(() => _errorMessage = AppLocale.tr('network_retry'));
     }
   }
 
@@ -153,7 +153,7 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      _isLoginMode ? 'Login' : 'Register',
+                      _isLoginMode ? AppLocale.tr('login') : AppLocale.tr('register'),
                       style: const TextStyle(
                         fontSize: 34,
                         fontWeight: FontWeight.bold,
@@ -187,8 +187,8 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Username',
+                              Text(
+                                AppLocale.tr('username_label'),
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w500,
@@ -210,7 +210,7 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
                                   ),
                                 ],
                                 decoration: InputDecoration(
-                                  hintText: 'Insert username',
+                                  hintText: AppLocale.tr('insert_username'),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -229,8 +229,8 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Password',
+                              Text(
+                                AppLocale.tr('password_label'),
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.w500,
@@ -243,7 +243,7 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
                                 obscureText: true,
                                 style: const TextStyle(fontSize: 17),
                                 decoration: InputDecoration(
-                                  hintText: 'Insert password',
+                                  hintText: AppLocale.tr('insert_password'),
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(10),
                                   ),
@@ -264,8 +264,8 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
                           }),
                           child: Text(
                             _isLoginMode
-                                ? "Don't you have an account? Create one"
-                                : 'Already have an account? Login',
+                                ? '${AppLocale.tr('dont_have_account')} ${AppLocale.tr('create_one')}'
+                                : '${AppLocale.tr('already_have_account')} ${AppLocale.tr('login')}',
                             style: const TextStyle(
                               fontSize: 14,
                               color: Colors.grey,
@@ -323,7 +323,7 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
                                             ),
                                           )
                                         : Text(
-                                            _isLoginMode ? 'Login' : 'Register',
+                                            _isLoginMode ? AppLocale.tr('login') : AppLocale.tr('register'),
                                             style: const TextStyle(
                                               fontSize: 17,
                                               fontWeight: FontWeight.w600,

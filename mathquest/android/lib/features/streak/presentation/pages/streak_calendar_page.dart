@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/network/dio_client.dart';
 
 class StreakCalendarPage extends StatefulWidget {
@@ -75,11 +77,13 @@ class _StreakCalendarPageState extends State<StreakCalendarPage> {
 
   String get _monthYearString {
     final date = DateTime(_displayYear, _displayMonth);
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    return '${months[date.month - 1]} ${date.year}';
+    return DateFormat('MMMM y', AppLocale.current).format(date);
+  }
+
+  List<String> get _weekdayLabels {
+    final weekdays = DateFormat.E(AppLocale.current).dateSymbols.STANDALONESHORTWEEKDAYS;
+    final mondayFirst = [...weekdays.skip(1), weekdays.first];
+    return mondayFirst.map((d) => d.length > 3 ? d.substring(0, 3) : d).toList();
   }
 
   void _previousMonth() {
@@ -112,7 +116,7 @@ class _StreakCalendarPageState extends State<StreakCalendarPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text('Streak'),
+        title: Text(AppLocale.tr('streak_title')),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
@@ -151,8 +155,8 @@ class _StreakCalendarPageState extends State<StreakCalendarPage> {
           '$_streakDays',
           style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
         ),
-        const Text(
-          'Day Streak',
+        Text(
+          AppLocale.tr('day_streak'),
           style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.grey),
         ),
         const SizedBox(height: 8),
@@ -166,7 +170,7 @@ class _StreakCalendarPageState extends State<StreakCalendarPage> {
             ),
             const SizedBox(width: 4),
             Text(
-              _activeToday ? 'Active today' : 'Not active yet today',
+              _activeToday ? AppLocale.tr('active_today') : AppLocale.tr('not_active_today'),
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -222,7 +226,7 @@ class _StreakCalendarPageState extends State<StreakCalendarPage> {
           const SizedBox(height: 8),
           // Weekday headers
           Row(
-            children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            children: _weekdayLabels
                 .map((d) => Expanded(
                       child: Center(
                         child: Text(
@@ -304,11 +308,11 @@ class _StreakCalendarPageState extends State<StreakCalendarPage> {
     return Row(
       children: [
         Expanded(
-          child: _StatBox(title: 'This Month', value: '${_activeDates.length}', subtitle: 'active days'),
+          child: _StatBox(title: AppLocale.tr('this_month'), value: '${_activeDates.length}', subtitle: AppLocale.tr('active_days')),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _StatBox(title: 'Best Streak', value: '$_streakDays', subtitle: 'days'),
+          child: _StatBox(title: AppLocale.tr('best_streak'), value: '$_streakDays', subtitle: AppLocale.tr('days')),
         ),
       ],
     );

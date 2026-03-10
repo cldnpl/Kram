@@ -37,7 +37,7 @@ struct AnswerCardView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            Text("Answer")
+            Text(L10n.answer)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
@@ -82,13 +82,13 @@ struct DifficultyBadge: View {
     private var displayText: String {
         switch level.lowercased() {
         case "elementary":
-            return "Elementary"
+            return L10n.difficultyElementary
         case "middle_school":
-            return "Middle School"
+            return L10n.difficultyMiddleSchool
         case "high_school":
-            return "High School"
+            return L10n.difficultyHighSchool
         case "college":
-            return "College"
+            return L10n.difficultyCollege
         default:
             return level.capitalized
         }

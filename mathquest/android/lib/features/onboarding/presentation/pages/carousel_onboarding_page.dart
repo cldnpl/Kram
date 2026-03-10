@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/l10n/app_locale.dart';
 
 const _carouselSeenKey = 'carousel_seen';
 
@@ -15,24 +16,22 @@ class _CarouselOnboardingPageState extends State<CarouselOnboardingPage> {
   final PageController _pageController = PageController();
   int _currentIndex = 0;
 
-  static const _slides = [
+  List<_OnboardingSlide> get _slides => [
     _OnboardingSlide(
-      title: 'Scan math in seconds',
-      subtitle:
-          'Capture equations with your camera and get guided solutions instantly.',
+      title: AppLocale.tr('onboarding_title_1'),
+      subtitle: AppLocale.tr('onboarding_subtitle_1'),
       icon: Icons.center_focus_strong_rounded,
       gradientColors: [Color(0xFF6650A4), Color(0xFF9980F0)],
     ),
     _OnboardingSlide(
-      title: 'Learn step by step',
-      subtitle:
-          'Follow structured lessons from beginner concepts to advanced topics.',
+      title: AppLocale.tr('onboarding_title_2'),
+      subtitle: AppLocale.tr('onboarding_subtitle_2'),
       icon: Icons.menu_book_rounded,
       gradientColors: [Color(0xFF3399E6), Color(0xFF66CCF2)],
     ),
     _OnboardingSlide(
-      title: 'Build streaks and progress',
-      subtitle: 'Track consistency, complete lessons, and improve daily.',
+      title: AppLocale.tr('onboarding_title_3'),
+      subtitle: AppLocale.tr('onboarding_subtitle_3'),
       icon: Icons.local_fire_department_rounded,
       gradientColors: [Color(0xFFF28033), Color(0xFFF2B366)],
     ),
@@ -76,7 +75,7 @@ class _CarouselOnboardingPageState extends State<CarouselOnboardingPage> {
                 child: TextButton(
                   onPressed: _completeOnboarding,
                   child: Text(
-                    'Skip',
+                    AppLocale.tr('skip'),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -133,7 +132,7 @@ class _CarouselOnboardingPageState extends State<CarouselOnboardingPage> {
                     ),
                   ),
                   child: Text(
-                    isLast ? 'Get Started' : 'Next',
+                    isLast ? AppLocale.tr('get_started') : AppLocale.tr('next'),
                     style: const TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w600,

@@ -197,6 +197,19 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  String _localizedLevelName(String level) {
+    switch (level) {
+      case 'Beginner':
+        return AppLocale.tr('level_beginner');
+      case 'Intermediate':
+        return AppLocale.tr('level_intermediate');
+      case 'Advanced':
+        return AppLocale.tr('level_advanced');
+      default:
+        return level;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -231,7 +244,7 @@ class _ProfilePageState extends State<ProfilePage> {
           final isLoggedIn = state.status == AuthStatus.authenticated ||
               _profileUsername.isNotEmpty;
           final displayName =
-              _userName.isNotEmpty ? _userName : (user?.displayName ?? 'User');
+              _userName.isNotEmpty ? _userName : (user?.displayName ?? AppLocale.tr('user_fallback'));
           final email = user?.email ?? '';
           final photoUrl = user?.photoURL;
 
@@ -379,7 +392,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        _mathLevel,
+                        _localizedLevelName(_mathLevel),
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -402,7 +415,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           icon: Icons.local_fire_department,
                           iconColor: Colors.orange,
                           value: '$_streakDays',
-                          label: 'Day Streak',
+                          label: AppLocale.tr('day_streak'),
                         ),
                       ),
                     ),
@@ -431,14 +444,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 _MenuRow(
                   icon: Icons.help_outline,
                   iconColor: Colors.blue,
-                  title: 'Help & Support',
+                  title: AppLocale.tr('help_support'),
                   onTap: () {},
                 ),
                 const SizedBox(height: 12),
                 _MenuRow(
                   icon: Icons.star,
                   iconColor: Colors.amber,
-                  title: 'Rate the App',
+                  title: AppLocale.tr('rate_app'),
                   onTap: () {},
                 ),
 
@@ -453,26 +466,13 @@ class _ProfilePageState extends State<ProfilePage> {
                         ? null
                         : () async {
                             if (isLoggedIn) {
-                              final prefs =
-                                  await SharedPreferences.getInstance();
-                              final photoPath = prefs.getString(_keyProfilePhoto);
-                              if (photoPath != null) {
-                                try {
-                                  final f = File(photoPath);
-                                  if (f.existsSync()) f.deleteSync();
-                                } catch (_) {}
-                              }
-                              await prefs.remove('profile_name');
-                              await prefs.remove('profile_username');
-                              await prefs.remove('profile_level');
-                              await prefs.remove(_keyProfilePhoto);
                               if (!context.mounted) return;
                               context
                                   .read<AuthBloc>()
                                   .add(const AuthSignOutRequested());
+                              // Keep cached profile data/photo across logout-login.
+                              // When user logs in again, backend profile sync refreshes values.
                               await _loadProfileData();
-                              if (!context.mounted) return;
-                              setState(() {});
                             } else {
                               context.go('/login');
                             }

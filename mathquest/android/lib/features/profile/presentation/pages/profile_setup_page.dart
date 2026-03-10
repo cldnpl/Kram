@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/network/api_config.dart';
 import '../../../../core/router/app_router.dart';
 
@@ -113,7 +114,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
 
   Future<void> _submit() async {
     if (!_canSubmit) {
-      setState(() => _errorMessage = 'Please enter your name, username, and select a level.');
+      setState(() => _errorMessage = AppLocale.tr('profile_setup_required'));
       return;
     }
 
@@ -131,21 +132,21 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
       if (!mounted) return;
       if (e.response?.statusCode == 409) {
         setState(() {
-          _errorMessage = 'Username is already taken. Please choose another.';
+          _errorMessage = AppLocale.tr('username_taken_detailed');
           _isUsernameAvailable = false;
           _saving = false;
         });
         return;
       }
       setState(() {
-        _errorMessage = 'Failed to register username.';
+        _errorMessage = AppLocale.tr('register_failed');
         _saving = false;
       });
       return;
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _errorMessage = 'Network error: $e';
+        _errorMessage = '${AppLocale.tr('network_retry')} ($e)';
         _saving = false;
       });
       return;
@@ -190,13 +191,26 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
   String _getLevelDescription(String level) {
     switch (level) {
       case 'Beginner':
-        return 'Basic arithmetic, fractions, decimals';
+        return AppLocale.tr('level_desc_beginner');
       case 'Intermediate':
-        return 'Algebra, geometry, basic equations';
+        return AppLocale.tr('level_desc_intermediate');
       case 'Advanced':
-        return 'Calculus, trigonometry, advanced algebra';
+        return AppLocale.tr('level_desc_advanced');
       default:
         return '';
+    }
+  }
+
+  String _localizedLevelName(String level) {
+    switch (level) {
+      case 'Beginner':
+        return AppLocale.tr('level_beginner');
+      case 'Intermediate':
+        return AppLocale.tr('level_intermediate');
+      case 'Advanced':
+        return AppLocale.tr('level_advanced');
+      default:
+        return level;
     }
   }
 
@@ -242,8 +256,8 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Set up your profile',
+              Text(
+                AppLocale.tr('setup_profile_title'),
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -251,7 +265,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Tell us a bit about yourself so we can personalize your learning experience',
+                AppLocale.tr('setup_profile_subtitle'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 15,
@@ -264,7 +278,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Your Name',
+                  AppLocale.tr('your_name'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -277,7 +291,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                 controller: _nameController,
                 textCapitalization: TextCapitalization.words,
                 decoration: InputDecoration(
-                  hintText: 'Enter your name',
+                  hintText: AppLocale.tr('enter_name'),
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -297,7 +311,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Username',
+                  AppLocale.tr('username_label'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -312,7 +326,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                 enableSuggestions: false,
                 textCapitalization: TextCapitalization.none,
                 decoration: InputDecoration(
-                  hintText: 'Choose a username',
+                  hintText: AppLocale.tr('choose_username'),
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -354,7 +368,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Username is already taken',
+                      AppLocale.tr('username_taken'),
                       style: TextStyle(fontSize: 13, color: Colors.red.shade600),
                     ),
                   ),
@@ -365,7 +379,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Math Level',
+                  AppLocale.tr('math_level'),
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -433,7 +447,7 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  level,
+                                  _localizedLevelName(level),
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
@@ -510,8 +524,8 @@ class _ProfileSetupPageState extends State<ProfileSetupPage> {
                             color: Colors.white,
                           ),
                         )
-                      : const Text(
-                          'Continue',
+                      : Text(
+                          AppLocale.tr('continue'),
                           style: TextStyle(
                             fontSize: 17,
                             fontWeight: FontWeight.w600,

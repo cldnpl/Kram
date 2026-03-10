@@ -32,7 +32,7 @@ class _UsernamePasswordRegisterPageState
   void _submitRegister() {
     setState(() => _errorMessage = null);
     if (_passwordController.text != _confirmPasswordController.text) {
-      setState(() => _errorMessage = 'Passwords do not match.');
+      setState(() => _errorMessage = AppLocale.tr('passwords_not_match'));
       return;
     }
     setState(() => _loading = true);
@@ -40,8 +40,7 @@ class _UsernamePasswordRegisterPageState
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _errorMessage =
-            'Registration not yet connected. Use Google or Apple for now.';
+        _errorMessage = AppLocale.tr('register_not_connected');
       });
     });
   }
@@ -134,21 +133,21 @@ class _UsernamePasswordRegisterPageState
                             children: [
                               _buildFieldSection(
                                 theme,
-                                label: 'Username',
+                                label: AppLocale.tr('username_label'),
                                 controller: _usernameController,
                                 obscureText: false,
                               ),
                               Divider(height: 1, color: theme.dividerColor),
                               _buildFieldSection(
                                 theme,
-                                label: 'Password',
+                                label: AppLocale.tr('password_label'),
                                 controller: _passwordController,
                                 obscureText: true,
                               ),
                               Divider(height: 1, color: theme.dividerColor),
                               _buildFieldSection(
                                 theme,
-                                label: 'Confirm password',
+                                label: AppLocale.tr('confirm_password'),
                                 controller: _confirmPasswordController,
                                 obscureText: true,
                               ),
@@ -258,8 +257,8 @@ class _UsernamePasswordRegisterPageState
           TextField(
             controller: controller,
             obscureText: obscureText,
-            decoration: const InputDecoration(
-              hintText: 'Value',
+            decoration: InputDecoration(
+              hintText: AppLocale.tr('field_value'),
               border: InputBorder.none,
               isDense: true,
               contentPadding: EdgeInsets.zero,

@@ -23,11 +23,11 @@ struct CameraHistoryView: View {
                     historyList
                 }
             }
-            .navigationTitle("History")
+            .navigationTitle(L10n.historyTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.done) {
                         dismiss()
                     }
                 }
@@ -44,10 +44,10 @@ struct CameraHistoryView: View {
                 .font(.system(size: 60))
                 .foregroundColor(.gray)
 
-            Text("No History Yet")
+            Text(L10n.historyEmptyTitle)
                 .font(.title2.bold())
 
-            Text("Your solved math problems will appear here")
+            Text(L10n.historyEmptySubtitle)
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -137,7 +137,7 @@ struct HistoryDetailView: View {
                 VStack(spacing: 16) {
                     // Problem
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Problem")
+                        Text(L10n.problem)
                             .font(.caption)
                             .foregroundColor(.secondary)
                         Text(detail.problem)
@@ -150,7 +150,7 @@ struct HistoryDetailView: View {
 
                     // Difficulty
                     HStack {
-                        Text("Difficulty")
+                        Text(L10n.difficulty)
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                         Spacer()
@@ -161,7 +161,7 @@ struct HistoryDetailView: View {
 
                     // Steps
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Solution Steps")
+                        Text(L10n.solutionSteps)
                             .font(.headline)
 
                         ForEach(Array(detail.steps.enumerated()), id: \.offset) { index, step in
@@ -192,11 +192,11 @@ struct HistoryDetailView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Solution")
+            .navigationTitle(L10n.solution)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.done) {
                         dismiss()
                     }
                 }

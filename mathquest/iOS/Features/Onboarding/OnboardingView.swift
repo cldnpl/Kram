@@ -6,23 +6,23 @@ struct OnboardingView: View {
 
     var body: some View {
         Form {
-            TextField("Name", text: $viewModel.name)
-            TextField("Age", value: $viewModel.age, format: .number)
+            TextField(L10n.name, text: $viewModel.name)
+            TextField(L10n.age, value: $viewModel.age, format: .number)
                 .keyboardType(.numberPad)
-            Picker("Math Level", selection: $viewModel.mathLevel) {
-                Text("Beginner").tag("beginner")
-                Text("Intermediate").tag("intermediate")
-                Text("Advanced").tag("advanced")
+            Picker(L10n.mathLevel, selection: $viewModel.mathLevel) {
+                Text(L10n.levelBeginner).tag("beginner")
+                Text(L10n.levelIntermediate).tag("intermediate")
+                Text(L10n.levelAdvanced).tag("advanced")
             }
             .pickerStyle(.menu)
-            Button("Continue") {
+            Button(L10n.continue) {
                 Task {
                     await viewModel.submit()
                     onComplete()
                 }
             }
         }
-        .navigationTitle("Setup")
+        .navigationTitle(L10n.setupProfileTitle)
     }
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
@@ -14,8 +15,8 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final reason = GoRouterState.of(context).uri.queryParameters['reason'];
     final reasonMessage = switch (reason) {
-      'camera' => 'Sign in to use camera solving.',
-      'lesson-limit' => 'Guests can open one lesson. Sign in to continue.',
+      'camera' => AppLocale.tr('sign_in_camera'),
+      'lesson-limit' => AppLocale.tr('guest_lesson_message'),
       _ => null,
     };
 
@@ -149,7 +150,7 @@ class LoginPage extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Master math, one step at a time',
+                        AppLocale.tr('master_tagline'),
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.w500,
@@ -178,8 +179,8 @@ class LoginPage extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                 ),
-                                child: const Text(
-                                  'Continue with username',
+                                child: Text(
+                                  AppLocale.tr('continue_username'),
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w600,
@@ -221,8 +222,8 @@ class LoginPage extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    const Text(
-                                      'Continue with Google',
+                                    Text(
+                                      AppLocale.tr('continue_google'),
                                       style: TextStyle(
                                         fontSize: 17,
                                         fontWeight: FontWeight.w600,
@@ -247,8 +248,8 @@ class LoginPage extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                 ),
-                                child: const Text(
-                                  'Continue with username',
+                                child: Text(
+                                  AppLocale.tr('continue_username'),
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.w600,
@@ -270,7 +271,7 @@ class LoginPage extends StatelessWidget {
                       TextButton(
                         onPressed: loading ? null : () => context.go('/'),
                         child: Text(
-                          'Continue as guest',
+                          AppLocale.tr('continue_guest'),
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -290,7 +291,7 @@ class LoginPage extends StatelessWidget {
                                 if (context.mounted) context.go('/carousel');
                               },
                         child: Text(
-                          'View onboarding again',
+                          AppLocale.tr('view_onboarding_again'),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,

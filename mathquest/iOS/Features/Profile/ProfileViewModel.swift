@@ -236,16 +236,11 @@ final class ProfileViewModel: ObservableObject {
     }
 
     func signOut() {
-        removeLocalProfilePhoto()
-        UserDefaults.standard.removeObject(forKey: "profile_name")
-        UserDefaults.standard.removeObject(forKey: "profile_username")
-        UserDefaults.standard.removeObject(forKey: "profile_level")
+        // Keep cached profile data/photo so it remains visible across logout/login.
+        // Source of truth stays backend profile by uid/username.
         CoinWallet.resetLocalBonus()
-        userName = ""
-        profileUsername = ""
         userEmail = ""
         userPhotoURL = nil
-        profileImage = nil
-        mathLevel = "Beginner"
+        load()
     }
 }

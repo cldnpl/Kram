@@ -63,10 +63,10 @@ struct UsernamePasswordAuthView: View {
                         // Card bianca
                         VStack(spacing: 0) {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Username")
+                                Text(L10n.usernameLabel)
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundStyle(.primary)
-                                TextField("Value", text: $username)
+                                TextField(L10n.usernameLabel, text: $username)
                                     .textContentType(.username)
                                     .autocapitalization(.none)
                                     .autocorrectionDisabled()
@@ -81,10 +81,10 @@ struct UsernamePasswordAuthView: View {
                                 .padding(.leading, 20)
 
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Password")
+                                Text(L10n.passwordLabel)
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundStyle(.primary)
-                                SecureField("Value", text: $password)
+                                SecureField(L10n.passwordLabel, text: $password)
                                     .textContentType(.password)
                                     .font(.system(size: 17))
                             }
@@ -162,7 +162,7 @@ struct UsernamePasswordAuthView: View {
             try? await Task.sleep(nanoseconds: 500_000_000)
             await MainActor.run {
                 isLoading = false
-                errorMessage = "Sign in not yet connected. Use Google or Apple for now."
+                errorMessage = L10n.signInNotConnected
             }
         }
     }

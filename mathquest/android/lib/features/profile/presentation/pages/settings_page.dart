@@ -77,13 +77,26 @@ class _SettingsPageState extends State<SettingsPage> {
   String _mathLevelDescription(String level) {
     switch (level) {
       case 'Beginner':
-        return 'Basic arithmetic, fractions, decimals';
+        return AppLocale.tr('level_desc_beginner');
       case 'Intermediate':
-        return 'Algebra, geometry, basic equations';
+        return AppLocale.tr('level_desc_intermediate');
       case 'Advanced':
-        return 'Calculus, trigonometry, advanced algebra';
+        return AppLocale.tr('level_desc_advanced');
       default:
         return '';
+    }
+  }
+
+  String _localizedLevelName(String level) {
+    switch (level) {
+      case 'Beginner':
+        return AppLocale.tr('level_beginner');
+      case 'Intermediate':
+        return AppLocale.tr('level_intermediate');
+      case 'Advanced':
+        return AppLocale.tr('level_advanced');
+      default:
+        return level;
     }
   }
 
@@ -316,8 +329,8 @@ class _SettingsPageState extends State<SettingsPage> {
                           autocorrect: false,
                           enableSuggestions: false,
                           textCapitalization: TextCapitalization.none,
-                          decoration: const InputDecoration(
-                            hintText: 'Username',
+                          decoration: InputDecoration(
+                            hintText: AppLocale.tr('username_label'),
                             border: InputBorder.none,
                             isDense: true,
                             contentPadding: EdgeInsets.zero,
@@ -348,7 +361,7 @@ class _SettingsPageState extends State<SettingsPage> {
             ),
           ),
           const SizedBox(height: 24),
-          _sectionTitle('Math Level'),
+          _sectionTitle(AppLocale.tr('math_level')),
           const SizedBox(height: 8),
           ...['Beginner', 'Intermediate', 'Advanced'].map((level) => Padding(
             padding: const EdgeInsets.only(bottom: 10),
@@ -562,7 +575,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    level,
+                    _localizedLevelName(level),
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,

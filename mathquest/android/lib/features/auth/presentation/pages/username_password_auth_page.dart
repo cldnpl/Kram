@@ -36,8 +36,7 @@ class _UsernamePasswordAuthPageState extends State<UsernamePasswordAuthPage> {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        _errorMessage =
-            'Sign in not yet connected. Use Google or Apple for now.';
+        _errorMessage = AppLocale.tr('sign_in_not_connected');
       });
     });
   }
@@ -136,7 +135,7 @@ class _UsernamePasswordAuthPageState extends State<UsernamePasswordAuthPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Username',
+                                      AppLocale.tr('username_label'),
                                       style: theme.textTheme.bodyMedium?.copyWith(
                                         fontWeight: FontWeight.w500,
                                         color: theme.colorScheme.onSurface,
@@ -145,8 +144,8 @@ class _UsernamePasswordAuthPageState extends State<UsernamePasswordAuthPage> {
                                     const SizedBox(height: 12),
                                     TextField(
                                       controller: _usernameController,
-                                      decoration: const InputDecoration(
-                                        hintText: 'Value',
+                                      decoration: InputDecoration(
+                                        hintText: AppLocale.tr('field_value'),
                                         border: InputBorder.none,
                                         isDense: true,
                                         contentPadding: EdgeInsets.zero,
@@ -164,7 +163,7 @@ class _UsernamePasswordAuthPageState extends State<UsernamePasswordAuthPage> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Password',
+                                      AppLocale.tr('password_label'),
                                       style: theme.textTheme.bodyMedium?.copyWith(
                                         fontWeight: FontWeight.w500,
                                         color: theme.colorScheme.onSurface,
@@ -174,8 +173,8 @@ class _UsernamePasswordAuthPageState extends State<UsernamePasswordAuthPage> {
                                     TextField(
                                       controller: _passwordController,
                                       obscureText: true,
-                                      decoration: const InputDecoration(
-                                        hintText: 'Value',
+                                      decoration: InputDecoration(
+                                        hintText: AppLocale.tr('field_value'),
                                         border: InputBorder.none,
                                         isDense: true,
                                         contentPadding: EdgeInsets.zero,

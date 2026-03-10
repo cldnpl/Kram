@@ -5,6 +5,13 @@ private let appOrange = Color.orange
 struct StreakCalendarView: View {
     @StateObject private var viewModel = StreakCalendarViewModel()
     @Environment(\.dismiss) private var dismiss
+    private var weekdaySymbols: [String] {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: L10n.currentLanguage)
+        let symbols = formatter.shortWeekdaySymbols ?? ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+        guard symbols.count == 7 else { return symbols }
+        return Array(symbols.dropFirst()) + [symbols[0]]
+    }
 
     var body: some View {
         ScrollView {
@@ -18,16 +25,16 @@ struct StreakCalendarView: View {
                     Text("\(viewModel.streakDays)")
                         .font(.system(size: 48, weight: .bold))
 
-                    Text(viewModel.streakDays == 1 ? "Day Streak" : "Day Streak")
+                    Text(L10n.dayStreak)
                         .font(.system(size: 17, weight: .medium))
                         .foregroundStyle(.secondary)
 
                     if viewModel.activeToday {
-                        Label("Active today", systemImage: "checkmark.circle.fill")
+                        Label(L10n.activeToday, systemImage: "checkmark.circle.fill")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.green)
                     } else {
-                        Label("Not active yet today", systemImage: "exclamationmark.circle")
+                        Label(L10n.notActiveToday, systemImage: "exclamationmark.circle")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundStyle(.orange)
                     }
@@ -66,7 +73,7 @@ struct StreakCalendarView: View {
 
                     // Weekday headers
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 8) {
-                        ForEach(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], id: \.self) { day in
+                        ForEach(weekdaySymbols, id: \.self) { day in
                             Text(day)
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundStyle(.secondary)
@@ -89,14 +96,14 @@ struct StreakCalendarView: View {
                 // Stats
                 HStack(spacing: 12) {
                     StreakStatBox(
-                        title: "This Month",
+                        title: L10n.thisMonth,
                         value: "\(viewModel.activeDaysThisMonth)",
-                        subtitle: "active days"
+                        subtitle: L10n.activeDays
                     )
                     StreakStatBox(
-                        title: "Best Streak",
+                        title: L10n.bestStreak,
                         value: "\(viewModel.streakDays)",
-                        subtitle: "days"
+                        subtitle: L10n.days
                     )
                 }
                 .padding(.horizontal, 20)
@@ -109,7 +116,7 @@ struct StreakCalendarView: View {
                             streakDays: max(viewModel.streakDays, 5)
                         )
                     } label: {
-                        Label("Test Dynamic Island", systemImage: "livephoto")
+                        Label(L10n.testDynamicIsland, systemImage: "livephoto")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(.white)
                             .frame(maxWidth: .infinity)
@@ -121,7 +128,7 @@ struct StreakCalendarView: View {
                     Button {
                         StreakActivityManager.shared.stopActivity()
                     } label: {
-                        Label("Stop Live Activity", systemImage: "xmark.circle")
+                        Label(L10n.stopLiveActivity, systemImage: "xmark.circle")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundStyle(.red)
                             .frame(maxWidth: .infinity)
@@ -136,7 +143,7 @@ struct StreakCalendarView: View {
             .padding(.bottom, 24)
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle("Streak")
+        .navigationTitle(L10n.streakTitle)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             await viewModel.load()

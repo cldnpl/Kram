@@ -63,10 +63,10 @@ struct UsernamePasswordRegisterView: View {
                         // Card bianca
                         VStack(spacing: 0) {
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Username")
+                                Text(L10n.usernameLabel)
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundStyle(.primary)
-                                TextField("Value", text: $username)
+                                TextField(L10n.usernameLabel, text: $username)
                                     .textContentType(.username)
                                     .autocapitalization(.none)
                                     .autocorrectionDisabled()
@@ -81,10 +81,10 @@ struct UsernamePasswordRegisterView: View {
                                 .padding(.leading, 20)
 
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Password")
+                                Text(L10n.passwordLabel)
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundStyle(.primary)
-                                SecureField("Value", text: $password)
+                                SecureField(L10n.passwordLabel, text: $password)
                                     .textContentType(.newPassword)
                                     .font(.system(size: 17))
                             }
@@ -97,10 +97,10 @@ struct UsernamePasswordRegisterView: View {
                                 .padding(.leading, 20)
 
                             VStack(alignment: .leading, spacing: 12) {
-                                Text("Confirm password")
+                                Text(L10n.confirmPassword)
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundStyle(.primary)
-                                SecureField("Value", text: $confirmPassword)
+                                SecureField(L10n.confirmPassword, text: $confirmPassword)
                                     .textContentType(.newPassword)
                                     .font(.system(size: 17))
                             }
@@ -171,7 +171,7 @@ struct UsernamePasswordRegisterView: View {
     private func submitRegister() {
         errorMessage = nil
         guard password == confirmPassword else {
-            errorMessage = "Passwords do not match."
+            errorMessage = L10n.passwordsNotMatch
             return
         }
         isLoading = true
@@ -180,7 +180,7 @@ struct UsernamePasswordRegisterView: View {
             try? await Task.sleep(nanoseconds: 500_000_000)
             await MainActor.run {
                 isLoading = false
-                errorMessage = "Registration not yet connected. Use Google or Apple for now."
+                errorMessage = L10n.registerNotConnected
             }
         }
     }
