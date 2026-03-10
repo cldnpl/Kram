@@ -68,6 +68,22 @@ func (h *Handler) dailyLimitForTier(tier string) int {
 	}
 }
 
+func (h *Handler) isGuestRequest(c *fiber.Ctx) bool {
+	firebaseUID, _ := c.Locals(middleware.FirebaseUIDKey).(string)
+	firebaseUID = strings.TrimSpace(strings.ToLower(firebaseUID))
+	if firebaseUID == "" {
+		return true
+	}
+	return strings.HasPrefix(firebaseUID, "guest:")
+}
+
+func (h *Handler) dailyLimitForRequest(c *fiber.Ctx, tier string) int {
+	if h.isGuestRequest(c) {
+		return 1
+	}
+	return h.dailyLimitForTier(tier)
+}
+
 func (h *Handler) getDailyUsage(ctx context.Context, userID uint) (int, error) {
 	if h.redis == nil {
 		return 0, nil
@@ -138,7 +154,7 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 func (h *Handler) Solve(c *fiber.Ctx) error {
 	userID := h.resolveUserID(c)
 	tier := normalizeSubscriptionTier(c.Get("X-Subscription-Tier"))
-	effectiveDailyLimit := h.dailyLimitForTier(tier)
+	effectiveDailyLimit := h.dailyLimitForRequest(c, tier)
 
 	ctx := context.Background()
 
@@ -324,7 +340,7 @@ func (h *Handler) HistoryDetail(c *fiber.Ctx) error {
 func (h *Handler) Status(c *fiber.Ctx) error {
 	userID := h.resolveUserID(c)
 	tier := normalizeSubscriptionTier(c.Get("X-Subscription-Tier"))
-	effectiveDailyLimit := h.dailyLimitForTier(tier)
+	effectiveDailyLimit := h.dailyLimitForRequest(c, tier)
 
 	ctx := context.Background()
 	usedToday, err := h.getDailyUsage(ctx, userID)
