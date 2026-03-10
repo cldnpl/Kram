@@ -18,19 +18,10 @@ struct ContentView: View {
     @State private var showProfileSetup = false
     @State private var isHydratingProfile = false
 
-    private var isLoggedIn: Bool {
-        authManager.isAuthenticated || sessionLoggedIn
-    }
-
     private var isProfileComplete: Bool {
         !profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !profileUsername.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         !profileLevel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
-
-    /// Camera available only if logged in.
-    private var canUseCamera: Bool {
-        isLoggedIn
     }
 
     var body: some View {
@@ -42,11 +33,7 @@ struct ContentView: View {
                 .tabItem { Label("Community", systemImage: "person.2.fill") }
                 .tag(1)
             NavigationStack {
-                if canUseCamera {
-                    CameraView()
-                } else {
-                    CameraLoginRequiredView()
-                }
+                CameraView()
             }
             .tabItem { Label("Camera", systemImage: "camera.fill") }
             .tag(2)
@@ -157,47 +144,3 @@ private struct BootstrapProfileResponse: Decodable {
         .environmentObject(SubscriptionManager())
 }
 
-private struct CameraLoginRequiredView: View {
-    @EnvironmentObject private var tabSelection: TabSelection
-    @State private var showLogin = false
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "camera.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.secondary)
-
-            Text("Sign in required")
-                .font(.title3)
-                .fontWeight(.semibold)
-
-            Text("Sign in to use camera solving.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-
-            Button("Sign In") {
-                showLogin = true
-            }
-            .buttonStyle(.borderedProminent)
-            .padding(.top, 8)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
-        .navigationTitle("Camera")
-        .navigationBarTitleDisplayMode(.inline)
-        .fullScreenCover(isPresented: $showLogin) {
-            LoginView(
-                showCloseButton: true,
-                onUsernameLoginSuccess: {
-                    showLogin = false
-                    tabSelection.selectedTab = 0
-                }
-            )
-        }
-        .onChange(of: tabSelection.selectedTab) { _, newTab in
-            if newTab != 2 { showLogin = false }
-        }
-    }
-}

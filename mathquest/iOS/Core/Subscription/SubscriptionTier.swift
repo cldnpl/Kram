@@ -51,11 +51,14 @@ enum SubscriptionTier: String, CaseIterable, Codable {
         }
     }
 
+    /// Guest (not logged in) daily camera limit.
+    static let guestDailyLimit = 1
+
     // nil means unlimited
     var cameraDailyLimit: Int? {
         switch self {
         case .free:
-            return 5
+            return 3
         case .pro:
             return 10
         case .max:
@@ -79,11 +82,11 @@ enum SubscriptionTier: String, CaseIterable, Codable {
         switch self {
         case .free:
             switch lang {
-            case "it": return "5 scansioni camera/giorno e ricompense standard"
-            case "fr": return "5 scans caméra/jour et récompenses standard"
-            case "es": return "5 escaneos de cámara/día y recompensas estándar"
-            case "uz": return "Kuniga 5 ta kamera skani va standart mukofotlar"
-            default: return "5 camera scans/day and standard lesson rewards"
+            case "it": return "3 scansioni camera/giorno e ricompense standard"
+            case "fr": return "3 scans caméra/jour et récompenses standard"
+            case "es": return "3 escaneos de cámara/día y recompensas estándar"
+            case "uz": return "Kuniga 3 ta kamera skani va standart mukofotlar"
+            default: return "3 camera scans/day and standard lesson rewards"
             }
         case .pro:
             switch lang {

@@ -14,55 +14,83 @@ struct CameraHistoryView: View {
         return formatter
     }()
 
-    var body: some View {
-        NavigationStack {
-            Group {
-                if history.isEmpty {
-                    emptyState
-                } else {
-                    historyList
-                }
-            }
-            .navigationTitle(L10n.historyTitle)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(L10n.done) {
-                        dismiss()
-                    }
-                }
-            }
-            .sheet(item: $selectedItem) { detail in
-                HistoryDetailView(detail: detail)
-            }
-        }
+    private static let sampleItem = HistoryItem(
+        id: -1,
+        problem: "x² − 5x + 6 = 0",
+        solution: "x = 2, x = 3",
+        difficultyLevel: "high_school",
+        createdAt: Date()
+    )
+
+    private static let sampleDetail = HistoryDetailResponse(
+        id: -1,
+        problem: "x² − 5x + 6 = 0",
+        solution: "x = 2, x = 3",
+        steps: [
+            "Identify a quadratic equation in standard form: x² − 5x + 6 = 0",
+            "Find two numbers that multiply to 6 and add to −5: those are −2 and −3",
+            "Factor the quadratic: (x − 2)(x − 3) = 0",
+            "Apply the zero-product property: x − 2 = 0 or x − 3 = 0",
+            "Solve each factor: x = 2 or x = 3"
+        ],
+        rawLatex: "x^{2} - 5x + 6 = 0 \\implies (x-2)(x-3) = 0 \\implies x = 2, \\; x = 3",
+        difficultyLevel: "high_school",
+        createdAt: Date()
+    )
+
+    /// Combined list: user history + sample at the end.
+    private var displayItems: [HistoryItem] {
+        let hasSample = history.contains { $0.id == Self.sampleItem.id }
+        if hasSample { return history }
+        return history + [Self.sampleItem]
     }
 
-    private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "clock.arrow.circlepath")
-                .font(.system(size: 60))
-                .foregroundColor(.gray)
-
-            Text(L10n.historyEmptyTitle)
-                .font(.title2.bold())
-
-            Text(L10n.historyEmptySubtitle)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
+    var body: some View {
+        NavigationStack {
+            historyList
+                .navigationTitle(L10n.historyTitle)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button(L10n.done) {
+                            dismiss()
+                        }
+                    }
+                }
+                .sheet(item: $selectedItem) { detail in
+                    HistoryDetailView(detail: detail)
+                }
         }
-        .padding()
     }
 
     private var historyList: some View {
-        List(history) { item in
-            Button {
-                loadDetail(id: item.id)
-            } label: {
-                HistoryRowView(item: item, dateFormatter: dateFormatter)
+        List {
+            if history.isEmpty {
+                Section {
+                    sampleRow
+                } header: {
+                    Text(L10n.historyExampleHeader)
+                        .textCase(nil)
+                }
+            } else {
+                Section {
+                    ForEach(history) { item in
+                        Button {
+                            loadDetail(id: item.id)
+                        } label: {
+                            HistoryRowView(item: item, dateFormatter: dateFormatter)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+
+                Section {
+                    sampleRow
+                } header: {
+                    Text(L10n.historyExampleHeader)
+                        .textCase(nil)
+                }
             }
-            .buttonStyle(.plain)
         }
         .overlay {
             if isLoadingDetail {
@@ -72,6 +100,15 @@ struct CameraHistoryView: View {
                     .background(Color.black.opacity(0.2))
             }
         }
+    }
+
+    private var sampleRow: some View {
+        Button {
+            selectedItem = Self.sampleDetail
+        } label: {
+            HistoryRowView(item: Self.sampleItem, dateFormatter: dateFormatter)
+        }
+        .buttonStyle(.plain)
     }
 
     private func loadDetail(id: Int) {

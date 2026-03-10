@@ -88,6 +88,11 @@ enum L10n {
             "sign_in": ["it": "Accedi", "en": "Sign In", "fr": "Se connecter", "es": "Iniciar sesión", "uz": "Kirish"],
             "sign_out": ["it": "Esci", "en": "Sign Out", "fr": "Déconnexion", "es": "Cerrar sesión", "uz": "Chiqish"],
             "not_now": ["it": "Non ora", "en": "Not now", "fr": "Plus tard", "es": "Ahora no", "uz": "Keyinroq"],
+            "maybe_later": ["it": "Forse dopo", "en": "Maybe Later", "fr": "Peut-être plus tard", "es": "Quizás luego", "uz": "Keyinroq balki"],
+            "login_prompt_title": ["it": "Accedi per più scansioni", "en": "Sign In for More Scans", "fr": "Connectez-vous pour plus de scans", "es": "Inicia sesión para más escaneos", "uz": "Ko'proq skan uchun kiring"],
+            "login_prompt_subtitle": ["it": "Crea un account gratuito per sbloccare 3 scansioni al giorno e altre funzionalità.", "en": "Create a free account to unlock 3 scans per day and more features.", "fr": "Créez un compte gratuit pour débloquer 3 scans par jour et plus.", "es": "Crea una cuenta gratuita para desbloquear 3 escaneos al día y más.", "uz": "Kuniga 3 ta skan va boshqa imkoniyatlarni ochish uchun bepul hisob yarating."],
+            "login_prompt_more_scans": ["it": "3 scansioni camera gratuite al giorno", "en": "3 free camera scans per day", "fr": "3 scans caméra gratuits par jour", "es": "3 escaneos de cámara gratis al día", "uz": "Kuniga 3 ta bepul kamera skani"],
+            "login_prompt_history": ["it": "Salva e rivedi le soluzioni", "en": "Save and review your solutions", "fr": "Sauvegardez et révisez vos solutions", "es": "Guarda y revisa tus soluciones", "uz": "Yechimlarni saqlang va ko'rib chiqing"],
             "guest_lesson_message": ["it": "Gli ospiti possono aprire una lezione. Accedi per continuare con tutte.", "en": "Guests can open one lesson. Sign in to continue all lessons.", "fr": "Les invités peuvent ouvrir une leçon. Connectez-vous pour continuer.", "es": "Los invitados pueden abrir una lección. Inicia sesión para continuar.", "uz": "Mehmonlar bitta dars ochishi mumkin. Barcha darslar uchun kiring."],
             "lesson": ["it": "Lezione", "en": "Lesson", "fr": "Leçon", "es": "Lección", "uz": "Dars"],
             "lesson_cost_format": ["it": "Costo lezione: %d coin", "en": "Lesson cost: %d coins", "fr": "Coût de la leçon : %d pièces", "es": "Costo de la lección: %d monedas", "uz": "Dars narxi: %d tanga"],
@@ -145,7 +150,7 @@ enum L10n {
             "store_free": ["it": "Gratis", "en": "Free", "fr": "Gratuit", "es": "Gratis", "uz": "Bepul"],
             "store_pro": ["it": "Pro", "en": "Pro", "fr": "Pro", "es": "Pro", "uz": "Pro"],
             "store_max": ["it": "Max", "en": "Max", "fr": "Max", "es": "Max", "uz": "Max"],
-            "store_summary_free": ["it": "5 scansioni camera/giorno e ricompense standard", "en": "5 camera scans/day and standard lesson rewards", "fr": "5 scans caméra/jour et récompenses standard", "es": "5 escaneos de cámara/día y recompensas estándar", "uz": "Kuniga 5 ta kamera skani va standart mukofotlar"],
+            "store_summary_free": ["it": "3 scansioni camera/giorno e ricompense standard", "en": "3 camera scans/day and standard lesson rewards", "fr": "3 scans caméra/jour et récompenses standard", "es": "3 escaneos de cámara/día y recompensas estándar", "uz": "Kuniga 3 ta kamera skani va standart mukofotlar"],
             "store_summary_pro": ["it": "10 scansioni camera/giorno e ricompense aumentate", "en": "10 camera scans/day and boosted lesson rewards", "fr": "10 scans caméra/jour et récompenses augmentées", "es": "10 escaneos de cámara/día y recompensas mejoradas", "uz": "Kuniga 10 ta kamera skani va oshirilgan mukofotlar"],
             "store_summary_max": ["it": "Scansioni camera illimitate e rimborso completo lezioni", "en": "Unlimited camera scans and full lesson refunds", "fr": "Scans caméra illimités et remboursement complet", "es": "Escaneos ilimitados y reembolso completo", "uz": "Cheksiz kamera skanlari va to'liq qaytarim"],
             "setup_profile_title": ["it": "Configura il tuo profilo", "en": "Set up your profile", "fr": "Configurez votre profil", "es": "Configura tu perfil", "uz": "Profilingizni sozlang"],
@@ -183,6 +188,7 @@ enum L10n {
             "community_pending_request_format": ["it": "Richiesta di amicizia a @%@ in sospeso.", "en": "Friend request to @%@ is pending.", "fr": "Demande d'ami à @%@ en attente.", "es": "La solicitud de amistad a @%@ está pendiente.", "uz": "@%@ ga do'stlik so'rovi kutilmoqda."],
             "history_title": ["it": "Cronologia", "en": "History", "fr": "Historique", "es": "Historial", "uz": "Tarix"],
             "done": ["it": "Fatto", "en": "Done", "fr": "Terminé", "es": "Hecho", "uz": "Bajarildi"],
+            "history_example_header": ["it": "Esempio", "en": "Example", "fr": "Exemple", "es": "Ejemplo", "uz": "Namuna"],
             "history_empty_title": ["it": "Nessuna cronologia", "en": "No History Yet", "fr": "Pas encore d'historique", "es": "Sin historial aún", "uz": "Hali tarix yo'q"],
             "history_empty_subtitle": ["it": "I problemi risolti appariranno qui", "en": "Your solved math problems will appear here", "fr": "Vos problèmes résolus apparaîtront ici", "es": "Tus problemas resueltos aparecerán aquí", "uz": "Yechilgan masalalaringiz shu yerda ko'rinadi"],
             "problem": ["it": "Problema", "en": "Problem", "fr": "Problème", "es": "Problema", "uz": "Masala"],
@@ -260,6 +266,11 @@ enum L10n {
     static var signIn: String { string("sign_in") }
     static var signOut: String { string("sign_out") }
     static var notNow: String { string("not_now") }
+    static var maybeLater: String { string("maybe_later") }
+    static var loginPromptTitle: String { string("login_prompt_title") }
+    static var loginPromptSubtitle: String { string("login_prompt_subtitle") }
+    static var loginPromptMoreScans: String { string("login_prompt_more_scans") }
+    static var loginPromptHistory: String { string("login_prompt_history") }
     static var guestLessonMessage: String { string("guest_lesson_message") }
     static var lesson: String { string("lesson") }
     static func lessonCost(_ n: Int) -> String { String(format: string("lesson_cost_format"), n) }
@@ -355,6 +366,7 @@ enum L10n {
     static func communityPendingRequest(_ username: String) -> String { String(format: string("community_pending_request_format"), username) }
     static var historyTitle: String { string("history_title") }
     static var done: String { string("done") }
+    static var historyExampleHeader: String { string("history_example_header") }
     static var historyEmptyTitle: String { string("history_empty_title") }
     static var historyEmptySubtitle: String { string("history_empty_subtitle") }
     static var problem: String { string("problem") }

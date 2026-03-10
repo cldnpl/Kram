@@ -13,6 +13,7 @@ final class CameraViewModel: ObservableObject {
     @Published var dailyLimit: Int
     @Published var showHistory = false
     @Published var showCameraPermissionSheet = false
+    @Published var showLoginPrompt = false
     @Published var history: [HistoryItem] = []
     @Published private(set) var focusRectNormalized = CGRect(x: 0.2, y: 0.35, width: 0.6, height: 0.3)
 
@@ -20,10 +21,15 @@ final class CameraViewModel: ObservableObject {
     private let client = APIClient()
     private var cancellables = Set<AnyCancellable>()
 
+    var isGuest: Bool {
+        Auth.auth().currentUser == nil &&
+        !UserDefaults.standard.bool(forKey: "session_logged_in")
+    }
+
     init() {
-        let tier = SubscriptionTier.current
-        dailyLimit = tier.cameraDailyLimit ?? Self.unlimitedValue
-        usesRemaining = tier.cameraDailyLimit ?? Self.unlimitedValue
+        let limit = Self.resolvedDailyLimit()
+        dailyLimit = limit
+        usesRemaining = limit
 
         cameraService.objectWillChange
             .sink { [weak self] _ in
@@ -38,6 +44,30 @@ final class CameraViewModel: ObservableObject {
                 await client.setToken(nil)
             }
         }
+    }
+
+    private static func resolvedDailyLimit() -> Int {
+        let loggedIn = Auth.auth().currentUser != nil ||
+            UserDefaults.standard.bool(forKey: "session_logged_in")
+        if loggedIn {
+            let tier = SubscriptionTier.current
+            return tier.cameraDailyLimit ?? unlimitedValue
+        } else {
+            return SubscriptionTier.guestDailyLimit
+        }
+    }
+
+    /// Call after a successful login to refresh limits without recreating the view model.
+    func refreshAfterLogin() async {
+        let limit = Self.resolvedDailyLimit()
+        dailyLimit = limit
+        usesRemaining = limit
+
+        if Auth.auth().currentUser != nil {
+            await client.setToken("mock-dev-token")
+        }
+
+        await fetchStatus()
     }
 
     func setupCamera() async {
@@ -231,7 +261,11 @@ final class CameraViewModel: ObservableObject {
         }
 
         guard usesRemaining == Self.unlimitedValue || usesRemaining > 0 else {
-            state = .error("Daily limit reached. Come back tomorrow!")
+            if isGuest {
+                showLoginPrompt = true
+            } else {
+                state = .error("Daily limit reached. Come back tomorrow!")
+            }
             return false
         }
 
@@ -251,9 +285,9 @@ final class CameraViewModel: ObservableObject {
     }
 
     private func applyFallbackFromTier() {
-        let tier = SubscriptionTier.current
-        dailyLimit = tier.cameraDailyLimit ?? Self.unlimitedValue
-        usesRemaining = tier.cameraDailyLimit ?? Self.unlimitedValue
+        let limit = Self.resolvedDailyLimit()
+        dailyLimit = limit
+        usesRemaining = limit
     }
 
     private var isBusy: Bool {

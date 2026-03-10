@@ -6,8 +6,9 @@ import AVFoundation
 struct CameraView: View {
     private let minFocusSize = CGSize(width: 120, height: 120)
     private let defaultFocusSideRatio: CGFloat = 0.64
-    private let focusBoundsInset: CGFloat = 12
-    private let focusCornerRadius: CGFloat = 16
+    private let focusBoundsHorizontalInset: CGFloat = 16
+    private let focusBoundsTopInset: CGFloat = 56
+    private let focusCornerRadius: CGFloat = 28
     private let handleTouchSize: CGFloat = 44
     private let handleVisualSize: CGFloat = 18
 
@@ -20,9 +21,10 @@ struct CameraView: View {
     @State private var focusRect: CGRect = .zero
     @State private var previewSize: CGSize = .zero
     @State private var previewLayer: AVCaptureVideoPreviewLayer?
-    @State private var dragStartRect: CGRect?
     @State private var resizeStartRect: CGRect?
     @State private var activeResizeHandle: FocusHandle?
+    @State private var showLoginFromPrompt = false
+    @EnvironmentObject private var authManager: AuthManager
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
@@ -85,8 +87,16 @@ struct CameraView: View {
         }
         .sheet(isPresented: $viewModel.showCameraPermissionSheet) {
             cameraPermissionSheet
-                .presentationDetents([.height(340)])
-                .presentationDragIndicator(.visible)
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.hidden)
+                .presentationCornerRadius(28)
+                .interactiveDismissDisabled()
+        }
+        .sheet(isPresented: $viewModel.showLoginPrompt) {
+            loginPromptSheet
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.hidden)
+                .presentationCornerRadius(28)
         }
         .fullScreenCover(isPresented: $showGalleryCropper) {
             if let selectedGalleryImage {
@@ -128,6 +138,25 @@ struct CameraView: View {
 
                 await MainActor.run {
                     selectedPhotoItem = nil
+                }
+            }
+        }
+        .fullScreenCover(isPresented: $showLoginFromPrompt) {
+            LoginView(
+                showCloseButton: true,
+                onUsernameLoginSuccess: {
+                    showLoginFromPrompt = false
+                    Task {
+                        await viewModel.refreshAfterLogin()
+                    }
+                }
+            )
+        }
+        .onChange(of: authManager.isAuthenticated) { _, isAuth in
+            if isAuth {
+                showLoginFromPrompt = false
+                Task {
+                    await viewModel.refreshAfterLogin()
                 }
             }
         }
@@ -292,22 +321,6 @@ struct CameraView: View {
     @ViewBuilder
     private var bottomControls: some View {
         VStack(spacing: 16) {
-            // Uses remaining
-            HStack {
-                Image(systemName: "camera.fill")
-                if hasUnlimitedCameraUsage {
-                    Text(L10n.cameraUnlimited)
-                } else {
-                    Text(L10n.cameraUsesRemaining(viewModel.usesRemaining, viewModel.dailyLimit))
-                }
-            }
-            .font(.subheadline)
-            .foregroundColor(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(Color.black.opacity(0.6))
-            .clipShape(Capsule())
-
             // Capture button
             if viewModel.state == .idle {
                 HStack(spacing: 24) {
@@ -357,60 +370,173 @@ struct CameraView: View {
         !hasUnlimitedCameraUsage && viewModel.usesRemaining == 0
     }
 
+    private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
+
     private var cameraPermissionSheet: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Capsule()
-                .fill(Color.secondary.opacity(0.3))
-                .frame(width: 40, height: 5)
-                .frame(maxWidth: .infinity)
+        VStack(spacing: 20) {
+            Spacer(minLength: 8)
 
-            Text(L10n.cameraPermissionTitle)
-                .font(.title3.bold())
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [appPurple, Color(red: 0.6, green: 0.4, blue: 0.95)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 72, height: 72)
 
-            Text(L10n.cameraPermissionSubtitle)
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-
-            VStack(alignment: .leading, spacing: 8) {
-                Label(L10n.cameraPermissionCaptureLabel, systemImage: "camera.viewfinder")
-                Label(L10n.cameraPermissionPreviewLabel, systemImage: "text.viewfinder")
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.white)
             }
-            .font(.subheadline)
 
-            Spacer(minLength: 6)
+            VStack(spacing: 8) {
+                Text(L10n.cameraPermissionTitle)
+                    .font(.title3.bold())
+                    .multilineTextAlignment(.center)
 
-            HStack(spacing: 12) {
-                Button(L10n.notNow) {
-                    viewModel.dismissCameraPermissionSheet()
-                }
-                .buttonStyle(.bordered)
+                Text(L10n.cameraPermissionSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
 
-                Button(L10n.continue) {
+            VStack(spacing: 12) {
+                permissionFeatureRow(
+                    icon: "camera.viewfinder",
+                    text: L10n.cameraPermissionCaptureLabel
+                )
+                permissionFeatureRow(
+                    icon: "text.viewfinder",
+                    text: L10n.cameraPermissionPreviewLabel
+                )
+            }
+            .padding(.horizontal, 4)
+
+            Spacer(minLength: 8)
+
+            VStack(spacing: 10) {
+                Button {
                     Task {
                         await viewModel.requestCameraPermissionFromSheet()
                     }
+                } label: {
+                    Text(L10n.continue)
+                        .font(.body.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(appPurple)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                Button {
+                    viewModel.dismissCameraPermissionSheet()
+                } label: {
+                    Text(L10n.notNow)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
-        .padding(20)
+        .padding(.horizontal, 24)
+        .padding(.bottom, 16)
+    }
+
+    private func permissionFeatureRow(icon: String, text: String) -> some View {
+        HStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.body)
+                .foregroundStyle(appPurple)
+                .frame(width: 32, height: 32)
+                .background(appPurple.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.primary)
+
+            Spacer(minLength: 0)
+        }
+    }
+
+    private var loginPromptSheet: some View {
+        VStack(spacing: 20) {
+            Spacer(minLength: 8)
+
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [appPurple, Color(red: 0.6, green: 0.4, blue: 0.95)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 72, height: 72)
+
+                Image(systemName: "person.crop.circle.badge.plus")
+                    .font(.system(size: 32))
+                    .foregroundStyle(.white)
+            }
+
+            VStack(spacing: 8) {
+                Text(L10n.loginPromptTitle)
+                    .font(.title3.bold())
+                    .multilineTextAlignment(.center)
+
+                Text(L10n.loginPromptSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            VStack(spacing: 12) {
+                permissionFeatureRow(
+                    icon: "camera.fill",
+                    text: L10n.loginPromptMoreScans
+                )
+                permissionFeatureRow(
+                    icon: "clock.arrow.circlepath",
+                    text: L10n.loginPromptHistory
+                )
+            }
+            .padding(.horizontal, 4)
+
+            Spacer(minLength: 8)
+
+            VStack(spacing: 10) {
+                Button {
+                    viewModel.showLoginPrompt = false
+                    showLoginFromPrompt = true
+                } label: {
+                    Text(L10n.signIn)
+                        .font(.body.weight(.semibold))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(appPurple)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+
+                Button {
+                    viewModel.showLoginPrompt = false
+                } label: {
+                    Text(L10n.maybeLater)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 16)
     }
 
     @ViewBuilder
     private func focusFrameOverlay(in size: CGSize, focusRect: CGRect) -> some View {
         ZStack {
-            RoundedRectangle(cornerRadius: focusCornerRadius)
-                .stroke(Color.white, lineWidth: 2.5)
-                .frame(width: focusRect.width, height: focusRect.height)
-                .position(x: focusRect.midX, y: focusRect.midY)
-
-            Rectangle()
-                .fill(Color.clear)
-                .contentShape(Rectangle())
-                .frame(width: focusRect.width, height: focusRect.height)
-                .position(x: focusRect.midX, y: focusRect.midY)
-                .gesture(moveGesture(in: size))
-
             ForEach(FocusHandle.allCases, id: \.self) { handle in
                 FocusHandleView(handle: handle, size: handleVisualSize)
                     .frame(width: handleTouchSize, height: handleTouchSize)
@@ -537,13 +663,21 @@ struct CameraView: View {
         )
     }
 
+    /// Bottom controls height: capture button (80) + bottom padding (40) + gap to rect (16).
+    private let bottomControlsReserved: CGFloat = 136
+
     private func focusBounds(in size: CGSize) -> CGRect {
         CGRect(
-            x: focusBoundsInset,
-            y: focusBoundsInset,
-            width: max(size.width - (focusBoundsInset * 2), 1),
-            height: max(size.height - (focusBoundsInset * 2), 1)
+            x: focusBoundsHorizontalInset,
+            y: focusBoundsTopInset,
+            width: max(size.width - (focusBoundsHorizontalInset * 2), 1),
+            height: max(size.height - focusBoundsTopInset - bottomControlsReserved, 1)
         )
+    }
+
+    /// Vertical center of the focus frame, shifted upward to clear the bottom controls.
+    private func focusCenterY(in bounds: CGRect) -> CGFloat {
+        bounds.midY - bounds.height * 0.12
     }
 
     private func defaultFocusRect(in size: CGSize) -> CGRect {
@@ -551,10 +685,11 @@ struct CameraView: View {
         let minDimension = min(bounds.width, bounds.height)
         let minimumSide = min(minFocusSize.width, minDimension)
         let side = min(max(minDimension * defaultFocusSideRatio, minimumSide), minDimension)
+        let centerY = focusCenterY(in: bounds)
 
         return CGRect(
             x: bounds.midX - (side / 2),
-            y: bounds.midY - (side / 2),
+            y: centerY - (side / 2),
             width: side,
             height: side
         )
@@ -566,30 +701,11 @@ struct CameraView: View {
         let minimumHeight = min(minFocusSize.height, bounds.height)
         let width = min(max(rect.width, minimumWidth), bounds.width)
         let height = min(max(rect.height, minimumHeight), bounds.height)
-        let originX = clamped(rect.minX, min: bounds.minX, max: bounds.maxX - width)
-        let originY = clamped(rect.minY, min: bounds.minY, max: bounds.maxY - height)
+        let centerY = focusCenterY(in: bounds)
+        let originX = bounds.midX - (width / 2)
+        let originY = max(bounds.minY, min(centerY - (height / 2), bounds.maxY - height))
 
         return CGRect(x: originX, y: originY, width: width, height: height)
-    }
-
-    private func moveGesture(in size: CGSize) -> some Gesture {
-        DragGesture(minimumDistance: 0)
-            .onChanged { value in
-                guard activeResizeHandle == nil else { return }
-                if dragStartRect == nil {
-                    dragStartRect = resolvedFocusRect(in: size)
-                }
-
-                guard let startRect = dragStartRect else { return }
-                let movedRect = startRect.offsetBy(
-                    dx: value.translation.width,
-                    dy: value.translation.height
-                )
-                applyFocusRect(movedRect, in: size, updateModel: true)
-            }
-            .onEnded { _ in
-                dragStartRect = nil
-            }
     }
 
     private func resizeGesture(for handle: FocusHandle, in size: CGSize) -> some Gesture {
@@ -612,7 +728,6 @@ struct CameraView: View {
             .onEnded { _ in
                 resizeStartRect = nil
                 activeResizeHandle = nil
-                dragStartRect = nil
             }
     }
 
@@ -621,47 +736,37 @@ struct CameraView: View {
         let minimumWidth = min(minFocusSize.width, bounds.width)
         let minimumHeight = min(minFocusSize.height, bounds.height)
 
+        // Calculate how much to expand/contract based on which handle is dragged.
+        // Each handle contributes a signed delta; we double it so the rect grows
+        // symmetrically from the center.
+        let dw: CGFloat
+        let dh: CGFloat
+
         switch handle {
         case .topLeft:
-            let newMinX = clamped(startRect.minX + translation.width, min: bounds.minX, max: startRect.maxX - minimumWidth)
-            let newMinY = clamped(startRect.minY + translation.height, min: bounds.minY, max: startRect.maxY - minimumHeight)
-            return CGRect(
-                x: newMinX,
-                y: newMinY,
-                width: startRect.maxX - newMinX,
-                height: startRect.maxY - newMinY
-            )
-
+            dw = -translation.width * 2
+            dh = -translation.height * 2
         case .topRight:
-            let newMaxX = clamped(startRect.maxX + translation.width, min: startRect.minX + minimumWidth, max: bounds.maxX)
-            let newMinY = clamped(startRect.minY + translation.height, min: bounds.minY, max: startRect.maxY - minimumHeight)
-            return CGRect(
-                x: startRect.minX,
-                y: newMinY,
-                width: newMaxX - startRect.minX,
-                height: startRect.maxY - newMinY
-            )
-
+            dw = translation.width * 2
+            dh = -translation.height * 2
         case .bottomLeft:
-            let newMinX = clamped(startRect.minX + translation.width, min: bounds.minX, max: startRect.maxX - minimumWidth)
-            let newMaxY = clamped(startRect.maxY + translation.height, min: startRect.minY + minimumHeight, max: bounds.maxY)
-            return CGRect(
-                x: newMinX,
-                y: startRect.minY,
-                width: startRect.maxX - newMinX,
-                height: newMaxY - startRect.minY
-            )
-
+            dw = -translation.width * 2
+            dh = translation.height * 2
         case .bottomRight:
-            let newMaxX = clamped(startRect.maxX + translation.width, min: startRect.minX + minimumWidth, max: bounds.maxX)
-            let newMaxY = clamped(startRect.maxY + translation.height, min: startRect.minY + minimumHeight, max: bounds.maxY)
-            return CGRect(
-                x: startRect.minX,
-                y: startRect.minY,
-                width: newMaxX - startRect.minX,
-                height: newMaxY - startRect.minY
-            )
+            dw = translation.width * 2
+            dh = translation.height * 2
         }
+
+        let newWidth = min(max(startRect.width + dw, minimumWidth), bounds.width)
+        let newHeight = min(max(startRect.height + dh, minimumHeight), bounds.height)
+
+        // clampFocusRect will re-center the rect
+        return CGRect(
+            x: bounds.midX - newWidth / 2,
+            y: bounds.midY - newHeight / 2,
+            width: newWidth,
+            height: newHeight
+        )
     }
 
     private func clamped(_ value: CGFloat, min minimum: CGFloat, max maximum: CGFloat) -> CGFloat {
@@ -713,27 +818,44 @@ private struct CornerBracketShape: Shape {
         let minY = rect.minY + inset
         let maxX = rect.maxX - inset
         let maxY = rect.maxY - inset
+        let radius = min(rect.width, rect.height) * 0.45
 
         var path = Path()
         switch handle {
         case .topLeft:
             path.move(to: CGPoint(x: maxX, y: minY))
-            path.addLine(to: CGPoint(x: minX, y: minY))
+            path.addLine(to: CGPoint(x: minX + radius, y: minY))
+            path.addQuadCurve(
+                to: CGPoint(x: minX, y: minY + radius),
+                control: CGPoint(x: minX, y: minY)
+            )
             path.addLine(to: CGPoint(x: minX, y: maxY))
 
         case .topRight:
             path.move(to: CGPoint(x: minX, y: minY))
-            path.addLine(to: CGPoint(x: maxX, y: minY))
+            path.addLine(to: CGPoint(x: maxX - radius, y: minY))
+            path.addQuadCurve(
+                to: CGPoint(x: maxX, y: minY + radius),
+                control: CGPoint(x: maxX, y: minY)
+            )
             path.addLine(to: CGPoint(x: maxX, y: maxY))
 
         case .bottomLeft:
             path.move(to: CGPoint(x: minX, y: minY))
-            path.addLine(to: CGPoint(x: minX, y: maxY))
+            path.addLine(to: CGPoint(x: minX, y: maxY - radius))
+            path.addQuadCurve(
+                to: CGPoint(x: minX + radius, y: maxY),
+                control: CGPoint(x: minX, y: maxY)
+            )
             path.addLine(to: CGPoint(x: maxX, y: maxY))
 
         case .bottomRight:
             path.move(to: CGPoint(x: minX, y: maxY))
-            path.addLine(to: CGPoint(x: maxX, y: maxY))
+            path.addLine(to: CGPoint(x: maxX - radius, y: maxY))
+            path.addQuadCurve(
+                to: CGPoint(x: maxX, y: maxY - radius),
+                control: CGPoint(x: maxX, y: maxY)
+            )
             path.addLine(to: CGPoint(x: maxX, y: minY))
         }
         return path
@@ -746,7 +868,9 @@ private struct GalleryCropSheet: View {
     let onUseCrop: (UIImage) -> Void
 
     private let minCropSize: CGFloat = 100
-    private let cropCornerRadius: CGFloat = 16
+    private let cropCornerRadius: CGFloat = 28
+    private let cropHandleSize: CGFloat = 18
+    private let cropHandleTouchSize: CGFloat = 44
 
     @State private var imageFrame: CGRect = .zero
     @State private var cropRect: CGRect = .zero
@@ -820,11 +944,11 @@ private struct GalleryCropSheet: View {
                 style: FillStyle(eoFill: true)
             )
 
-            RoundedRectangle(cornerRadius: cropCornerRadius)
-                .stroke(Color.white, lineWidth: 2.5)
-                .frame(width: activeCropRect.width, height: activeCropRect.height)
-                .position(x: activeCropRect.midX, y: activeCropRect.midY)
-                .shadow(color: .black.opacity(0.35), radius: 3, x: 0, y: 1)
+            ForEach(FocusHandle.allCases, id: \.self) { handle in
+                FocusHandleView(handle: handle, size: cropHandleSize)
+                    .frame(width: cropHandleTouchSize, height: cropHandleTouchSize)
+                    .position(handle.point(in: activeCropRect))
+            }
 
             Rectangle()
                 .fill(Color.clear)
