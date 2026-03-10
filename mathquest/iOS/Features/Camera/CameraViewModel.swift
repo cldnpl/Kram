@@ -29,7 +29,7 @@ final class CameraViewModel: ObservableObject {
     init() {
         let limit = Self.resolvedDailyLimit()
         dailyLimit = limit
-        usesRemaining = limit
+        usesRemaining = Self.isGuestStatic() ? Self.guestUsesRemaining() : limit
 
         cameraService.objectWillChange
             .sink { [weak self] _ in
@@ -38,12 +38,68 @@ final class CameraViewModel: ObservableObject {
             .store(in: &cancellables)
 
         Task {
-            if Auth.auth().currentUser != nil {
-                await client.setToken("mock-dev-token")
-            } else {
-                await client.setToken(nil)
-            }
+            await client.setToken(Self.resolvedToken())
         }
+    }
+
+    // MARK: - Guest local usage tracking
+
+    private static let guestUsesKey = "guest_camera_uses_today"
+    private static let guestUsesDateKey = "guest_camera_uses_date"
+
+    private static func isGuestStatic() -> Bool {
+        Auth.auth().currentUser == nil &&
+        !UserDefaults.standard.bool(forKey: "session_logged_in")
+    }
+
+    private static func guestUsesToday() -> Int {
+        let saved = UserDefaults.standard.string(forKey: guestUsesDateKey) ?? ""
+        let today = Self.todayString()
+        if saved != today {
+            return 0
+        }
+        return UserDefaults.standard.integer(forKey: guestUsesKey)
+    }
+
+    private static func guestUsesRemaining() -> Int {
+        max(SubscriptionTier.guestDailyLimit - guestUsesToday(), 0)
+    }
+
+    private func recordGuestUse() {
+        let today = Self.todayString()
+        UserDefaults.standard.set(today, forKey: Self.guestUsesDateKey)
+        let current = Self.guestUsesToday()
+        UserDefaults.standard.set(current + 1, forKey: Self.guestUsesKey)
+        usesRemaining = max(SubscriptionTier.guestDailyLimit - (current + 1), 0)
+    }
+
+    private static func todayString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: Date())
+    }
+
+    private static func resolvedToken() -> String {
+        if let user = Auth.auth().currentUser {
+            return user.uid
+        }
+        if UserDefaults.standard.bool(forKey: "session_logged_in"),
+           let username = UserDefaults.standard.string(forKey: "profile_username"),
+           !username.isEmpty {
+            return "username:\(username)"
+        }
+        // Guest: use a stable device identifier so the backend can track daily usage
+        return "guest:\(guestDeviceID())"
+    }
+
+    private static func guestDeviceID() -> String {
+        let key = "guest_device_id"
+        if let existing = UserDefaults.standard.string(forKey: key), !existing.isEmpty {
+            return existing
+        }
+        let id = UUID().uuidString
+        UserDefaults.standard.set(id, forKey: key)
+        return id
     }
 
     private static func resolvedDailyLimit() -> Int {
@@ -63,10 +119,7 @@ final class CameraViewModel: ObservableObject {
         dailyLimit = limit
         usesRemaining = limit
 
-        if Auth.auth().currentUser != nil {
-            await client.setToken("mock-dev-token")
-        }
-
+        await client.setToken(Self.resolvedToken())
         await fetchStatus()
     }
 
@@ -106,6 +159,11 @@ final class CameraViewModel: ObservableObject {
     }
 
     func fetchStatus() async {
+        guard !isGuest else {
+            applyFallbackFromTier()
+            return
+        }
+
         do {
             let response: StatusResponse = try await client.request("camera/status")
             applyStatus(response)
@@ -204,7 +262,9 @@ final class CameraViewModel: ObservableObject {
             let response: SolveResponse = try await client.request("camera/solve", method: "POST", body: body)
 
             state = .success(response)
-            if response.usesRemainingToday < 0 {
+            if isGuest {
+                recordGuestUse()
+            } else if response.usesRemainingToday < 0 {
                 usesRemaining = Self.unlimitedValue
                 dailyLimit = Self.unlimitedValue
             } else {
@@ -287,7 +347,7 @@ final class CameraViewModel: ObservableObject {
     private func applyFallbackFromTier() {
         let limit = Self.resolvedDailyLimit()
         dailyLimit = limit
-        usesRemaining = limit
+        usesRemaining = isGuest ? Self.guestUsesRemaining() : limit
     }
 
     private var isBusy: Bool {
@@ -340,6 +400,8 @@ final class CameraViewModel: ObservableObject {
     }
 
     func fetchHistory() async {
+        guard !isGuest else { return }
+
         do {
             let response: HistoryResponse = try await client.request("camera/history")
             history = response.history
