@@ -30,3 +30,5 @@ build/
 # Environment
 .env
 .env.*
+.webhook_secret
+.webhook.env

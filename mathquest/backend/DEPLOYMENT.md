@@ -1,6 +1,16 @@
 # Automated Deployment Setup
 
-This guide sets up automatic deployment when you push to the `main` branch.
+This guide covers the production backend deployment flow for `main`.
+
+Production is currently updated by a server-side webhook, not GitHub Actions. The webhook runs `/opt/kram/deploy.sh`, which automatically:
+
+1. pulls the latest code or image for the current deploy mode,
+2. starts `db` and `redis`,
+3. waits for Postgres readiness,
+4. applies idempotent SQL migrations such as `migrations/008_camera_share_links.up.sql`,
+5. recreates `api` only after the migration succeeds.
+
+No manual `psql` command is required during a normal webhook deploy.
 
 ## 1. GitHub Repository Secrets
 
@@ -74,6 +84,8 @@ Wait for databases to be ready, then start the API:
 docker compose -f docker-compose.prod.yml up -d
 ```
 
+After the first boot, subsequent schema changes are applied automatically by the webhook deploy script before `api` is restarted.
+
 ## 4. GitHub Container Registry Access
 
 The workflow uses GitHub Container Registry (ghcr.io). Make sure your repository has:
@@ -85,24 +97,27 @@ The workflow uses GitHub Container Registry (ghcr.io). Make sure your repository
 ## 5. How It Works
 
 1. You push code to `main` branch
-2. GitHub Actions builds a Docker image
-3. Image is pushed to GitHub Container Registry
-4. Workflow SSHs into your server
-5. Server pulls the new image and restarts the container
+2. The webhook on the server receives the push event
+3. The server pulls the latest code and, when applicable, the latest API image
+4. The deploy script starts `db` and `redis`
+5. The deploy script waits until Postgres reports ready
+6. The deploy script runs the SQL migration non-interactively inside the `db` container
+7. The deploy script recreates `api` and waits for it to become ready
 
 ## 6. Checking Deployment Status
 
-- **GitHub Actions**: Check the "Actions" tab in your repo
+- **Webhook service logs**: `journalctl -u kram-webhook.service -f`
+- **Deploy log**: `tail -f /var/log/kram-deploy.log`
 - **Server logs**: `docker logs mathquest-api -f`
 - **All containers**: `docker ps`
 
 ## 7. Manual Deployment (if needed)
 
 ```bash
-cd ~/mathquest
-docker pull ghcr.io/YOUR_GITHUB_USERNAME/mathquest-backend:latest
-docker compose -f docker-compose.prod.yml up -d --force-recreate api
+/opt/kram/deploy.sh
 ```
+
+If you must bypass the webhook entirely, follow the same dependency -> Postgres readiness -> migration -> API recreate sequence used by `/opt/kram/deploy.sh`.
 
 ## 8. Rollback
 
@@ -113,6 +128,8 @@ To rollback to a specific version:
 docker pull ghcr.io/YOUR_GITHUB_USERNAME/mathquest-backend:COMMIT_SHA
 docker compose -f docker-compose.prod.yml up -d --force-recreate api
 ```
+
+Schema changes from idempotent migrations remain applied. If a deploy fails during the migration step, the script exits before recreating `api`, so the previous API container keeps serving traffic.
 
 ## Troubleshooting
 
