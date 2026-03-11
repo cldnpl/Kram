@@ -354,8 +354,23 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 	// Call Claude API
 	solution, err := h.claudeSvc.SolveMathProblem(req.ImageBase64, req.MediaType)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": fmt.Sprintf("failed to solve problem: %v", err),
+		remaining := unlimitedDailyLimit
+		if effectiveDailyLimit >= 0 {
+			remaining = effectiveDailyLimit - usedToday
+			if remaining < 0 {
+				remaining = 0
+			}
+		}
+		return c.JSON(SolveResponse{
+			ID:                  0,
+			Problem:             "Problem text could not be read clearly from image.",
+			Solution:            "I could not process this scan right now. Please retake the photo.",
+			Steps:               []string{},
+			RawLatex:            "",
+			DifficultyLevel:     "unknown",
+			DetectedLanguage:    "unknown",
+			ShouldSaveToHistory: false,
+			UsesRemainingToday:  remaining,
 		})
 	}
 

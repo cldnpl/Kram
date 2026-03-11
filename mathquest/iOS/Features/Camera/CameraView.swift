@@ -46,7 +46,8 @@ struct CameraView: View {
             }
         }
         .ignoresSafeArea(.container, edges: .top)
-        .toolbarBackground(.hidden, for: .tabBar)
+        .toolbarBackground(.visible, for: .tabBar)
+        .toolbarBackground(appPurple, for: .tabBar)
         .toolbarColorScheme(.dark, for: .tabBar)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -1386,15 +1387,6 @@ private struct CameraSolutionPage: View {
                                 .stroke(Color(.systemGray4), lineWidth: 1)
                         )
                 }
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(L10n.problem)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Text(response.problem)
-                        .font(.body)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
 
                 AnswerCardView(answer: response.solution, isVisible: true)
 

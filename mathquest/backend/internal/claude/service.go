@@ -2,15 +2,27 @@ package claude
 
 import (
 	"bytes"
+	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
+	"time"
 )
 
 const claudeAPIURL = "https://api.anthropic.com/v1/messages"
 const claudeModel = "claude-sonnet-4-20250514"
+const claudeRequestTimeout = 28 * time.Second
+const maxImageBase64Chars = 10 * 1024 * 1024
+const minImageBase64Chars = 64
+const maxResponseProblemChars = 2000
+const maxResponseSolutionChars = 2500
+const maxResponseRawLatexChars = 4000
+const maxResponseStepChars = 2200
+const maxResponseSteps = 14
 
 type Service struct {
 	apiKey string
@@ -20,7 +32,7 @@ type Service struct {
 func NewService(apiKey string) *Service {
 	return &Service{
 		apiKey: apiKey,
-		client: &http.Client{},
+		client: &http.Client{Timeout: claudeRequestTimeout},
 	}
 }
 
@@ -78,15 +90,41 @@ Rules you MUST follow:
 - Preserve the original language and script from the image (for example Uzbek, Russian, English). Do not translate unless explicitly asked.
 - Do not invent missing numbers, symbols, or words.
 - If the image is unclear or incomplete, say so explicitly in "solution" and "steps" instead of guessing.
+- If OCR output looks corrupted, random, or inconsistent, stop and return a clean retake message instead of forcing a long solution.
+- Keep reasoning efficient: do not repeat already completed transformations and avoid redundant recalculations.
+- If the full derivation is very long, provide a concise but complete sequence of essential steps to avoid timeout.
 - Keep "problem" as the exact transcription of what you can read from the image.
 - Set "detected_language" to one of: en, it, fr, es, uz, unknown.
 - Set "should_save_to_history" to false if the image is unclear, incomplete, unreadable, or the result is just an error/retake message. Otherwise set it to true.
+- Each item in "steps" MUST use this exact format: "LATEX_STEP || DETAILED_EXPLANATION".
+- In each step:
+  - The part before "||" MUST contain only mathematical content in LaTeX (no prose words, no plain-language commentary).
+  - The LaTeX part MUST be wrapped in double dollars and start with \displaystyle, for example: $$\displaystyle \frac{1}{2}x=3$$
+  - Use professional LaTeX only. Never use linear notation like a/b or integral(f(x)); use \frac{a}{b}, \int, \sin^n(x), greek symbols, etc.
+  - In step LaTeX, never use "/" for fractions; always use \frac{...}{...}.
+  - For definite integrals, limits must be vertical with \int_{...}^{...} (for example \int_{0}^{\frac{\pi}{2}}), never side-written limits.
+  - Keep the full equation or transformation centered-ready and complete; do not output incoherent fragments.
+  - If the expression is long, structure LaTeX using multiline formatting (for example \begin{aligned} line_1 \\ line_2 \end{aligned}) and keep alignment coherent (especially around "=").
+  - Do not introduce stray OCR letters like "i" or "I" unless mathematically intended and explicitly defined.
+- The part after "||" MUST be a complete, detailed explanation in Italian.
+- The explanation language must be fully Italian; do not mix English words.
+- Inside the explanation, every mathematical reference (variables, symbols, expressions, identities, intermediate results) MUST be rendered in LaTeX delimiters: use $...$ inline and $$...$$ for isolated formulas.
+  - In explanation text, never write linear/plain notation such as pi/2, x^2, a/b, integral(...), or plain dx.
+  - Never use programming-style operators in explanation prose (for example * or ^ as plain text). Use only LaTeX math notation.
+  - Explanations must clearly state what transformation/property/rule is used and why it is valid.
+  - Mention identities explicitly when used, and include intermediate algebraic reasoning without skipping essential steps.
+  - Explanation quality: at least 2 complete sentences per step, not short phrases.
+  - Structure explanations into short paragraphs (2-3 lines each) separated by a blank line ("\n\n") inside the same step string.
+  - Each paragraph must include at least one bold technical operation label using Markdown (for example **Sostituzione**, **Semplificazione**, **Proprietà**, **Risultato parziale**).
+  - Whenever you reference formulas, symbolic values, or intermediate expressions in explanation prose, write them in LaTeX using $...$ (inline) or $$...$$ (isolated).
+  - Never use ellipses ("...") in explanations; write complete statements.
+  - Avoid short fragments like "therefore", "RHS", "apply property" without details.
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
 {
   "problem": "exact text transcribed from image",
   "solution": "final answer or a clear message if unreadable",
-  "steps": ["step 1 explanation", "step 2 explanation", ...],
+  "steps": ["$$\\displaystyle <latex step 1>$$ || <detailed explanation 1>", "$$\\displaystyle <latex step 2>$$ || <detailed explanation 2>"],
   "raw_latex": "the problem and solution in LaTeX format",
   "difficulty_level": "elementary|middle_school|high_school|college",
   "detected_language": "en|it|fr|es|uz|unknown",
@@ -106,12 +144,20 @@ Rules you MUST follow:
 - Keep "detected_language" unchanged.
 - Keep "should_save_to_history" unchanged.
 - Return the same number of steps.
+- For each step string in "steps", preserve the exact format "LATEX_STEP || EXPLANATION".
+- Do NOT translate or alter the LaTeX part before "||".
+- Translate ONLY the explanation text after "||" into the target language.
+- In translated explanations, use only the target language (except math symbols/LaTeX); do not leave mixed-language fragments.
+- Keep paragraph breaks ("\n\n"), Markdown bold markers, and LaTeX delimiters $...$ / $$...$$ exactly valid after translation.
+- Keep the LaTeX step format as $$\displaystyle <formula>$$ exactly valid after translation.
+- In translated explanations, preserve strict math notation with $...$ inline and $$...$$ for isolated formulas; do not output linear notation.
+- Keep output lightweight and avoid adding any extra keys or metadata.
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
 {
   "problem": "translated problem text",
   "solution": "translated final answer",
-  "steps": ["translated step 1", "translated step 2", ...],
+  "steps": ["$$\\displaystyle <same latex step 1>$$ || <translated detailed explanation 1>", "$$\\displaystyle <same latex step 2>$$ || <translated detailed explanation 2>"],
   "raw_latex": "original raw latex",
   "difficulty_level": "elementary|middle_school|high_school|college",
   "detected_language": "en|it|fr|es|uz|unknown",
@@ -154,9 +200,14 @@ func (s *Service) SolveMathProblem(imageBase64, mediaType string) (*MathSolution
 		return nil, fmt.Errorf("Claude API key not configured")
 	}
 
+	sanitizedImage, sanitizeErr := sanitizeImageBase64(imageBase64)
+	if sanitizeErr != nil {
+		return unreadableRetakeSolution(), nil
+	}
+
 	reqBody := ClaudeRequest{
 		Model:     claudeModel,
-		MaxTokens: 2048,
+		MaxTokens: 1536,
 		Messages: []Message{
 			{
 				Role: "user",
@@ -166,7 +217,7 @@ func (s *Service) SolveMathProblem(imageBase64, mediaType string) (*MathSolution
 						Source: &ImageSource{
 							Type:      "base64",
 							MediaType: mediaType,
-							Data:      imageBase64,
+							Data:      sanitizedImage,
 						},
 					},
 					{
@@ -180,38 +231,14 @@ func (s *Service) SolveMathProblem(imageBase64, mediaType string) (*MathSolution
 
 	responseText, err := s.runJSONRequest(reqBody)
 	if err != nil {
-		return nil, err
+		return unreadableRetakeSolution(), nil
 	}
 	solution, err := parseSolutionFromText(responseText)
 	if err != nil {
-		// If parsing fails, try to extract info manually
-		return &MathSolution{
-			Problem:             "Unable to parse problem from image",
-			Solution:            "Could not parse model response as structured solution. Please retake the photo.",
-			Steps:               []string{"Could not parse structured response.", responseText},
-			RawLatex:            "",
-			DifficultyLevel:     "unknown",
-			DetectedLanguage:    "unknown",
-			ShouldSaveToHistory: boolPtr(false),
-		}, nil
+		return unreadableRetakeSolution(), nil
 	}
 
-	if solution.Steps == nil {
-		solution.Steps = []string{}
-	}
-	if strings.TrimSpace(solution.Solution) == "" {
-		solution.Solution = "Could not determine a final answer from the image."
-	}
-	if strings.TrimSpace(solution.Problem) == "" {
-		solution.Problem = "Problem text could not be read clearly from image."
-	}
-	if strings.TrimSpace(solution.DifficultyLevel) == "" {
-		solution.DifficultyLevel = "unknown"
-	}
-	solution.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
-	if solution.ShouldSaveToHistory == nil {
-		solution.ShouldSaveToHistory = boolPtr(defaultShouldSaveToHistory(solution))
-	}
+	normalizeSolutionPayload(solution)
 
 	return solution, nil
 }
@@ -261,14 +288,12 @@ func (s *Service) TranslateMathSolution(solution *MathSolution, targetLanguage s
 		return nil, fmt.Errorf("failed to parse translated solution: %w", err)
 	}
 
-	if translated.Steps == nil {
-		translated.Steps = []string{}
-	}
-	if strings.TrimSpace(translated.DifficultyLevel) == "" {
-		translated.DifficultyLevel = solution.DifficultyLevel
+	normalizeSolutionPayload(translated)
+	if strings.TrimSpace(translated.DifficultyLevel) == "" || translated.DifficultyLevel == "unknown" {
+		translated.DifficultyLevel = strings.TrimSpace(solution.DifficultyLevel)
 	}
 	if strings.TrimSpace(translated.RawLatex) == "" {
-		translated.RawLatex = solution.RawLatex
+		translated.RawLatex = strings.TrimSpace(solution.RawLatex)
 	}
 	translated.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
 	if solution.ShouldSaveToHistory != nil {
@@ -286,7 +311,10 @@ func (s *Service) runJSONRequest(reqBody ClaudeRequest) (string, error) {
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", claudeAPIURL, bytes.NewBuffer(jsonData))
+	ctx, cancel := context.WithTimeout(context.Background(), claudeRequestTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", claudeAPIURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
@@ -307,7 +335,7 @@ func (s *Service) runJSONRequest(reqBody ClaudeRequest) (string, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Claude API error (status %d): %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("Claude API error (status %d): %s", resp.StatusCode, compactErrorSnippet(string(body), 360))
 	}
 
 	var claudeResp ClaudeResponse
@@ -324,6 +352,263 @@ func (s *Service) runJSONRequest(reqBody ClaudeRequest) (string, error) {
 	}
 
 	return strings.TrimSpace(claudeResp.Content[0].Text), nil
+}
+
+func sanitizeImageBase64(raw string) (string, error) {
+	value := strings.TrimSpace(raw)
+	if value == "" {
+		return "", fmt.Errorf("empty image payload")
+	}
+
+	if strings.HasPrefix(value, "data:") {
+		if comma := strings.Index(value, ","); comma >= 0 && comma+1 < len(value) {
+			value = value[comma+1:]
+		}
+	}
+
+	value = strings.ReplaceAll(value, "\n", "")
+	value = strings.ReplaceAll(value, "\r", "")
+	value = strings.TrimSpace(value)
+
+	if len(value) < minImageBase64Chars {
+		return "", fmt.Errorf("image payload too short")
+	}
+	if len(value) > maxImageBase64Chars {
+		return "", fmt.Errorf("image payload too large")
+	}
+
+	normalized := strings.NewReplacer("-", "+", "_", "/").Replace(value)
+	if rem := len(normalized) % 4; rem != 0 {
+		normalized += strings.Repeat("=", 4-rem)
+	}
+
+	if _, err := base64.StdEncoding.DecodeString(normalized); err != nil {
+		return "", fmt.Errorf("invalid base64 image payload: %w", err)
+	}
+
+	return normalized, nil
+}
+
+func normalizeSolutionPayload(solution *MathSolution) {
+	if solution == nil {
+		return
+	}
+
+	solution.Problem = clampString(strings.TrimSpace(solution.Problem), maxResponseProblemChars)
+	solution.Solution = clampString(strings.TrimSpace(solution.Solution), maxResponseSolutionChars)
+	solution.RawLatex = clampString(strings.TrimSpace(solution.RawLatex), maxResponseRawLatexChars)
+	solution.DifficultyLevel = strings.TrimSpace(solution.DifficultyLevel)
+
+	if solution.Steps == nil {
+		solution.Steps = []string{}
+	}
+	trimmedSteps := make([]string, 0, len(solution.Steps))
+	for _, step := range solution.Steps {
+		s := clampString(strings.TrimSpace(step), maxResponseStepChars)
+		s = normalizeStepEntry(s)
+		if s == "" {
+			continue
+		}
+		trimmedSteps = append(trimmedSteps, s)
+		if len(trimmedSteps) >= maxResponseSteps {
+			break
+		}
+	}
+	solution.Steps = trimmedSteps
+
+	if solution.Solution == "" {
+		solution.Solution = "I could not read the math expression clearly. Please retake the photo."
+	}
+	if solution.Problem == "" {
+		solution.Problem = "Problem text could not be read clearly from image."
+	}
+	if solution.DifficultyLevel == "" {
+		solution.DifficultyLevel = "unknown"
+	}
+
+	solution.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
+	if solution.ShouldSaveToHistory == nil {
+		solution.ShouldSaveToHistory = boolPtr(defaultShouldSaveToHistory(solution))
+	}
+	if !defaultShouldSaveToHistory(solution) {
+		solution.ShouldSaveToHistory = boolPtr(false)
+	}
+}
+
+func normalizeStepEntry(raw string) string {
+	step := strings.TrimSpace(raw)
+	if step == "" {
+		return ""
+	}
+
+	parts := strings.SplitN(step, "||", 2)
+	formula := normalizeStepFormula(parts[0])
+	if len(parts) == 1 {
+		return formula
+	}
+
+	explanation := normalizeStepExplanation(parts[1])
+	if explanation == "" {
+		return formula
+	}
+	return formula + " || " + explanation
+}
+
+func normalizeStepFormula(raw string) string {
+	formula := stripMathDelimiters(raw)
+	formula = strings.TrimSpace(formula)
+	formula = strings.ReplaceAll(formula, "π", "\\pi")
+	formula = strings.ReplaceAll(formula, "−", "-")
+	formula = strings.ReplaceAll(formula, "×", "\\times")
+	formula = strings.ReplaceAll(formula, "÷", "\\div")
+	formula = strings.ReplaceAll(formula, "...", "")
+	formula = strings.ReplaceAll(formula, "$", "")
+
+	// Remove common prose tokens that should never appear inside step boxes.
+	reBadWords := regexp.MustCompile(`(?i)\b(therefore|thus|substituting|substitute|equivalent|transformation|apply|property|sostituzione|semplificazione|propriet[àa]|risultato|passaggio)\b`)
+	formula = reBadWords.ReplaceAllString(formula, " ")
+
+	// Convert linear fractions/powers to proper LaTeX.
+	reFrac := regexp.MustCompile(`(?i)(\\pi|[A-Za-z0-9]+)\s*/\s*(\\pi|[A-Za-z0-9]+)`)
+	for i := 0; i < 3; i++ {
+		updated := reFrac.ReplaceAllString(formula, `\\frac{$1}{$2}`)
+		if updated == formula {
+			break
+		}
+		formula = updated
+	}
+
+	rePowNum := regexp.MustCompile(`\b([A-Za-z])\s*\^\s*([0-9]+)\b`)
+	formula = rePowNum.ReplaceAllString(formula, `$1^{$2}`)
+
+	rePowVar := regexp.MustCompile(`\b([A-Za-z])\s*\^\s*([A-Za-z]+)\b`)
+	formula = rePowVar.ReplaceAllString(formula, `$1^{$2}`)
+
+	reMultiSpace := regexp.MustCompile(`\s+`)
+	formula = strings.TrimSpace(reMultiSpace.ReplaceAllString(formula, " "))
+
+	if formula == "" {
+		formula = `0=0`
+	}
+
+	if !strings.Contains(formula, `\displaystyle`) {
+		formula = `\displaystyle \large ` + formula
+	} else if !strings.Contains(formula, `\large`) {
+		formula = strings.Replace(formula, `\displaystyle`, `\displaystyle \large`, 1)
+	}
+
+	return `$$` + strings.TrimSpace(formula) + `$$`
+}
+
+func normalizeStepExplanation(raw string) string {
+	explanation := strings.TrimSpace(raw)
+	if explanation == "" {
+		return ""
+	}
+
+	explanation = strings.ReplaceAll(explanation, "...", ".")
+
+	// Replace frequent English fragments with Italian.
+	replacer := strings.NewReplacer(
+		"Therefore", "Quindi",
+		"therefore", "quindi",
+		"Substituting", "Sostituendo",
+		"substituting", "sostituendo",
+		"Simplification", "Semplificazione",
+		"simplification", "semplificazione",
+		"Property", "Proprietà",
+		"property", "proprietà",
+		"Result", "Risultato",
+		"result", "risultato",
+		"Equivalent transformation", "Trasformazione equivalente",
+		"equivalent transformation", "trasformazione equivalente",
+	)
+	explanation = replacer.Replace(explanation)
+
+	// Normalize math notation in prose to LaTeX.
+	explanation = strings.ReplaceAll(explanation, "π", `\pi`)
+	rePi := regexp.MustCompile(`(?i)\bpi\b`)
+	explanation = rePi.ReplaceAllString(explanation, `\pi`)
+
+	reFrac := regexp.MustCompile(`(?i)(\\pi|[A-Za-z0-9]+)\s*/\s*(\\pi|[A-Za-z0-9]+)`)
+	explanation = reFrac.ReplaceAllString(explanation, `$$\\frac{$1}{$2}$$`)
+
+	rePow := regexp.MustCompile(`\b([A-Za-z])\s*\^\s*([0-9]+)\b`)
+	explanation = rePow.ReplaceAllString(explanation, `$$$1^{$2}$$`)
+
+	reMul := regexp.MustCompile(`\b([A-Za-z0-9]+)\s*\*\s*([A-Za-z0-9]+)\b`)
+	explanation = reMul.ReplaceAllString(explanation, `$$$1 \\times $2$$`)
+
+	// Ensure each paragraph has bold operation label.
+	paragraphs := strings.Split(explanation, "\n\n")
+	for i := range paragraphs {
+		p := strings.TrimSpace(paragraphs[i])
+		if p == "" {
+			continue
+		}
+		if !strings.Contains(p, "**") {
+			paragraphs[i] = "**Semplificazione.** " + p
+		} else {
+			paragraphs[i] = p
+		}
+	}
+	explanation = strings.TrimSpace(strings.Join(paragraphs, "\n\n"))
+
+	return explanation
+}
+
+func stripMathDelimiters(raw string) string {
+	value := strings.TrimSpace(raw)
+	if value == "" {
+		return ""
+	}
+
+	if strings.HasPrefix(value, "$$") && strings.HasSuffix(value, "$$") && len(value) >= 4 {
+		value = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, "$$"), "$$"))
+	}
+	if strings.HasPrefix(value, `\[`) && strings.HasSuffix(value, `\]`) && len(value) >= 4 {
+		value = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, `\[`), `\]`))
+	}
+	if strings.HasPrefix(value, `\(`) && strings.HasSuffix(value, `\)`) && len(value) >= 4 {
+		value = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, `\(`), `\)`))
+	}
+	if strings.HasPrefix(value, "$") && strings.HasSuffix(value, "$") && len(value) >= 2 {
+		value = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, "$"), "$"))
+	}
+	return value
+}
+
+func unreadableRetakeSolution() *MathSolution {
+	return &MathSolution{
+		Problem:             "Problem text could not be read clearly from image.",
+		Solution:            "I could not read the math expression clearly. Please retake the photo.",
+		Steps:               []string{},
+		RawLatex:            "",
+		DifficultyLevel:     "unknown",
+		DetectedLanguage:    "unknown",
+		ShouldSaveToHistory: boolPtr(false),
+	}
+}
+
+func clampString(value string, maxLen int) string {
+	if maxLen <= 0 {
+		return ""
+	}
+	if len(value) <= maxLen {
+		return value
+	}
+	return strings.TrimSpace(value[:maxLen])
+}
+
+func compactErrorSnippet(value string, maxLen int) string {
+	if maxLen <= 0 {
+		return ""
+	}
+	snippet := strings.Join(strings.Fields(value), " ")
+	if len(snippet) <= maxLen {
+		return snippet
+	}
+	return snippet[:maxLen]
 }
 
 func normalizeSupportedLanguage(raw string) string {

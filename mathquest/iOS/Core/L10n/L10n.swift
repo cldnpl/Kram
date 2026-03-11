@@ -223,6 +223,8 @@ enum L10n {
             "solved": ["it": "Risolto", "en": "Solved", "fr": "Résolu", "es": "Resuelto", "uz": "Yechildi"],
             "answer": ["it": "Risposta", "en": "Answer", "fr": "Réponse", "es": "Respuesta", "uz": "Javob"],
             "steps": ["it": "Passaggi", "en": "Steps", "fr": "Étapes", "es": "Pasos", "uz": "Bosqichlar"],
+            "expand": ["it": "Espandi", "en": "Expand", "fr": "Développer", "es": "Ampliar", "uz": "Kengaytirish"],
+            "collapse": ["it": "Comprimi", "en": "Collapse", "fr": "Réduire", "es": "Contraer", "uz": "Yig'ish"],
             "solving": ["it": "Risoluzione...", "en": "Solving...", "fr": "Résolution...", "es": "Resolviendo...", "uz": "Yechilmoqda..."],
             "camera_access_required": ["it": "Accesso fotocamera richiesto", "en": "Camera access required", "fr": "Accès caméra requis", "es": "Se requiere acceso a la cámara", "uz": "Kameraga ruxsat kerak"],
             "open_settings": ["it": "Apri impostazioni", "en": "Open Settings", "fr": "Ouvrir les réglages", "es": "Abrir ajustes", "uz": "Sozlamalarni ochish"],
@@ -473,6 +475,8 @@ enum L10n {
     static var solved: String { string("solved") }
     static var answer: String { string("answer") }
     static var steps: String { string("steps") }
+    static var expand: String { string("expand") }
+    static var collapse: String { string("collapse") }
     static var solving: String { string("solving") }
     static var cameraAccessRequired: String { string("camera_access_required") }
     static var openSettings: String { string("open_settings") }
