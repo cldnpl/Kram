@@ -18,7 +18,6 @@ import '../../features/streak/presentation/pages/streak_calendar_page.dart';
 import 'main_shell_scaffold.dart';
 
 const _carouselSeenKey = 'carousel_seen';
-const _profileSetupDoneKey = 'profile_setup_done';
 const _sessionLoggedInKey = 'session_logged_in';
 
 // Notifier to trigger router refresh
@@ -37,14 +36,6 @@ final appRouter = GoRouter(
   redirect: (context, state) async {
     final prefs = await SharedPreferences.getInstance();
     final hasSeenCarousel = prefs.getBool(_carouselSeenKey) ?? false;
-    final hasCompletedProfile = prefs.getBool(_profileSetupDoneKey) ?? false;
-    final profileName = prefs.getString('profile_name') ?? '';
-    final profileLevel = prefs.getString('profile_level') ?? '';
-    final profileUsername = prefs.getString('profile_username') ?? '';
-    final isProfileComplete = hasCompletedProfile &&
-        profileName.isNotEmpty &&
-        profileLevel.isNotEmpty &&
-        profileUsername.isNotEmpty;
     final isFirebaseAuth = FirebaseAuth.instance.currentUser != null;
     final hasSession = prefs.getBool(_sessionLoggedInKey) ?? false;
     final isLoggedIn = isFirebaseAuth || hasSession;
@@ -57,10 +48,6 @@ final appRouter = GoRouter(
 
     if (!hasSeenCarousel) {
       return isCarouselRoute ? null : '/carousel';
-    }
-
-    if (!isProfileComplete) {
-      return isProfileSetupRoute ? null : '/profile-setup';
     }
 
     if (!isLoggedIn && isCameraRoute) {
