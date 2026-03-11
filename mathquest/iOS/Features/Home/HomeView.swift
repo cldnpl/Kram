@@ -5,6 +5,7 @@ private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 
 struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showShop = false
     @State private var showStreak = false
     @AppStorage("profile_name") private var profileName = ""
@@ -12,23 +13,40 @@ struct HomeView: View {
     @AppStorage("session_logged_in") private var sessionLoggedIn = false
 
     private var greetingName: String {
-        (sessionLoggedIn || Auth.auth().currentUser != nil) ? profileName : "User"
+        (sessionLoggedIn || Auth.auth().currentUser != nil) ? profileName : L10n.userFallback
+    }
+
+    private var homeGradient: LinearGradient {
+        if colorScheme == .dark {
+            return LinearGradient(
+                stops: [
+                    .init(color: appPurple, location: 0),
+                    .init(color: Color(red: 0.27, green: 0.22, blue: 0.42), location: 0.25),
+                    .init(color: Color(red: 0.15, green: 0.14, blue: 0.2), location: 0.35),
+                    .init(color: Color(red: 0.1, green: 0.1, blue: 0.12), location: 0.48),
+                    .init(color: Color(.systemBackground), location: 0.62),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+        return LinearGradient(
+            stops: [
+                .init(color: appPurple, location: 0),
+                .init(color: Color(red: 0.85, green: 0.82, blue: 0.98), location: 0.25),
+                .init(color: Color(red: 0.93, green: 0.91, blue: 0.99), location: 0.3),
+                .init(color: Color(red: 0.97, green: 0.96, blue: 1.0), location: 0.4),
+                .init(color: Color(.systemBackground), location: 0.55),
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
     }
 
     var body: some View {
         NavigationStack {
             ZStack {
-                LinearGradient(
-                    stops: [
-                        .init(color: appPurple, location: 0),
-                        .init(color: Color(red: 0.85, green: 0.82, blue: 0.98), location: 0.25),
-                        .init(color: Color(red: 0.93, green: 0.91, blue: 0.99), location: 0.3),
-                        .init(color: Color(red: 0.97, green: 0.96, blue: 1.0), location: 0.4),
-                        .init(color: Color.white, location: 0.55)
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
+                homeGradient
                 .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -36,7 +54,7 @@ struct HomeView: View {
                         Text("\(L10n.greetingPrefix), \(greetingName.isEmpty ? L10n.hiThere : greetingName)!")
                             .font(.largeTitle)
                             .fontWeight(.bold)
-                            .foregroundStyle(.black)
+                            .foregroundStyle(.primary)
 
                         Spacer()
 
@@ -160,6 +178,7 @@ struct HomeView: View {
 }
 
 struct CategoryCardView: View {
+    @Environment(\.colorScheme) private var colorScheme
     let title: String
     var completed: Int = 0
     var total: Int = 0
@@ -169,7 +188,7 @@ struct CategoryCardView: View {
             Text(title)
                 .font(.body)
                 .fontWeight(.semibold)
-                .foregroundStyle(.black)
+                .foregroundStyle(.primary)
                 .multilineTextAlignment(.leading)
                 .lineLimit(3)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -178,14 +197,14 @@ struct CategoryCardView: View {
             Text("\(completed)/\(total)")
                 .font(.footnote)
                 .fontWeight(.semibold)
-                .foregroundStyle(.black)
+                .foregroundStyle(.primary)
             ProgressView(value: total > 0 ? Double(completed) / Double(total) : 0)
                 .tint(.green)
                 .scaleEffect(x: 1, y: 1.5, anchor: .center)
         }
         .frame(maxWidth: .infinity, minHeight: 120, alignment: .topLeading)
         .padding(12)
-        .background(Color.white)
+        .background(Color(colorScheme == .dark ? .secondarySystemBackground : .systemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)

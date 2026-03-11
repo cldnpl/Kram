@@ -19,6 +19,7 @@ struct TranslateSolutionRequest: Encodable {
     let rawLatex: String
     let difficultyLevel: String
     let detectedLanguage: String
+    let shouldSaveToHistory: Bool
     let targetLanguage: String
 
     enum CodingKeys: String, CodingKey {
@@ -26,6 +27,7 @@ struct TranslateSolutionRequest: Encodable {
         case rawLatex = "raw_latex"
         case difficultyLevel = "difficulty_level"
         case detectedLanguage = "detected_language"
+        case shouldSaveToHistory = "should_save_to_history"
         case targetLanguage = "target_language"
     }
 }
@@ -40,6 +42,7 @@ struct SolveResponse: Decodable {
     let rawLatex: String
     let difficultyLevel: String
     let detectedLanguage: String
+    let shouldSaveToHistory: Bool
     let usesRemainingToday: Int
 
     enum CodingKeys: String, CodingKey {
@@ -47,6 +50,7 @@ struct SolveResponse: Decodable {
         case rawLatex = "raw_latex"
         case difficultyLevel = "difficulty_level"
         case detectedLanguage = "detected_language"
+        case shouldSaveToHistory = "should_save_to_history"
         case usesRemainingToday = "uses_remaining_today"
     }
 
@@ -58,6 +62,7 @@ struct SolveResponse: Decodable {
         rawLatex: String,
         difficultyLevel: String,
         detectedLanguage: String,
+        shouldSaveToHistory: Bool,
         usesRemainingToday: Int
     ) {
         self.id = id
@@ -67,6 +72,7 @@ struct SolveResponse: Decodable {
         self.rawLatex = rawLatex
         self.difficultyLevel = difficultyLevel
         self.detectedLanguage = detectedLanguage
+        self.shouldSaveToHistory = shouldSaveToHistory
         self.usesRemainingToday = usesRemainingToday
     }
 
@@ -80,6 +86,8 @@ struct SolveResponse: Decodable {
         rawLatex = try container.decodeIfPresent(String.self, forKey: .rawLatex) ?? ""
         difficultyLevel = try container.decodeIfPresent(String.self, forKey: .difficultyLevel) ?? "unknown"
         detectedLanguage = try container.decodeIfPresent(String.self, forKey: .detectedLanguage) ?? "unknown"
+        shouldSaveToHistory = try container.decodeIfPresent(Bool.self, forKey: .shouldSaveToHistory)
+            ?? Self.defaultShouldSaveToHistory(problem: problem, solution: solution, steps: steps)
         usesRemainingToday = try container.decodeIfPresent(Int.self, forKey: .usesRemainingToday) ?? 0
     }
 
@@ -92,8 +100,36 @@ struct SolveResponse: Decodable {
             rawLatex: translated.rawLatex,
             difficultyLevel: translated.difficultyLevel,
             detectedLanguage: translated.detectedLanguage,
+            shouldSaveToHistory: translated.shouldSaveToHistory,
             usesRemainingToday: usesRemainingToday
         )
+    }
+
+    static func defaultShouldSaveToHistory(problem: String, solution: String, steps: [String]) -> Bool {
+        let combined = ([problem, solution] + steps)
+            .joined(separator: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+
+        if combined.isEmpty {
+            return false
+        }
+
+        let blockedPhrases = [
+            "unable to parse problem from image",
+            "could not parse model response",
+            "could not parse structured response",
+            "please retake the photo",
+            "problem text could not be read clearly from image",
+            "could not determine a final answer from the image",
+            "image is unclear",
+            "image is incomplete",
+            "problem is unclear",
+            "problem is incomplete",
+            "unreadable"
+        ]
+
+        return !blockedPhrases.contains { combined.contains($0) }
     }
 }
 
@@ -104,17 +140,36 @@ struct TranslateSolutionResponse: Decodable {
     let rawLatex: String
     let difficultyLevel: String
     let detectedLanguage: String
+    let shouldSaveToHistory: Bool
 
     enum CodingKeys: String, CodingKey {
         case problem, solution, steps
         case rawLatex = "raw_latex"
         case difficultyLevel = "difficulty_level"
         case detectedLanguage = "detected_language"
+        case shouldSaveToHistory = "should_save_to_history"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        problem = try container.decodeIfPresent(String.self, forKey: .problem) ?? ""
+        solution = try container.decodeIfPresent(String.self, forKey: .solution) ?? ""
+        steps = try container.decodeIfPresent([String].self, forKey: .steps) ?? []
+        rawLatex = try container.decodeIfPresent(String.self, forKey: .rawLatex) ?? ""
+        difficultyLevel = try container.decodeIfPresent(String.self, forKey: .difficultyLevel) ?? "unknown"
+        detectedLanguage = try container.decodeIfPresent(String.self, forKey: .detectedLanguage) ?? "unknown"
+        shouldSaveToHistory = try container.decodeIfPresent(Bool.self, forKey: .shouldSaveToHistory)
+            ?? SolveResponse.defaultShouldSaveToHistory(problem: problem, solution: solution, steps: steps)
     }
 }
 
 struct HistoryResponse: Decodable {
     let history: [HistoryItem]
+}
+
+struct DeleteHistoryResponse: Decodable {
+    let deleted: Bool
 }
 
 struct HistoryItem: Decodable, Identifiable {

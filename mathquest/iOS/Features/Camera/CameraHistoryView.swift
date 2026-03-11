@@ -2,11 +2,12 @@ import SwiftUI
 
 struct CameraHistoryView: View {
     let history: [HistoryItem]
+    let loadDetailAction: (Int) async -> HistoryDetailResponse?
+    let deleteAction: (Int) async -> Bool
     @Environment(\.dismiss) private var dismiss
     @State private var selectedItem: HistoryDetailResponse?
+    @State private var selectedItemIsSample = false
     @State private var isLoadingDetail = false
-
-    private let client = APIClient()
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -58,7 +59,14 @@ struct CameraHistoryView: View {
                     }
                 }
                 .sheet(item: $selectedItem) { detail in
-                    HistoryDetailView(detail: detail)
+                    HistoryDetailView(
+                        detail: detail,
+                        onDelete: selectedItemIsSample
+                            ? nil
+                            : {
+                                await deleteAction(detail.id)
+                            }
+                    )
                 }
         }
     }
@@ -104,6 +112,7 @@ struct CameraHistoryView: View {
 
     private var sampleRow: some View {
         Button {
+            selectedItemIsSample = true
             selectedItem = Self.sampleDetail
         } label: {
             HistoryRowView(item: Self.sampleItem, dateFormatter: dateFormatter)
@@ -114,12 +123,9 @@ struct CameraHistoryView: View {
     private func loadDetail(id: Int) {
         Task {
             isLoadingDetail = true
-            do {
-                await client.setToken("mock-dev-token")
-                let detail: HistoryDetailResponse = try await client.request("camera/history/\(id)")
+            if let detail = await loadDetailAction(id) {
+                selectedItemIsSample = false
                 selectedItem = detail
-            } catch {
-                print("Failed to load detail: \(error)")
             }
             isLoadingDetail = false
         }
@@ -165,8 +171,12 @@ struct HistoryRowView: View {
 
 struct HistoryDetailView: View {
     let detail: HistoryDetailResponse
+    let onDelete: (() async -> Bool)?
     @Environment(\.dismiss) private var dismiss
     @State private var visibleSteps: Set<Int> = []
+    @State private var showDeleteConfirmation = false
+    @State private var isDeleting = false
+    @State private var showDeleteFailed = false
 
     var body: some View {
         NavigationStack {
@@ -218,15 +228,64 @@ struct HistoryDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
+                    ShareLink(item: shareText) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .accessibilityLabel(L10n.share)
+                }
+                if onDelete != nil {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button {
+                            showDeleteConfirmation = true
+                        } label: {
+                            if isDeleting {
+                                ProgressView()
+                            } else {
+                                Image(systemName: "trash")
+                            }
+                        }
+                        .tint(.red)
+                        .disabled(isDeleting)
+                        .accessibilityLabel(L10n.deleteSolution)
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
                     Button(L10n.done) {
                         dismiss()
                     }
                 }
             }
+            .alert(L10n.deleteSolution, isPresented: $showDeleteConfirmation) {
+                Button(L10n.cancel, role: .cancel) {}
+                Button(L10n.deleteSolution, role: .destructive) {
+                    Task {
+                        await deleteSolution()
+                    }
+                }
+            } message: {
+                Text(L10n.deleteSolutionMessage)
+            }
+            .alert(L10n.error, isPresented: $showDeleteFailed) {
+                Button(L10n.ok, role: .cancel) {}
+            } message: {
+                Text(L10n.deleteSolutionFailed)
+            }
             .task {
                 await animateSteps()
             }
         }
+    }
+
+    private var shareText: String {
+        var lines: [String] = [
+            "\(L10n.problem): \(detail.problem)",
+            "\(L10n.solution): \(detail.solution)",
+        ]
+        if !detail.steps.isEmpty {
+            lines.append("\(L10n.solutionSteps):")
+            lines.append(contentsOf: detail.steps.enumerated().map { "\($0.offset + 1). \($0.element)" })
+        }
+        return lines.joined(separator: "\n")
     }
 
     private func animateSteps() async {
@@ -235,23 +294,39 @@ struct HistoryDetailView: View {
             visibleSteps.insert(i)
         }
     }
+
+    private func deleteSolution() async {
+        guard let onDelete else { return }
+        isDeleting = true
+        let success = await onDelete()
+        isDeleting = false
+        if success {
+            dismiss()
+        } else {
+            showDeleteFailed = true
+        }
+    }
 }
 
 #Preview {
-    CameraHistoryView(history: [
-        HistoryItem(
-            id: 1,
-            problem: "7 + 5",
-            solution: "12",
-            difficultyLevel: "elementary",
-            createdAt: Date()
-        ),
-        HistoryItem(
-            id: 2,
-            problem: "x^2 + 2x + 1 = 0",
-            solution: "x = -1",
-            difficultyLevel: "high_school",
-            createdAt: Date().addingTimeInterval(-3600)
-        )
-    ])
+    CameraHistoryView(
+        history: [
+            HistoryItem(
+                id: 1,
+                problem: "7 + 5",
+                solution: "12",
+                difficultyLevel: "elementary",
+                createdAt: Date()
+            ),
+            HistoryItem(
+                id: 2,
+                problem: "x^2 + 2x + 1 = 0",
+                solution: "x = -1",
+                difficultyLevel: "high_school",
+                createdAt: Date().addingTimeInterval(-3600)
+            )
+        ],
+        loadDetailAction: { _ in nil },
+        deleteAction: { _ in true }
+    )
 }

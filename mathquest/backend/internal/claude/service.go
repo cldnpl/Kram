@@ -60,12 +60,13 @@ type ClaudeResponse struct {
 }
 
 type MathSolution struct {
-	Problem          string   `json:"problem"`
-	Solution         string   `json:"solution"`
-	Steps            []string `json:"steps"`
-	RawLatex         string   `json:"raw_latex"`
-	DifficultyLevel  string   `json:"difficulty_level"`
-	DetectedLanguage string   `json:"detected_language"`
+	Problem             string   `json:"problem"`
+	Solution            string   `json:"solution"`
+	Steps               []string `json:"steps"`
+	RawLatex            string   `json:"raw_latex"`
+	DifficultyLevel     string   `json:"difficulty_level"`
+	DetectedLanguage    string   `json:"detected_language"`
+	ShouldSaveToHistory *bool    `json:"should_save_to_history,omitempty"`
 }
 
 const solveMathPrompt = `You are a careful math tutor helping students solve problems step by step.
@@ -79,6 +80,7 @@ Rules you MUST follow:
 - If the image is unclear or incomplete, say so explicitly in "solution" and "steps" instead of guessing.
 - Keep "problem" as the exact transcription of what you can read from the image.
 - Set "detected_language" to one of: en, it, fr, es, uz, unknown.
+- Set "should_save_to_history" to false if the image is unclear, incomplete, unreadable, or the result is just an error/retake message. Otherwise set it to true.
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
 {
@@ -87,7 +89,8 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no co
   "steps": ["step 1 explanation", "step 2 explanation", ...],
   "raw_latex": "the problem and solution in LaTeX format",
   "difficulty_level": "elementary|middle_school|high_school|college",
-  "detected_language": "en|it|fr|es|uz|unknown"
+  "detected_language": "en|it|fr|es|uz|unknown",
+  "should_save_to_history": true
 }
 `
 
@@ -101,6 +104,7 @@ Rules you MUST follow:
 - Keep "raw_latex" unchanged.
 - Keep "difficulty_level" unchanged.
 - Keep "detected_language" unchanged.
+- Keep "should_save_to_history" unchanged.
 - Return the same number of steps.
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
@@ -110,7 +114,8 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no co
   "steps": ["translated step 1", "translated step 2", ...],
   "raw_latex": "original raw latex",
   "difficulty_level": "elementary|middle_school|high_school|college",
-  "detected_language": "en|it|fr|es|uz|unknown"
+  "detected_language": "en|it|fr|es|uz|unknown",
+  "should_save_to_history": true
 }
 
 Here is the JSON to translate:
@@ -181,12 +186,13 @@ func (s *Service) SolveMathProblem(imageBase64, mediaType string) (*MathSolution
 	if err != nil {
 		// If parsing fails, try to extract info manually
 		return &MathSolution{
-			Problem:          "Unable to parse problem from image",
-			Solution:         "Could not parse model response as structured solution. Please retake the photo.",
-			Steps:            []string{"Could not parse structured response.", responseText},
-			RawLatex:         "",
-			DifficultyLevel:  "unknown",
-			DetectedLanguage: "unknown",
+			Problem:             "Unable to parse problem from image",
+			Solution:            "Could not parse model response as structured solution. Please retake the photo.",
+			Steps:               []string{"Could not parse structured response.", responseText},
+			RawLatex:            "",
+			DifficultyLevel:     "unknown",
+			DetectedLanguage:    "unknown",
+			ShouldSaveToHistory: boolPtr(false),
 		}, nil
 	}
 
@@ -203,6 +209,9 @@ func (s *Service) SolveMathProblem(imageBase64, mediaType string) (*MathSolution
 		solution.DifficultyLevel = "unknown"
 	}
 	solution.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
+	if solution.ShouldSaveToHistory == nil {
+		solution.ShouldSaveToHistory = boolPtr(defaultShouldSaveToHistory(solution))
+	}
 
 	return solution, nil
 }
@@ -262,6 +271,11 @@ func (s *Service) TranslateMathSolution(solution *MathSolution, targetLanguage s
 		translated.RawLatex = solution.RawLatex
 	}
 	translated.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
+	if solution.ShouldSaveToHistory != nil {
+		translated.ShouldSaveToHistory = boolPtr(*solution.ShouldSaveToHistory)
+	} else if translated.ShouldSaveToHistory == nil {
+		translated.ShouldSaveToHistory = boolPtr(defaultShouldSaveToHistory(translated))
+	}
 
 	return translated, nil
 }
@@ -342,4 +356,38 @@ func languageNameForPrompt(code string) string {
 	default:
 		return "English"
 	}
+}
+
+func boolPtr(value bool) *bool {
+	return &value
+}
+
+func defaultShouldSaveToHistory(solution *MathSolution) bool {
+	combined := strings.ToLower(strings.TrimSpace(
+		solution.Problem + " " + solution.Solution + " " + strings.Join(solution.Steps, " "),
+	))
+	if combined == "" {
+		return false
+	}
+
+	blockedPhrases := []string{
+		"unable to parse problem from image",
+		"could not parse model response",
+		"could not parse structured response",
+		"please retake the photo",
+		"problem text could not be read clearly from image",
+		"could not determine a final answer from the image",
+		"image is unclear",
+		"image is incomplete",
+		"problem is unclear",
+		"problem is incomplete",
+		"unreadable",
+	}
+	for _, phrase := range blockedPhrases {
+		if strings.Contains(combined, phrase) {
+			return false
+		}
+	}
+
+	return true
 }

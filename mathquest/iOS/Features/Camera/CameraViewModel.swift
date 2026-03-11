@@ -14,6 +14,7 @@ final class CameraViewModel: ObservableObject {
     @Published var showHistory = false
     @Published var showCameraPermissionSheet = false
     @Published var showLoginPrompt = false
+    @Published var showUpgradePrompt = false
     @Published var lastCapturedImage: UIImage?
     @Published var history: [HistoryItem] = []
     @Published private(set) var focusRectNormalized = CGRect(x: 0.05, y: 0.3, width: 0.9, height: 0.25)
@@ -21,6 +22,7 @@ final class CameraViewModel: ObservableObject {
     let cameraService = CameraService()
     private let client = APIClient()
     private var cancellables = Set<AnyCancellable>()
+    private var historyDetailsByID: [Int: HistoryDetailResponse] = [:]
 
     var isGuest: Bool {
         Auth.auth().currentUser == nil &&
@@ -120,8 +122,9 @@ final class CameraViewModel: ObservableObject {
         dailyLimit = limit
         usesRemaining = limit
 
-        await client.setToken(Self.resolvedToken())
+        await syncClientToken()
         await fetchStatus()
+        await fetchHistory()
     }
 
     func setupCamera() async {
@@ -166,6 +169,7 @@ final class CameraViewModel: ObservableObject {
         }
 
         do {
+            await syncClientToken()
             let response: StatusResponse = try await client.request("camera/status")
             applyStatus(response)
         } catch {
@@ -229,6 +233,7 @@ final class CameraViewModel: ObservableObject {
     }
 
     func translateSolution(_ response: SolveResponse, to targetLanguage: String) async throws -> SolveResponse {
+        await syncClientToken()
         let request = TranslateSolutionRequest(
             problem: response.problem,
             solution: response.solution,
@@ -236,6 +241,7 @@ final class CameraViewModel: ObservableObject {
             rawLatex: response.rawLatex,
             difficultyLevel: response.difficultyLevel,
             detectedLanguage: response.detectedLanguage,
+            shouldSaveToHistory: response.shouldSaveToHistory,
             targetLanguage: targetLanguage
         )
         let body = try JSONEncoder().encode(request)
@@ -290,8 +296,10 @@ final class CameraViewModel: ObservableObject {
 
             let request = SolveRequest(imageBase64: base64, mediaType: "image/jpeg")
             let body = try JSONEncoder().encode(request)
+            await syncClientToken()
             let response: SolveResponse = try await client.request("camera/solve", method: "POST", body: body)
 
+            persistSolvedHistory(response)
             state = .success(response)
             if isGuest {
                 recordGuestUse()
@@ -416,6 +424,8 @@ final class CameraViewModel: ObservableObject {
         guard usesRemaining == Self.unlimitedValue || usesRemaining > 0 else {
             if isGuest {
                 showLoginPrompt = true
+            } else if SubscriptionTier.current != .max {
+                showUpgradePrompt = true
             } else {
                 state = .error("Daily limit reached. Come back tomorrow!")
             }
@@ -494,17 +504,210 @@ final class CameraViewModel: ObservableObject {
     }
 
     func fetchHistory() async {
-        guard !isGuest else { return }
+        let scope = currentHistoryScope()
+        let localEntries = LocalHistoryStore.load(scope: scope)
+        historyDetailsByID = Dictionary(uniqueKeysWithValues: localEntries.map { ($0.id, $0.detail) })
+
+        guard !isGuest else {
+            history = localEntries.map(\.historyItem)
+            return
+        }
 
         do {
+            await syncClientToken()
             let response: HistoryResponse = try await client.request("camera/history")
-            history = response.history
+            history = mergeHistory(remote: response.history, local: localEntries.map(\.historyItem))
         } catch {
             print("Failed to fetch history: \(error)")
+            history = localEntries.map(\.historyItem)
+        }
+    }
+
+    func loadHistoryDetail(id: Int) async -> HistoryDetailResponse? {
+        if let cached = historyDetailsByID[id] {
+            return cached
+        }
+
+        let scope = currentHistoryScope()
+        let localEntries = LocalHistoryStore.load(scope: scope)
+        if let localDetail = localEntries.first(where: { $0.id == id })?.detail {
+            historyDetailsByID[id] = localDetail
+            return localDetail
+        }
+
+        guard !isGuest else {
+            return nil
+        }
+
+        do {
+            await syncClientToken()
+            let detail: HistoryDetailResponse = try await client.request("camera/history/\(id)")
+            historyDetailsByID[id] = detail
+            LocalHistoryStore.upsert(LocalHistoryEntry(detail: detail), scope: scope)
+            return detail
+        } catch {
+            print("Failed to load history detail: \(error)")
+            return nil
+        }
+    }
+
+    func deleteHistoryItem(id: Int) async -> Bool {
+        let scope = currentHistoryScope()
+        historyDetailsByID[id] = nil
+        LocalHistoryStore.delete(id: id, scope: scope)
+        history.removeAll { $0.id == id }
+
+        guard !isGuest, id > 0 else {
+            return true
+        }
+
+        do {
+            await syncClientToken()
+            let response: DeleteHistoryResponse = try await client.request("camera/history/\(id)", method: "DELETE")
+            guard response.deleted else {
+                await fetchHistory()
+                return false
+            }
+            return true
+        } catch {
+            print("Failed to delete history detail: \(error)")
+            await fetchHistory()
+            return false
         }
     }
 
     func stopCamera() {
         cameraService.stopSession()
+    }
+
+    private func syncClientToken() async {
+        await client.setToken(Self.resolvedToken())
+    }
+
+    private func currentHistoryScope() -> String {
+        Self.resolvedToken()
+    }
+
+    private func persistSolvedHistory(_ response: SolveResponse) {
+        guard response.shouldSaveToHistory else {
+            return
+        }
+
+        let entry = LocalHistoryEntry(
+            response: response,
+            createdAt: Date(),
+            fallbackID: LocalHistoryStore.nextFallbackID(scope: currentHistoryScope())
+        )
+        LocalHistoryStore.upsert(entry, scope: currentHistoryScope())
+        historyDetailsByID[entry.id] = entry.detail
+    }
+
+    private func mergeHistory(remote: [HistoryItem], local: [HistoryItem]) -> [HistoryItem] {
+        var seen = Set<Int>()
+        let merged = (remote + local).filter { item in
+            seen.insert(item.id).inserted
+        }
+        return merged.sorted { $0.createdAt > $1.createdAt }
+    }
+}
+
+private struct LocalHistoryEntry: Codable {
+    let id: Int
+    let problem: String
+    let solution: String
+    let steps: [String]
+    let rawLatex: String
+    let difficultyLevel: String
+    let createdAt: Date
+
+    init(response: SolveResponse, createdAt: Date, fallbackID: Int) {
+        id = response.id > 0 ? response.id : fallbackID
+        problem = response.problem
+        solution = response.solution
+        steps = response.steps
+        rawLatex = response.rawLatex
+        difficultyLevel = response.difficultyLevel
+        self.createdAt = createdAt
+    }
+
+    init(detail: HistoryDetailResponse) {
+        id = detail.id
+        problem = detail.problem
+        solution = detail.solution
+        steps = detail.steps
+        rawLatex = detail.rawLatex
+        difficultyLevel = detail.difficultyLevel
+        createdAt = detail.createdAt
+    }
+
+    var historyItem: HistoryItem {
+        HistoryItem(
+            id: id,
+            problem: problem,
+            solution: solution,
+            difficultyLevel: difficultyLevel,
+            createdAt: createdAt
+        )
+    }
+
+    var detail: HistoryDetailResponse {
+        HistoryDetailResponse(
+            id: id,
+            problem: problem,
+            solution: solution,
+            steps: steps,
+            rawLatex: rawLatex,
+            difficultyLevel: difficultyLevel,
+            createdAt: createdAt
+        )
+    }
+}
+
+private enum LocalHistoryStore {
+    private static let historyKeyPrefix = "camera_history_entries"
+    private static let fallbackIDKeyPrefix = "camera_history_fallback_id"
+
+    static func load(scope: String) -> [LocalHistoryEntry] {
+        let key = "\(historyKeyPrefix):\(scope)"
+        guard let data = UserDefaults.standard.data(forKey: key) else {
+            return []
+        }
+        do {
+            return try JSONDecoder().decode([LocalHistoryEntry].self, from: data)
+        } catch {
+            return []
+        }
+    }
+
+    static func upsert(_ entry: LocalHistoryEntry, scope: String) {
+        var entries = load(scope: scope)
+        if let index = entries.firstIndex(where: { $0.id == entry.id }) {
+            entries[index] = entry
+        } else {
+            entries.insert(entry, at: 0)
+        }
+        entries.sort { $0.createdAt > $1.createdAt }
+
+        let key = "\(historyKeyPrefix):\(scope)"
+        if let data = try? JSONEncoder().encode(entries) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+
+    static func delete(id: Int, scope: String) {
+        var entries = load(scope: scope)
+        entries.removeAll { $0.id == id }
+        let key = "\(historyKeyPrefix):\(scope)"
+        if let data = try? JSONEncoder().encode(entries) {
+            UserDefaults.standard.set(data, forKey: key)
+        }
+    }
+
+    static func nextFallbackID(scope: String) -> Int {
+        let key = "\(fallbackIDKeyPrefix):\(scope)"
+        let current = UserDefaults.standard.object(forKey: key) as? Int ?? 0
+        let next = current >= 0 ? -1 : current - 1
+        UserDefaults.standard.set(next, forKey: key)
+        return next
     }
 }

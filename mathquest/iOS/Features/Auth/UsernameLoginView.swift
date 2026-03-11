@@ -5,6 +5,7 @@ private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 /// View for login with username and password.
 struct UsernameLoginView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @State private var username = ""
     @State private var password = ""
     @State private var errorMessage: String?
@@ -13,7 +14,7 @@ struct UsernameLoginView: View {
 
     var body: some View {
         ZStack {
-            Color(white: 0.95)
+            Color(.systemGroupedBackground)
                 .ignoresSafeArea()
 
             GeometryReader { geo in
@@ -36,9 +37,9 @@ struct UsernameLoginView: View {
                     } label: {
                         Image(systemName: "xmark")
                             .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.black.opacity(0.6))
+                            .foregroundStyle(.primary.opacity(0.7))
                             .padding(10)
-                            .background(Color.white.opacity(0.9))
+                            .background(Color(.secondarySystemBackground).opacity(0.9))
                             .clipShape(Circle())
                             .shadow(color: .black.opacity(0.06), radius: 6)
                     }
@@ -48,7 +49,7 @@ struct UsernameLoginView: View {
 
                 Text(L10n.login)
                     .font(.system(size: 34, weight: .bold))
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 24)
                     .padding(.top, 24)
@@ -58,7 +59,7 @@ struct UsernameLoginView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L10n.usernameLabel)
                             .font(.system(size: 18, weight: .medium))
-                            .foregroundStyle(.black)
+                            .foregroundStyle(.primary)
                         TextField(L10n.insertUsername, text: $username)
                             .textFieldStyle(.roundedBorder)
                             .font(.system(size: 17))
@@ -77,7 +78,7 @@ struct UsernameLoginView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text(L10n.passwordLabel)
                             .font(.system(size: 18, weight: .medium))
-                            .foregroundStyle(.black)
+                            .foregroundStyle(.primary)
                         SecureField(L10n.insertPassword, text: $password)
                             .textFieldStyle(.roundedBorder)
                             .font(.system(size: 17))
@@ -121,7 +122,7 @@ struct UsernameLoginView: View {
                     .padding(.top, 20)
                     .padding(.bottom, 24)
                 }
-                .background(Color.white)
+                .background(Color(colorScheme == .dark ? .secondarySystemBackground : .white))
                 .clipShape(RoundedRectangle(cornerRadius: 24))
                 .overlay(
                     RoundedRectangle(cornerRadius: 24)

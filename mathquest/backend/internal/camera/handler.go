@@ -230,8 +230,9 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 		fmt.Printf("failed to increment usage: %v\n", err)
 	}
 
+	shouldSaveToHistory := solution.ShouldSaveToHistory == nil || *solution.ShouldSaveToHistory
 	var savedID uint
-	if h.db != nil && userID > 0 {
+	if shouldSaveToHistory && h.db != nil && userID > 0 {
 		stepsJSON, _ := json.Marshal(solution.Steps)
 		cameraSolution := CameraSolution{
 			UserID:          userID,
@@ -260,14 +261,15 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(SolveResponse{
-		ID:                 savedID,
-		Problem:            solution.Problem,
-		Solution:           solution.Solution,
-		Steps:              solution.Steps,
-		RawLatex:           solution.RawLatex,
-		DifficultyLevel:    solution.DifficultyLevel,
-		DetectedLanguage:   normalizeSolutionLanguage(solution.DetectedLanguage),
-		UsesRemainingToday: remaining,
+		ID:                  savedID,
+		Problem:             solution.Problem,
+		Solution:            solution.Solution,
+		Steps:               solution.Steps,
+		RawLatex:            solution.RawLatex,
+		DifficultyLevel:     solution.DifficultyLevel,
+		DetectedLanguage:    normalizeSolutionLanguage(solution.DetectedLanguage),
+		ShouldSaveToHistory: shouldSaveToHistory,
+		UsesRemainingToday:  remaining,
 	})
 }
 
@@ -288,12 +290,13 @@ func (h *Handler) Translate(c *fiber.Ctx) error {
 	}
 
 	source := &claude.MathSolution{
-		Problem:          req.Problem,
-		Solution:         req.Solution,
-		Steps:            req.Steps,
-		RawLatex:         req.RawLatex,
-		DifficultyLevel:  req.DifficultyLevel,
-		DetectedLanguage: normalizeSolutionLanguage(req.DetectedLanguage),
+		Problem:             req.Problem,
+		Solution:            req.Solution,
+		Steps:               req.Steps,
+		RawLatex:            req.RawLatex,
+		DifficultyLevel:     req.DifficultyLevel,
+		DetectedLanguage:    normalizeSolutionLanguage(req.DetectedLanguage),
+		ShouldSaveToHistory: &req.ShouldSaveToHistory,
 	}
 
 	if source.Steps == nil {
@@ -318,12 +321,13 @@ func (h *Handler) Translate(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(TranslateResponse{
-		Problem:          translated.Problem,
-		Solution:         translated.Solution,
-		Steps:            translated.Steps,
-		RawLatex:         translated.RawLatex,
-		DifficultyLevel:  translated.DifficultyLevel,
-		DetectedLanguage: normalizeSolutionLanguage(translated.DetectedLanguage),
+		Problem:             translated.Problem,
+		Solution:            translated.Solution,
+		Steps:               translated.Steps,
+		RawLatex:            translated.RawLatex,
+		DifficultyLevel:     translated.DifficultyLevel,
+		DetectedLanguage:    normalizeSolutionLanguage(translated.DetectedLanguage),
+		ShouldSaveToHistory: translated.ShouldSaveToHistory == nil || *translated.ShouldSaveToHistory,
 	})
 }
 
@@ -407,6 +411,39 @@ func (h *Handler) HistoryDetail(c *fiber.Ctx) error {
 		RawLatex:        solution.RawLatex,
 		DifficultyLevel: solution.DifficultyLevel,
 		CreatedAt:       solution.CreatedAt,
+	})
+}
+
+// DeleteHistoryDetail handles DELETE /api/camera/history/:id
+func (h *Handler) DeleteHistoryDetail(c *fiber.Ctx) error {
+	userID := h.resolveUserID(c)
+	if h.db == nil || userID == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "solution not found",
+		})
+	}
+
+	id, err := strconv.ParseUint(c.Params("id"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid id",
+		})
+	}
+
+	res := h.db.Where("id = ? AND user_id = ?", id, userID).Delete(&CameraSolution{})
+	if res.Error != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to delete solution",
+		})
+	}
+	if res.RowsAffected == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "solution not found",
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"deleted": true,
 	})
 }
 

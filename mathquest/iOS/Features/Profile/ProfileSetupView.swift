@@ -56,7 +56,7 @@ struct ProfileSetupView: View {
                                 .textInputAutocapitalization(.words)
                                 .font(.system(size: 17))
                                 .padding()
-                                .background(.white)
+                                .background(Color(.secondarySystemBackground))
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
                         }
@@ -86,7 +86,7 @@ struct ProfileSetupView: View {
                                 }
                             }
                             .padding()
-                            .background(.white)
+                            .background(Color(.secondarySystemBackground))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
 
@@ -260,7 +260,7 @@ private struct LevelOptionButton: View {
                     )
             }
             .padding(14)
-            .background(.white)
+            .background(Color(.secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .overlay(
                 RoundedRectangle(cornerRadius: 14)

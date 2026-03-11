@@ -6,6 +6,7 @@ private let loginButtonDarkPurple = Color(red: 30/255, green: 18/255, blue: 52/2
 struct LoginView: View {
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showUsernameLogin = false
     var showCloseButton = false
     /// Called after successful login: dismisses this view and navigates to Home.
@@ -121,10 +122,10 @@ struct LoginView: View {
                             Text(L10n.continueGoogle)
                                 .font(.system(size: 17, weight: .semibold))
                         }
-                        .foregroundStyle(.black.opacity(0.8))
+                        .foregroundStyle(.primary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 56)
-                        .background(.white)
+                        .background(Color(colorScheme == .dark ? .secondarySystemBackground : .white))
                         .clipShape(RoundedRectangle(cornerRadius: 16))
                         .shadow(color: .black.opacity(0.08), radius: 8, y: 4)
                     }

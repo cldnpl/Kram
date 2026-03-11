@@ -9,6 +9,7 @@ enum FriendStatus {
 }
 
 struct CommunityView: View {
+    @Environment(\.colorScheme) private var colorScheme
     @State private var searchText = ""
     @FocusState private var isSearchFocused: Bool
 
@@ -34,13 +35,26 @@ struct CommunityView: View {
     }
 
     private var homeGradient: LinearGradient {
-        LinearGradient(
+        if colorScheme == .dark {
+            return LinearGradient(
+                stops: [
+                    .init(color: appPurple, location: 0),
+                    .init(color: Color(red: 0.27, green: 0.22, blue: 0.42), location: 0.25),
+                    .init(color: Color(red: 0.15, green: 0.14, blue: 0.2), location: 0.35),
+                    .init(color: Color(red: 0.1, green: 0.1, blue: 0.12), location: 0.48),
+                    .init(color: Color(.systemBackground), location: 0.62),
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+        return LinearGradient(
             stops: [
                 .init(color: appPurple, location: 0),
                 .init(color: Color(red: 0.85, green: 0.82, blue: 0.98), location: 0.25),
                 .init(color: Color(red: 0.93, green: 0.91, blue: 0.99), location: 0.3),
                 .init(color: Color(red: 0.97, green: 0.96, blue: 1.0), location: 0.4),
-                .init(color: Color.white, location: 0.55)
+                .init(color: Color(.systemBackground), location: 0.55)
             ],
             startPoint: .top,
             endPoint: .bottom
@@ -56,7 +70,7 @@ struct CommunityView: View {
                 Text(L10n.communityTitle)
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, 20)
                     .padding(.top, 56)
@@ -90,7 +104,7 @@ struct CommunityView: View {
                                     }
                                 }
                             }
-                            .background(Color.white)
+                            .background(Color(.secondarySystemBackground))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
 
@@ -154,7 +168,7 @@ private struct UserSearchRow: View {
 
                 Text("@\(username)")
                     .font(.body)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.primary)
 
                 Spacer()
 
@@ -234,7 +248,7 @@ private struct CommunityCard: View {
                 Text(title)
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .foregroundStyle(.black)
+                    .foregroundStyle(.primary)
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -246,7 +260,7 @@ private struct CommunityCard: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
+                    .fill(Color(.secondarySystemBackground))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 16)

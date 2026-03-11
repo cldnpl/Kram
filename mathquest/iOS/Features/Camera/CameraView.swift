@@ -66,6 +66,11 @@ struct CameraView: View {
         .task {
             await viewModel.setupCamera()
         }
+        .onAppear {
+            Task {
+                await viewModel.resumeCameraIfNeeded()
+            }
+        }
         .onChange(of: viewModel.state) { _, newState in
             guard case .success(let response) = newState else { return }
             viewModel.stopCamera()
@@ -81,7 +86,15 @@ struct CameraView: View {
             viewModel.stopCamera()
         }
         .sheet(isPresented: $viewModel.showHistory) {
-            CameraHistoryView(history: viewModel.history)
+            CameraHistoryView(
+                history: viewModel.history,
+                loadDetailAction: { id in
+                    await viewModel.loadHistoryDetail(id: id)
+                },
+                deleteAction: { id in
+                    await viewModel.deleteHistoryItem(id: id)
+                }
+            )
                 .task {
                     await viewModel.fetchHistory()
                 }
@@ -99,6 +112,9 @@ struct CameraView: View {
                 .presentationDragIndicator(.hidden)
                 .presentationCornerRadius(28)
         }
+        .sheet(isPresented: $viewModel.showUpgradePrompt) {
+            StoreView()
+        }
         .sheet(item: $pendingLanguageChoice) { choice in
             SolutionLanguageSheet(
                 appLanguageName: localizedLanguageName(for: choice.appLanguage),
@@ -108,7 +124,7 @@ struct CameraView: View {
                     chooseSolutionLanguage(choice, targetLanguage: choice.appLanguage)
                 },
                 onChooseProblemLanguage: {
-                    presentSolution(choice.response)
+                    chooseSolutionLanguage(choice, targetLanguage: choice.problemLanguage)
                 }
             )
             .presentationDetents([.medium])
@@ -180,9 +196,18 @@ struct CameraView: View {
         }
         .navigationDestination(isPresented: $showSolutionPage) {
             if let response = selectedSolution {
-                CameraSolutionPage(response: response, capturedImage: viewModel.lastCapturedImage)
+                CameraSolutionPage(
+                    response: response,
+                    capturedImage: viewModel.lastCapturedImage,
+                    deleteAction: response.id != 0
+                        ? {
+                            await viewModel.deleteHistoryItem(id: response.id)
+                        }
+                        : nil
+                )
                     .onDisappear {
                         let solveId = response.id
+                        showSolutionPage = false
                         selectedSolution = nil
                         viewModel.reset()
                         Task {
@@ -350,8 +375,6 @@ struct CameraView: View {
                         .background(Color.black.opacity(0.55))
                         .clipShape(Circle())
                     }
-                    .disabled(hasReachedCameraLimit)
-                    .opacity(hasReachedCameraLimit ? 0.5 : 1)
 
                     Button {
                         let captureRect = activeFocusRect ?? resolvedFocusRect(in: previewSize)
@@ -372,16 +395,12 @@ struct CameraView: View {
                                 .frame(width: 80, height: 80)
                         }
                     }
-                    .disabled(hasReachedCameraLimit || !viewModel.cameraService.isAuthorized)
-                    .opacity((hasReachedCameraLimit || !viewModel.cameraService.isAuthorized) ? 0.5 : 1)
+                    .disabled(!viewModel.cameraService.isAuthorized)
+                    .opacity(viewModel.cameraService.isAuthorized ? 1 : 0.5)
                 }
             }
         }
         .padding(.bottom, 40)
-    }
-
-    private var hasUnlimitedCameraUsage: Bool {
-        viewModel.dailyLimit < 0 || viewModel.usesRemaining < 0
     }
 
     private func handleSolveSuccess(_ response: SolveResponse) {
@@ -469,11 +488,6 @@ struct CameraView: View {
             return L10n.languageEnglish
         }
     }
-
-    private var hasReachedCameraLimit: Bool {
-        !hasUnlimitedCameraUsage && viewModel.usesRemaining == 0
-    }
-
     private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 
     private var cameraPermissionSheet: some View {
@@ -1325,7 +1339,12 @@ private struct SolutionLanguageSheet: View {
 private struct CameraSolutionPage: View {
     let response: SolveResponse
     var capturedImage: UIImage?
+    let deleteAction: (() async -> Bool)?
+    @Environment(\.dismiss) private var dismiss
     @State private var visibleSteps: Set<Int> = []
+    @State private var showDeleteConfirmation = false
+    @State private var isDeleting = false
+    @State private var showDeleteFailed = false
 
     var body: some View {
         ScrollView {
@@ -1382,9 +1401,60 @@ private struct CameraSolutionPage: View {
         }
         .navigationTitle(L10n.solved)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                ShareLink(item: shareText) {
+                    Image(systemName: "square.and.arrow.up")
+                }
+                .accessibilityLabel(L10n.share)
+            }
+            if deleteAction != nil {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        showDeleteConfirmation = true
+                    } label: {
+                        if isDeleting {
+                            ProgressView()
+                        } else {
+                            Image(systemName: "trash")
+                        }
+                    }
+                    .tint(.red)
+                    .disabled(isDeleting)
+                    .accessibilityLabel(L10n.deleteSolution)
+                }
+            }
+        }
+        .alert(L10n.deleteSolution, isPresented: $showDeleteConfirmation) {
+            Button(L10n.cancel, role: .cancel) {}
+            Button(L10n.deleteSolution, role: .destructive) {
+                Task {
+                    await deleteSolution()
+                }
+            }
+        } message: {
+            Text(L10n.deleteSolutionMessage)
+        }
+        .alert(L10n.error, isPresented: $showDeleteFailed) {
+            Button(L10n.ok, role: .cancel) {}
+        } message: {
+            Text(L10n.deleteSolutionFailed)
+        }
         .task {
             await animateSteps()
         }
+    }
+
+    private var shareText: String {
+        var lines: [String] = [
+            "\(L10n.problem): \(response.problem)",
+            "\(L10n.solution): \(response.solution)",
+        ]
+        if !response.steps.isEmpty {
+            lines.append("\(L10n.solutionSteps):")
+            lines.append(contentsOf: response.steps.enumerated().map { "\($0.offset + 1). \($0.element)" })
+        }
+        return lines.joined(separator: "\n")
     }
 
     private func animateSteps() async {
@@ -1392,6 +1462,18 @@ private struct CameraSolutionPage: View {
         for i in 0..<response.steps.count {
             try? await Task.sleep(nanoseconds: 220_000_000)
             visibleSteps.insert(i)
+        }
+    }
+
+    private func deleteSolution() async {
+        guard let deleteAction else { return }
+        isDeleting = true
+        let success = await deleteAction()
+        isDeleting = false
+        if success {
+            dismiss()
+        } else {
+            showDeleteFailed = true
         }
     }
 }

@@ -106,6 +106,10 @@ enum L10n {
             "diagram_not_available": ["it": "Diagramma non disponibile", "en": "Diagram not available", "fr": "Diagramme non disponible", "es": "Diagrama no disponible", "uz": "Diagramma mavjud emas"],
             "cancel": ["it": "Annulla", "en": "Cancel", "fr": "Annuler", "es": "Cancelar", "uz": "Bekor qilish"],
             "save": ["it": "Salva", "en": "Save", "fr": "Enregistrer", "es": "Guardar", "uz": "Saqlash"],
+            "share": ["it": "Condividi", "en": "Share", "fr": "Partager", "es": "Compartir", "uz": "Ulashish"],
+            "delete_solution": ["it": "Elimina soluzione", "en": "Delete Solution", "fr": "Supprimer la solution", "es": "Eliminar solución", "uz": "Yechimni o'chirish"],
+            "delete_solution_message": ["it": "Vuoi eliminare questa soluzione dalla cronologia?", "en": "Do you want to delete this solution from history?", "fr": "Voulez-vous supprimer cette solution de l'historique ?", "es": "¿Quieres eliminar esta solución del historial?", "uz": "Bu yechimni tarixdan o'chirmoqchimisiz?"],
+            "delete_solution_failed": ["it": "Impossibile eliminare la soluzione. Riprova.", "en": "Unable to delete solution. Please try again.", "fr": "Impossible de supprimer la solution. Veuillez réessayer.", "es": "No se pudo eliminar la solución. Inténtalo de nuevo.", "uz": "Yechimni o'chirib bo'lmadi. Qayta urinib ko'ring."],
             "dont_have_account": ["it": "Non hai un account?", "en": "Don't have an account?", "fr": "Pas encore de compte?", "es": "¿No tienes cuenta?", "uz": "Hisobingiz yo'qmi?"],
             "register": ["it": "Registrati", "en": "Register", "fr": "S'inscrire", "es": "Registrarse", "uz": "Ro'yxatdan o'tish"],
             "already_have_account": ["it": "Hai già un account?", "en": "Already have an account?", "fr": "Déjà un compte?", "es": "¿Ya tienes cuenta?", "uz": "Allaqachon hisobingiz bormi?"],
@@ -330,6 +334,10 @@ enum L10n {
     static var diagramNotAvailable: String { string("diagram_not_available") }
     static var cancel: String { string("cancel") }
     static var save: String { string("save") }
+    static var share: String { string("share") }
+    static var deleteSolution: String { string("delete_solution") }
+    static var deleteSolutionMessage: String { string("delete_solution_message") }
+    static var deleteSolutionFailed: String { string("delete_solution_failed") }
     static var dontHaveAccount: String { string("dont_have_account") }
     static var register: String { string("register") }
     static var alreadyHaveAccount: String { string("already_have_account") }

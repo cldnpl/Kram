@@ -57,7 +57,7 @@ struct ProfileView: View {
                             }
                         }
                     } else {
-                        Text("User")
+                        Text(L10n.userFallback)
                             .font(.system(size: 24, weight: .bold))
                     }
 
@@ -331,7 +331,7 @@ private struct StatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
-        .background(.white)
+        .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
     }
@@ -369,7 +369,7 @@ private struct MenuRow<Destination: View>: View {
                     .foregroundStyle(.tertiary)
             }
             .padding(14)
-            .background(.white)
+            .background(Color(.secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
         }

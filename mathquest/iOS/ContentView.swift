@@ -10,6 +10,7 @@ struct ContentView: View {
     @StateObject private var tabSelection = TabSelection()
     @EnvironmentObject private var authManager: AuthManager
     @AppStorage("hasSeenCarousel") private var hasSeenCarousel = false
+    @AppStorage("settings_language") private var language = "en"
     @AppStorage("session_logged_in") private var sessionLoggedIn = false
     @AppStorage("profile_username") private var profileUsername = ""
     @AppStorage("profile_name") private var profileName = ""
@@ -27,22 +28,24 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $tabSelection.selectedTab) {
             HomeView()
-                .tabItem { Label("Lessons", systemImage: "house.fill") }
+                .tabItem { Label(L10n.lessons, systemImage: "house.fill") }
                 .tag(0)
             CommunityView()
-                .tabItem { Label("Community", systemImage: "person.2.fill") }
+                .tabItem { Label(L10n.communityTitle, systemImage: "person.2.fill") }
                 .tag(1)
             NavigationStack {
                 CameraView()
             }
-            .tabItem { Label("Camera", systemImage: "camera.fill") }
+            .tabItem { Label(L10n.camera, systemImage: "camera.fill") }
             .tag(2)
             NavigationStack {
                 ProfileView()
             }
-            .tabItem { Label("Profile", systemImage: "person.fill") }
+            .tabItem { Label(L10n.profileTab, systemImage: "person.fill") }
             .tag(3)
         }
+        .id("tabs-\(language)")
+        .environment(\.locale, Locale(identifier: language))
         .environmentObject(tabSelection)
         .fullScreenCover(isPresented: $showCarousel) {
             CarouselOnboardingView {
@@ -143,4 +146,3 @@ private struct BootstrapProfileResponse: Decodable {
         .environmentObject(AuthManager())
         .environmentObject(SubscriptionManager())
 }
-
