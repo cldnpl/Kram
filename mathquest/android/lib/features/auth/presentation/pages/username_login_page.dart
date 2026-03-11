@@ -44,6 +44,12 @@ class _UsernameLoginPageState extends State<UsernameLoginPage> {
     setState(() {
       _errorMessage = null;
     });
+    if (u.toLowerCase() == 'cldnpl') {
+      setState(() {
+        _errorMessage = 'Use Apple Sign-In for this account.';
+      });
+      return;
+    }
     if (_isLoginMode) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_keyUsername, u);

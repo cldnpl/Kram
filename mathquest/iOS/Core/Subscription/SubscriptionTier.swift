@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseAuth
 
 enum SubscriptionTier: String, CaseIterable, Codable {
     case free
@@ -9,9 +10,8 @@ enum SubscriptionTier: String, CaseIterable, Codable {
 
     static let proProductID = "com.kram.mathquest.subscription.pro.monthly"
     static let maxProductID = "com.kram.mathquest.subscription.max.monthly"
-    private static let developerUsernames: Set<String> = [
-        "cldnpl",
-        "claudianapolitano",
+    private static let developerAppleEmails: Set<String> = [
+        "napolitano.claudia@icloud.com",
     ]
 
     static var paidProductIDs: [String] {
@@ -33,10 +33,19 @@ enum SubscriptionTier: String, CaseIterable, Codable {
         guard UserDefaults.standard.bool(forKey: "session_logged_in") else {
             return false
         }
-        let username = (UserDefaults.standard.string(forKey: "profile_username") ?? "")
+        guard let user = Auth.auth().currentUser else {
+            return false
+        }
+
+        let hasAppleProvider = user.providerData.contains { $0.providerID == "apple.com" }
+        guard hasAppleProvider else {
+            return false
+        }
+
+        let email = (user.email ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .lowercased()
-        return developerUsernames.contains(username)
+        return developerAppleEmails.contains(email)
     }
 
     var displayName: String {

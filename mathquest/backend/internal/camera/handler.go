@@ -30,11 +30,6 @@ type Handler struct {
 
 const unlimitedDailyLimit = -1
 
-var developerUsernames = map[string]struct{}{
-	"cldnpl":            {},
-	"claudianapolitano": {},
-}
-
 type appUser struct {
 	ID          uint   `gorm:"column:id"`
 	FirebaseUID string `gorm:"column:firebase_uid"`
@@ -94,40 +89,6 @@ func (h *Handler) dailyLimitForTier(tier string) int {
 	}
 }
 
-func isDeveloperUsername(raw string) bool {
-	username := strings.TrimSpace(strings.ToLower(raw))
-	if username == "" {
-		return false
-	}
-	_, ok := developerUsernames[username]
-	return ok
-}
-
-func (h *Handler) isDeveloperRequest(c *fiber.Ctx, userID uint) bool {
-	if isDeveloperUsername(c.Get("X-Username")) {
-		return true
-	}
-
-	firebaseUID, _ := c.Locals(middleware.FirebaseUIDKey).(string)
-	firebaseUID = strings.TrimSpace(strings.ToLower(firebaseUID))
-	if strings.HasPrefix(firebaseUID, "username:") {
-		username := strings.TrimSpace(strings.TrimPrefix(firebaseUID, "username:"))
-		if isDeveloperUsername(username) {
-			return true
-		}
-	}
-
-	if h.db == nil || userID == 0 {
-		return false
-	}
-
-	var user appUser
-	if err := h.db.Select("username").Where("id = ?", userID).First(&user).Error; err != nil {
-		return false
-	}
-	return isDeveloperUsername(user.Username)
-}
-
 func (h *Handler) isGuestRequest(c *fiber.Ctx) bool {
 	firebaseUID, _ := c.Locals(middleware.FirebaseUIDKey).(string)
 	firebaseUID = strings.TrimSpace(strings.ToLower(firebaseUID))
@@ -137,10 +98,7 @@ func (h *Handler) isGuestRequest(c *fiber.Ctx) bool {
 	return strings.HasPrefix(firebaseUID, "guest:")
 }
 
-func (h *Handler) dailyLimitForRequest(c *fiber.Ctx, tier string, userID uint) int {
-	if h.isDeveloperRequest(c, userID) {
-		return unlimitedDailyLimit
-	}
+func (h *Handler) dailyLimitForRequest(c *fiber.Ctx, tier string) int {
 	if h.isGuestRequest(c) {
 		return 1
 	}
@@ -295,15 +253,27 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 	if firebaseUID == "" {
 		firebaseUID = "dev-anonymous-user"
 	}
-	usernameHint := strings.TrimSpace(strings.ToLower(strings.TrimPrefix(firebaseUID, "username:")))
-	if !strings.HasPrefix(strings.ToLower(firebaseUID), "username:") {
-		usernameHint = ""
+	firebaseUIDLower := strings.ToLower(firebaseUID)
+	isUsernameAuth := strings.HasPrefix(firebaseUIDLower, "username:")
+	usernameHint := ""
+	if isUsernameAuth {
+		usernameHint = strings.TrimSpace(strings.TrimPrefix(firebaseUIDLower, "username:"))
 	}
 
 	var user appUser
-	if usernameHint != "" {
-		if err := h.db.Where("LOWER(username) = ?", usernameHint).First(&user).Error; err == nil {
-			// Keep firebase_uid aligned with username-based auth to avoid repeated misses.
+	if err := h.db.Where("firebase_uid = ?", firebaseUID).First(&user).Error; err == nil {
+		return user.ID
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		fmt.Printf("failed to resolve user by firebase_uid: %v\n", err)
+		return 0
+	}
+
+	// Username-based auth must never overwrite a real Firebase user (Apple/Google)
+	// that happens to share the same username.
+	if isUsernameAuth && usernameHint != "" {
+		if err := h.db.
+			Where("LOWER(username) = ? AND LOWER(firebase_uid) LIKE ?", usernameHint, "username:%").
+			First(&user).Error; err == nil {
 			if strings.TrimSpace(user.FirebaseUID) != firebaseUID {
 				_ = h.db.Model(&appUser{}).
 					Where("id = ?", user.ID).
@@ -311,13 +281,6 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 			}
 			return user.ID
 		}
-	}
-
-	if err := h.db.Where("firebase_uid = ?", firebaseUID).First(&user).Error; err == nil {
-		return user.ID
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
-		fmt.Printf("failed to resolve user by firebase_uid: %v\n", err)
-		return 0
 	}
 
 	createValues := map[string]any{
@@ -344,11 +307,6 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 		return 0
 	}
 
-	// Best-effort username sync (ignore if column is absent or conflicts).
-	if usernameHint != "" {
-		_ = h.db.Table("users").Where("id = ?", user.ID).Update("username", usernameHint).Error
-	}
-
 	return user.ID
 }
 
@@ -356,7 +314,7 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 func (h *Handler) Solve(c *fiber.Ctx) error {
 	userID := h.resolveUserID(c)
 	tier := normalizeSubscriptionTier(c.Get("X-Subscription-Tier"))
-	effectiveDailyLimit := h.dailyLimitForRequest(c, tier, userID)
+	effectiveDailyLimit := h.dailyLimitForRequest(c, tier)
 
 	ctx := context.Background()
 
@@ -839,7 +797,7 @@ func (h *Handler) DeleteHistoryDetail(c *fiber.Ctx) error {
 func (h *Handler) Status(c *fiber.Ctx) error {
 	userID := h.resolveUserID(c)
 	tier := normalizeSubscriptionTier(c.Get("X-Subscription-Tier"))
-	effectiveDailyLimit := h.dailyLimitForRequest(c, tier, userID)
+	effectiveDailyLimit := h.dailyLimitForRequest(c, tier)
 
 	ctx := context.Background()
 	usedToday, err := h.getDailyUsage(ctx, userID)

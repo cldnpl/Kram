@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SubscriptionAccess {
@@ -5,19 +6,21 @@ class SubscriptionAccess {
 
   static const _keyTier = 'subscription_tier';
   static const _keySessionLoggedIn = 'session_logged_in';
-  static const _keyProfileUsername = 'profile_username';
-  static const Set<String> _developerUsernames = {
-    'cldnpl',
-    'claudianapolitano',
-  };
+  static const _developerAppleEmail = 'napolitano.claudia@icloud.com';
 
   static Future<bool> isDeveloperOverrideActive() async {
     final prefs = await SharedPreferences.getInstance();
     final loggedIn = prefs.getBool(_keySessionLoggedIn) ?? false;
-    if (!loggedIn) return false;
+    final user = FirebaseAuth.instance.currentUser;
+    if (!loggedIn || user == null) return false;
 
-    final username = (prefs.getString(_keyProfileUsername) ?? '').trim().toLowerCase();
-    return _developerUsernames.contains(username);
+    final hasAppleProvider = user.providerData
+        .map((provider) => provider.providerId.toLowerCase())
+        .contains('apple.com');
+    if (!hasAppleProvider) return false;
+
+    final email = (user.email ?? '').trim().toLowerCase();
+    return email == _developerAppleEmail;
   }
 
   static Future<String> currentTierRaw() async {

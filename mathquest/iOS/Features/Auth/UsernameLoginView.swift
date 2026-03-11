@@ -101,6 +101,10 @@ struct UsernameLoginView: View {
                     Button {
                         let u = username.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !u.isEmpty else { return }
+                        if u.lowercased() == "cldnpl" {
+                            errorMessage = "Use Apple Sign-In for this account."
+                            return
+                        }
                         errorMessage = nil
                         UserDefaults.standard.set(u, forKey: "profile_username")
                         UserDefaults.standard.set(true, forKey: "session_logged_in")
