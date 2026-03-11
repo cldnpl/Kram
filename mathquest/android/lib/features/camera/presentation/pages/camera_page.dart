@@ -222,7 +222,9 @@ class _CameraPageState extends State<CameraPage> {
                   const Icon(Icons.camera_alt, color: Colors.white, size: 18),
                   const SizedBox(width: 8),
                   Text(
-                    AppLocale.trFormat('camera_uses_remaining_format', [_provider.usesRemaining, _provider.dailyLimit]),
+                    _provider.hasUnlimitedAccess
+                        ? AppLocale.tr('camera_unlimited')
+                        : AppLocale.trFormat('camera_uses_remaining_format', [_provider.usesRemaining, _provider.dailyLimit]),
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
                 ],
@@ -233,9 +235,9 @@ class _CameraPageState extends State<CameraPage> {
             // Capture button
             if (_provider.state == CameraState.idle)
               GestureDetector(
-                onTap: _provider.usesRemaining > 0 ? _provider.capture : null,
+                onTap: (_provider.hasUnlimitedAccess || _provider.usesRemaining > 0) ? _provider.capture : null,
                 child: Opacity(
-                  opacity: _provider.usesRemaining > 0 ? 1 : 0.5,
+                  opacity: (_provider.hasUnlimitedAccess || _provider.usesRemaining > 0) ? 1 : 0.5,
                   child: Container(
                     width: 80,
                     height: 80,

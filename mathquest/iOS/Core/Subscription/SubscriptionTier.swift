@@ -9,17 +9,34 @@ enum SubscriptionTier: String, CaseIterable, Codable {
 
     static let proProductID = "com.kram.mathquest.subscription.pro.monthly"
     static let maxProductID = "com.kram.mathquest.subscription.max.monthly"
+    private static let developerUsernames: Set<String> = [
+        "cldnpl",
+        "claudianapolitano",
+    ]
 
     static var paidProductIDs: [String] {
         [proProductID, maxProductID]
     }
 
     static var current: SubscriptionTier {
+        if isDeveloperOverrideActive {
+            return .max
+        }
         guard let raw = UserDefaults.standard.string(forKey: userDefaultsKey),
               let tier = SubscriptionTier(rawValue: raw) else {
             return .free
         }
         return tier
+    }
+
+    static var isDeveloperOverrideActive: Bool {
+        guard UserDefaults.standard.bool(forKey: "session_logged_in") else {
+            return false
+        }
+        let username = (UserDefaults.standard.string(forKey: "profile_username") ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        return developerUsernames.contains(username)
     }
 
     var displayName: String {
