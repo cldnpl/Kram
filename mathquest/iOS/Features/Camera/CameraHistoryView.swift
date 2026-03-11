@@ -4,7 +4,7 @@ import UIKit
 struct CameraHistoryView: View {
     let history: [HistoryItem]
     let loadDetailAction: (Int) async -> HistoryDetailResponse?
-    let shareLinkAction: (Int) async -> URL?
+    let shareLinkAction: (HistoryDetailResponse) async -> URL?
     let deleteAction: (Int) async -> Bool
     @Environment(\.dismiss) private var dismiss
     @State private var selectedItem: HistoryDetailResponse?
@@ -66,7 +66,7 @@ struct CameraHistoryView: View {
                         shareLinkAction: selectedItemIsSample
                             ? nil
                             : {
-                                await shareLinkAction(detail.id)
+                                await shareLinkAction(detail)
                             },
                         onDelete: selectedItemIsSample
                             ? nil
@@ -189,6 +189,14 @@ struct HistoryDetailView: View {
     @State private var showShareFailed = false
     @State private var shareItems: [Any] = []
     @State private var showShareSheet = false
+    
+    private var hasShareAction: Bool {
+        shareLinkAction != nil
+    }
+    
+    private var hasAnyBottomAction: Bool {
+        hasShareAction || onDelete != nil
+    }
 
     var body: some View {
         NavigationStack {
@@ -246,7 +254,9 @@ struct HistoryDetailView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                actionBar
+                if hasAnyBottomAction {
+                    actionBar
+                }
             }
             .alert(L10n.deleteSolution, isPresented: $showDeleteConfirmation) {
                 Button(L10n.cancel, role: .cancel) {}
@@ -279,25 +289,27 @@ struct HistoryDetailView: View {
 
     private var actionBar: some View {
         VStack(spacing: 10) {
-            Button {
-                Task {
-                    await shareSolution()
-                }
-            } label: {
-                HStack(spacing: 10) {
-                    if isPreparingShare {
-                        ProgressView()
-                            .tint(.white)
-                        Text(L10n.preparingShare)
-                    } else {
-                        Label(L10n.share, systemImage: "square.and.arrow.up")
+            if hasShareAction {
+                Button {
+                    Task {
+                        await shareSolution()
                     }
+                } label: {
+                    HStack(spacing: 10) {
+                        if isPreparingShare {
+                            ProgressView()
+                                .tint(.white)
+                            Text(L10n.preparingShare)
+                        } else {
+                            Label(L10n.share, systemImage: "square.and.arrow.up")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(isPreparingShare || isDeleting)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(isPreparingShare || isDeleting)
 
             if onDelete != nil {
                 Button(role: .destructive) {
@@ -331,21 +343,29 @@ struct HistoryDetailView: View {
         let shareURL = await resolvedShareURL()
         isPreparingShare = false
 
-        guard let shareURL else {
+        guard let shareURL, isTokenShareURL(shareURL) else {
+            if let shareURL {
+                print("[ShareLink] Rejected URL in history detail: \(shareURL.absoluteString)")
+            } else {
+                print("[ShareLink] No URL returned in history detail")
+            }
             showShareFailed = true
             return
         }
 
-        let text = String(format: L10n.shareSolutionMessage, shareURL.absoluteString)
-        shareItems = [text, shareURL]
+        print("[ShareLink] Presenting share sheet URL: \(shareURL.absoluteString)")
+        shareItems = [shareURL]
         showShareSheet = true
     }
 
     private func resolvedShareURL() async -> URL? {
-        if let shareLinkAction {
-            return await shareLinkAction()
-        }
-        return URL(string: APIConfig.serverBaseURLString)
+        guard let shareLinkAction else { return nil }
+        return await shareLinkAction()
+    }
+
+    private func isTokenShareURL(_ url: URL) -> Bool {
+        let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return path.starts(with: "s/")
     }
 
     private func deleteSolution() async {

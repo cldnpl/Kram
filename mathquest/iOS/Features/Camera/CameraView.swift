@@ -91,8 +91,8 @@ struct CameraView: View {
                 loadDetailAction: { id in
                     await viewModel.loadHistoryDetail(id: id)
                 },
-                shareLinkAction: { id in
-                    await viewModel.shareURL(forHistoryID: id)
+                shareLinkAction: { detail in
+                    await viewModel.shareURL(forDetail: detail)
                 },
                 deleteAction: { id in
                     await viewModel.deleteHistoryItem(id: id)
@@ -202,11 +202,9 @@ struct CameraView: View {
                 CameraSolutionPage(
                     response: response,
                     capturedImage: viewModel.lastCapturedImage,
-                    shareLinkAction: response.id > 0
-                        ? {
-                            await viewModel.shareURL(forHistoryID: response.id)
-                        }
-                        : nil,
+                    shareLinkAction: {
+                        await viewModel.shareURL(forSolution: response)
+                    },
                     deleteAction: response.id != 0
                         ? {
                             await viewModel.deleteHistoryItem(id: response.id)
@@ -1358,6 +1356,14 @@ private struct CameraSolutionPage: View {
     @State private var showShareFailed = false
     @State private var shareItems: [Any] = []
     @State private var showShareSheet = false
+    
+    private var hasShareAction: Bool {
+        shareLinkAction != nil
+    }
+    
+    private var hasAnyBottomAction: Bool {
+        hasShareAction || deleteAction != nil
+    }
 
     var body: some View {
         ScrollView {
@@ -1415,7 +1421,9 @@ private struct CameraSolutionPage: View {
         .navigationTitle(L10n.solved)
         .navigationBarTitleDisplayMode(.inline)
         .safeAreaInset(edge: .bottom) {
-            actionBar
+            if hasAnyBottomAction {
+                actionBar
+            }
         }
         .alert(L10n.deleteSolution, isPresented: $showDeleteConfirmation) {
             Button(L10n.cancel, role: .cancel) {}
@@ -1447,25 +1455,27 @@ private struct CameraSolutionPage: View {
 
     private var actionBar: some View {
         VStack(spacing: 10) {
-            Button {
-                Task {
-                    await shareSolution()
-                }
-            } label: {
-                HStack(spacing: 10) {
-                    if isPreparingShare {
-                        ProgressView()
-                            .tint(.white)
-                        Text(L10n.preparingShare)
-                    } else {
-                        Label(L10n.share, systemImage: "square.and.arrow.up")
+            if hasShareAction {
+                Button {
+                    Task {
+                        await shareSolution()
                     }
+                } label: {
+                    HStack(spacing: 10) {
+                        if isPreparingShare {
+                            ProgressView()
+                                .tint(.white)
+                            Text(L10n.preparingShare)
+                        } else {
+                            Label(L10n.share, systemImage: "square.and.arrow.up")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .frame(maxWidth: .infinity)
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .disabled(isPreparingShare || isDeleting)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .disabled(isPreparingShare || isDeleting)
 
             if deleteAction != nil {
                 Button(role: .destructive) {
@@ -1499,21 +1509,29 @@ private struct CameraSolutionPage: View {
         let shareURL = await resolvedShareURL()
         isPreparingShare = false
 
-        guard let shareURL else {
+        guard let shareURL, isTokenShareURL(shareURL) else {
+            if let shareURL {
+                print("[ShareLink] Rejected URL in solution page: \(shareURL.absoluteString)")
+            } else {
+                print("[ShareLink] No URL returned in solution page")
+            }
             showShareFailed = true
             return
         }
 
-        let text = String(format: L10n.shareSolutionMessage, shareURL.absoluteString)
-        shareItems = [text, shareURL]
+        print("[ShareLink] Presenting share sheet URL: \(shareURL.absoluteString)")
+        shareItems = [shareURL]
         showShareSheet = true
     }
 
     private func resolvedShareURL() async -> URL? {
-        if let shareLinkAction {
-            return await shareLinkAction()
-        }
-        return URL(string: APIConfig.serverBaseURLString)
+        guard let shareLinkAction else { return nil }
+        return await shareLinkAction()
+    }
+
+    private func isTokenShareURL(_ url: URL) -> Bool {
+        let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return path.starts(with: "s/")
     }
 
     private func deleteSolution() async {

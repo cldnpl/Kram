@@ -579,29 +579,153 @@ final class CameraViewModel: ObservableObject {
     }
 
     func shareURL(forHistoryID id: Int) async -> URL? {
+        let endpoint = "camera/history/\(id)/share"
+
+        print("[ShareLink] Requested share URL for history id=\(id)")
+
         guard id > 0 else {
+            print("[ShareLink] Aborting: invalid history id=\(id)")
             return nil
         }
 
         if let cached = shareURLByID[id] {
-            return cached
+            if Self.isValidShareURL(cached) {
+                print("[ShareLink] Using cached URL for id=\(id): \(cached.absoluteString)")
+                return cached
+            }
+            print("[ShareLink] Dropping invalid cached URL for id=\(id): \(cached.absoluteString)")
+            shareURLByID[id] = nil
         }
 
         do {
+            let currentUID = Auth.auth().currentUser?.uid ?? "nil"
+            let isSessionLoggedIn = UserDefaults.standard.bool(forKey: "session_logged_in")
+            print("[ShareLink] POST \(APIConfig.baseURLString)/\(endpoint)")
+            print("[ShareLink] Context isGuest=\(isGuest) session_logged_in=\(isSessionLoggedIn) firebase_uid=\(currentUID)")
             await syncClientToken()
             let response: ShareHistoryResponse = try await client.request(
-                "camera/history/\(id)/share",
+                endpoint,
                 method: "POST"
             )
-            guard let url = AppLinks.webSharedSolutionURL(token: response.token) else {
+            let token = response.token.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("[ShareLink] Response token=\(token)")
+
+            guard !token.isEmpty else {
+                print("[ShareLink] Empty token received for id=\(id)")
                 return nil
             }
+            guard let url = AppLinks.webSharedSolutionURL(token: token) else {
+                print("[ShareLink] Failed to build web URL from token=\(token)")
+                return nil
+            }
+            guard Self.isValidShareURL(url) else {
+                print("[ShareLink] Rejecting non-token URL for id=\(id): \(url.absoluteString)")
+                return nil
+            }
+            print("[ShareLink] Final share URL=\(url.absoluteString)")
             shareURLByID[id] = url
             return url
+        } catch let apiError as APIClient.APIError {
+            switch apiError {
+            case .httpStatus(let code, let body):
+                print("[ShareLink] HTTP error for \(endpoint): status=\(code) body=\(body)")
+            case .decodingFailed(let underlying, let body):
+                print("[ShareLink] Decoding error for \(endpoint): \(underlying.localizedDescription) body=\(body)")
+            }
+            return nil
         } catch {
-            print("Failed to create share link: \(error)")
+            print("[ShareLink] Request failed for \(endpoint): \(error)")
             return nil
         }
+    }
+
+    func shareURL(forDetail detail: HistoryDetailResponse) async -> URL? {
+        if detail.id > 0 {
+            return await shareURL(forHistoryID: detail.id)
+        }
+
+        print("[ShareLink] Local history item detected (id=\(detail.id)); creating server share entry")
+        return await createShareURL(
+            problem: detail.problem,
+            solution: detail.solution,
+            steps: detail.steps,
+            rawLatex: detail.rawLatex,
+            difficultyLevel: detail.difficultyLevel
+        )
+    }
+
+    func shareURL(forSolution response: SolveResponse) async -> URL? {
+        if response.id > 0 {
+            return await shareURL(forHistoryID: response.id)
+        }
+
+        print("[ShareLink] Unsaved solution detected (id=\(response.id)); creating server share entry")
+        return await createShareURL(
+            problem: response.problem,
+            solution: response.solution,
+            steps: response.steps,
+            rawLatex: response.rawLatex,
+            difficultyLevel: response.difficultyLevel
+        )
+    }
+
+    private func createShareURL(
+        problem: String,
+        solution: String,
+        steps: [String],
+        rawLatex: String,
+        difficultyLevel: String
+    ) async -> URL? {
+        let endpoint = "camera/share"
+        let request = ShareCreateRequest(
+            problem: problem,
+            solution: solution,
+            steps: steps,
+            rawLatex: rawLatex,
+            difficultyLevel: difficultyLevel
+        )
+
+        do {
+            await syncClientToken()
+            let body = try JSONEncoder().encode(request)
+            print("[ShareLink] POST \(APIConfig.baseURLString)/\(endpoint) (local-item upload)")
+            let response: ShareHistoryResponse = try await client.request(
+                endpoint,
+                method: "POST",
+                body: body
+            )
+            let token = response.token.trimmingCharacters(in: .whitespacesAndNewlines)
+            print("[ShareLink] Local upload response token=\(token) id=\(response.id ?? -1)")
+
+            guard !token.isEmpty,
+                  let url = AppLinks.webSharedSolutionURL(token: token),
+                  Self.isValidShareURL(url) else {
+                print("[ShareLink] Invalid token URL after local upload")
+                return nil
+            }
+            print("[ShareLink] Final share URL=\(url.absoluteString)")
+            return url
+        } catch let apiError as APIClient.APIError {
+            switch apiError {
+            case .httpStatus(let code, let body):
+                print("[ShareLink] HTTP error for \(endpoint): status=\(code) body=\(body)")
+            case .decodingFailed(let underlying, let body):
+                print("[ShareLink] Decoding error for \(endpoint): \(underlying.localizedDescription) body=\(body)")
+            }
+            return nil
+        } catch {
+            print("[ShareLink] Request failed for \(endpoint): \(error)")
+            return nil
+        }
+    }
+
+    private static func isValidShareURL(_ url: URL) -> Bool {
+        guard let host = URL(string: APIConfig.serverBaseURLString)?.host?.lowercased(),
+              url.host?.lowercased() == host else {
+            return false
+        }
+        let path = url.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return path.starts(with: "s/")
     }
 
     func stopCamera() {

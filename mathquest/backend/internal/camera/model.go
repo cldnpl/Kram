@@ -86,6 +86,15 @@ type StatusResponse struct {
 
 type ShareHistoryResponse struct {
 	Token string `json:"token"`
+	ID    uint   `json:"id,omitempty"`
+}
+
+type ShareCreateRequest struct {
+	Problem         string   `json:"problem"`
+	Solution        string   `json:"solution"`
+	Steps           []string `json:"steps"`
+	RawLatex        string   `json:"raw_latex"`
+	DifficultyLevel string   `json:"difficulty_level"`
 }
 
 type SharedSolutionResponse struct {

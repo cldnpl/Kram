@@ -200,6 +200,19 @@ func (h *Handler) ensureShareToken(solution *CameraSolution) (string, error) {
 	return "", errors.New("failed to generate unique share token")
 }
 
+func normalizeShareCreateRequest(req *ShareCreateRequest) {
+	req.Problem = strings.TrimSpace(req.Problem)
+	req.Solution = strings.TrimSpace(req.Solution)
+	req.RawLatex = strings.TrimSpace(req.RawLatex)
+	req.DifficultyLevel = strings.TrimSpace(req.DifficultyLevel)
+	if req.DifficultyLevel == "" {
+		req.DifficultyLevel = "unknown"
+	}
+	if req.Steps == nil {
+		req.Steps = []string{}
+	}
+}
+
 func (h *Handler) loadSharedSolutionByToken(token string) (*SharedSolutionResponse, error) {
 	if h.db == nil {
 		return nil, gorm.ErrRecordNotFound
@@ -536,6 +549,62 @@ func (h *Handler) ShareHistoryDetail(c *fiber.Ctx) error {
 
 	return c.JSON(ShareHistoryResponse{
 		Token: token,
+		ID:    solution.ID,
+	})
+}
+
+// ShareCreate handles POST /api/camera/share
+// Creates a shareable solution record from client-provided content (used for local/offline items).
+func (h *Handler) ShareCreate(c *fiber.Ctx) error {
+	userID := h.resolveUserID(c)
+	if h.db == nil || userID == 0 {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "unable to resolve user",
+		})
+	}
+
+	var req ShareCreateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+	normalizeShareCreateRequest(&req)
+
+	if req.Problem == "" || req.Solution == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "problem and solution are required",
+		})
+	}
+
+	stepsJSON, _ := json.Marshal(req.Steps)
+	now := time.Now()
+	solution := CameraSolution{
+		UserID:          userID,
+		OriginalProblem: req.Problem,
+		Solution:        req.Solution,
+		StepsJSON:       stepsJSON,
+		RawLatex:        req.RawLatex,
+		DifficultyLevel: req.DifficultyLevel,
+		CreatedAt:       now,
+	}
+
+	if err := h.db.Create(&solution).Error; err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to save shareable solution",
+		})
+	}
+
+	token, err := h.ensureShareToken(&solution)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to create share link",
+		})
+	}
+
+	return c.JSON(ShareHistoryResponse{
+		Token: token,
+		ID:    solution.ID,
 	})
 }
 

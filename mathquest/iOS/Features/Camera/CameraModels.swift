@@ -174,6 +174,7 @@ struct DeleteHistoryResponse: Decodable {
 
 struct ShareHistoryResponse: Decodable {
     let token: String
+    let id: Int?
 }
 
 struct HistoryItem: Decodable, Identifiable {
@@ -280,6 +281,20 @@ struct SharedSolutionResponse: Decodable, Identifiable {
         rawLatex = try container.decodeIfPresent(String.self, forKey: .rawLatex) ?? ""
         difficultyLevel = try container.decodeIfPresent(String.self, forKey: .difficultyLevel) ?? "unknown"
         createdAt = try container.decode(Date.self, forKey: .createdAt)
+    }
+}
+
+struct ShareCreateRequest: Encodable {
+    let problem: String
+    let solution: String
+    let steps: [String]
+    let rawLatex: String
+    let difficultyLevel: String
+
+    enum CodingKeys: String, CodingKey {
+        case problem, solution, steps
+        case rawLatex = "raw_latex"
+        case difficultyLevel = "difficulty_level"
     }
 }
 
