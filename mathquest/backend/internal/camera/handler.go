@@ -33,6 +33,7 @@ const unlimitedDailyLimit = -1
 type appUser struct {
 	ID          uint   `gorm:"column:id"`
 	FirebaseUID string `gorm:"column:firebase_uid"`
+	Username    string `gorm:"column:username"`
 	Name        string `gorm:"column:name"`
 }
 
@@ -248,8 +249,24 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 	if firebaseUID == "" {
 		firebaseUID = "dev-anonymous-user"
 	}
+	usernameHint := strings.TrimSpace(strings.ToLower(strings.TrimPrefix(firebaseUID, "username:")))
+	if !strings.HasPrefix(strings.ToLower(firebaseUID), "username:") {
+		usernameHint = ""
+	}
 
 	var user appUser
+	if usernameHint != "" {
+		if err := h.db.Where("LOWER(username) = ?", usernameHint).First(&user).Error; err == nil {
+			// Keep firebase_uid aligned with username-based auth to avoid repeated misses.
+			if strings.TrimSpace(user.FirebaseUID) != firebaseUID {
+				_ = h.db.Model(&appUser{}).
+					Where("id = ?", user.ID).
+					Update("firebase_uid", firebaseUID).Error
+			}
+			return user.ID
+		}
+	}
+
 	if err := h.db.Where("firebase_uid = ?", firebaseUID).First(&user).Error; err == nil {
 		return user.ID
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
@@ -259,12 +276,18 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 
 	user = appUser{
 		FirebaseUID: firebaseUID,
+		Username:    usernameHint,
 		Name:        "",
 	}
 	if err := h.db.Create(&user).Error; err != nil {
 		// If another request created the same user concurrently, fetch it.
 		if err := h.db.Where("firebase_uid = ?", firebaseUID).First(&user).Error; err == nil {
 			return user.ID
+		}
+		if usernameHint != "" {
+			if err := h.db.Where("LOWER(username) = ?", usernameHint).First(&user).Error; err == nil {
+				return user.ID
+			}
 		}
 		fmt.Printf("failed to create user for firebase_uid=%s: %v\n", firebaseUID, err)
 		return 0
