@@ -133,6 +133,24 @@ enum L10n {
             "day_streak": ["it": "Serie Giornaliera", "en": "Day Streak", "fr": "Série quotidienne", "es": "Racha diaria", "uz": "Kunlik seriya"],
             "help_support": ["it": "Aiuto e supporto", "en": "Help & Support", "fr": "Aide et support", "es": "Ayuda y soporte", "uz": "Yordam va qo'llab-quvvatlash"],
             "rate_app": ["it": "Valuta l'app", "en": "Rate the App", "fr": "Noter l'app", "es": "Califica la app", "uz": "Ilovani baholash"],
+            "faq_title": ["it": "FAQ", "en": "FAQs", "fr": "FAQ", "es": "Preguntas frecuentes", "uz": "FAQ"],
+            "faq_intro": ["it": "Risposte rapide alle domande più comuni.", "en": "Quick answers to the most common questions.", "fr": "Réponses rapides aux questions les plus fréquentes.", "es": "Respuestas rápidas a las preguntas más comunes.", "uz": "Eng ko'p beriladigan savollarga tez javoblar."],
+            "faq_q_scan": ["it": "Come posso scansionare un problema di matematica?", "en": "How do I scan a math problem?", "fr": "Comment scanner un problème de maths ?", "es": "¿Cómo escaneo un problema de matemáticas?", "uz": "Matematika masalasini qanday skan qilaman?"],
+            "faq_a_scan": ["it": "Apri la scheda Camera, inquadra il problema e premi il pulsante di cattura.", "en": "Open the Camera tab, frame the problem, and tap the capture button.", "fr": "Ouvrez l'onglet Caméra, cadrez le problème et appuyez sur capture.", "es": "Abre la pestaña Cámara, encuadra el problema y pulsa capturar.", "uz": "Kamera bo'limini oching, masalani kadrlang va suratga olish tugmasini bosing."],
+            "faq_q_history": ["it": "Dove trovo le soluzioni precedenti?", "en": "Where can I find previous solutions?", "fr": "Où trouver mes solutions précédentes ?", "es": "¿Dónde encuentro mis soluciones anteriores?", "uz": "Oldingi yechimlarni qayerdan topaman?"],
+            "faq_a_history": ["it": "Nella sezione Camera tocca l'icona cronologia per vedere le soluzioni salvate.", "en": "In Camera, tap the history icon to view saved solutions.", "fr": "Dans Caméra, touchez l'icône historique pour voir les solutions enregistrées.", "es": "En Cámara, toca el icono de historial para ver soluciones guardadas.", "uz": "Kamera bo'limida tarix belgisi orqali saqlangan yechimlarni ko'ring."],
+            "faq_q_language": ["it": "Come cambio la lingua dell'app?", "en": "How do I change the app language?", "fr": "Comment changer la langue de l'app ?", "es": "¿Cómo cambio el idioma de la app?", "uz": "Ilova tilini qanday o'zgartiraman?"],
+            "faq_a_language": ["it": "Vai su Profilo > Impostazioni > Lingua e scegli la lingua preferita.", "en": "Go to Profile > Settings > Language and choose your preferred language.", "fr": "Allez dans Profil > Réglages > Langue et choisissez votre langue.", "es": "Ve a Perfil > Ajustes > Idioma y elige tu idioma preferido.", "uz": "Profil > Sozlamalar > Til bo'limidan kerakli tilni tanlang."],
+            "faq_q_share": ["it": "Come condivido una soluzione?", "en": "How do I share a solution?", "fr": "Comment partager une solution ?", "es": "¿Cómo comparto una solución?", "uz": "Yechimni qanday ulashaman?"],
+            "faq_a_share": ["it": "Apri una soluzione e tocca Condividi: verrà creato un link che puoi inviare.", "en": "Open a solution and tap Share to generate a link you can send.", "fr": "Ouvrez une solution et touchez Partager pour générer un lien.", "es": "Abre una solución y pulsa Compartir para generar un enlace.", "uz": "Yechimni ochib, Ulashish tugmasini bosing va yuborish uchun havola yarating."],
+            "faq_q_limits": ["it": "Perché ho un limite giornaliero di scansioni?", "en": "Why do I have a daily scan limit?", "fr": "Pourquoi ai-je une limite quotidienne de scans ?", "es": "¿Por qué tengo un límite diario de escaneos?", "uz": "Nega kunlik skan limiti bor?"],
+            "faq_a_limits": ["it": "Il limite dipende dal piano. Puoi vedere e modificare il piano nello Store.", "en": "Limits depend on your plan. You can check and upgrade in Store.", "fr": "Les limites dépendent de votre forfait. Vérifiez et changez dans Store.", "es": "Los límites dependen de tu plan. Puedes revisar y mejorar en Store.", "uz": "Limit rejangizga bog'liq. Store bo'limida ko'rib yangilashingiz mumkin."],
+            "rate_page_title": ["it": "Valuta Kram", "en": "Rate Kram", "fr": "Noter Kram", "es": "Calificar Kram", "uz": "Kramni baholang"],
+            "rate_page_subtitle": ["it": "La tua recensione ci aiuta a migliorare e a raggiungere più studenti.", "en": "Your review helps us improve and reach more students.", "fr": "Votre avis nous aide à nous améliorer et à toucher plus d'élèves.", "es": "Tu reseña nos ayuda a mejorar y llegar a más estudiantes.", "uz": "Sizning bahoyingiz ilovani yaxshilash va ko'proq o'quvchilarga yetishga yordam beradi."],
+            "rate_in_app": ["it": "Valuta nell'app", "en": "Rate In App", "fr": "Noter dans l'app", "es": "Valorar en la app", "uz": "Ilovada baholash"],
+            "rate_open_store": ["it": "Apri App Store", "en": "Open App Store", "fr": "Ouvrir l'App Store", "es": "Abrir App Store", "uz": "App Storeni ochish"],
+            "rate_after_prompt_hint": ["it": "Se il popup non appare, usa App Store per lasciare una recensione.", "en": "If the in-app prompt does not appear, use App Store to leave a review.", "fr": "Si la fenêtre n'apparaît pas, utilisez l'App Store pour noter.", "es": "Si no aparece el aviso, usa App Store para dejar una reseña.", "uz": "Agar ilova ichidagi oynacha chiqmasa, App Store orqali baho qoldiring."],
+            "rate_store_unavailable": ["it": "Impossibile aprire App Store in questo momento.", "en": "Unable to open App Store right now.", "fr": "Impossible d'ouvrir l'App Store pour le moment.", "es": "No se puede abrir App Store en este momento.", "uz": "Hozir App Storeni ochib bo'lmadi."],
             "math_level": ["it": "Livello di matematica", "en": "Math Level", "fr": "Niveau de maths", "es": "Nivel de matemáticas", "uz": "Matematika darajasi"],
             "account": ["it": "Account", "en": "Account", "fr": "Compte", "es": "Cuenta", "uz": "Hisob"],
             "delete_account": ["it": "Elimina account", "en": "Delete Account", "fr": "Supprimer le compte", "es": "Eliminar cuenta", "uz": "Hisobni o'chirish"],
@@ -365,6 +383,24 @@ enum L10n {
     static var dayStreak: String { string("day_streak") }
     static var helpSupport: String { string("help_support") }
     static var rateApp: String { string("rate_app") }
+    static var faqTitle: String { string("faq_title") }
+    static var faqIntro: String { string("faq_intro") }
+    static var faqQScan: String { string("faq_q_scan") }
+    static var faqAScan: String { string("faq_a_scan") }
+    static var faqQHistory: String { string("faq_q_history") }
+    static var faqAHistory: String { string("faq_a_history") }
+    static var faqQLanguage: String { string("faq_q_language") }
+    static var faqALanguage: String { string("faq_a_language") }
+    static var faqQShare: String { string("faq_q_share") }
+    static var faqAShare: String { string("faq_a_share") }
+    static var faqQLimits: String { string("faq_q_limits") }
+    static var faqALimits: String { string("faq_a_limits") }
+    static var ratePageTitle: String { string("rate_page_title") }
+    static var ratePageSubtitle: String { string("rate_page_subtitle") }
+    static var rateInApp: String { string("rate_in_app") }
+    static var rateOpenStore: String { string("rate_open_store") }
+    static var rateAfterPromptHint: String { string("rate_after_prompt_hint") }
+    static var rateStoreUnavailable: String { string("rate_store_unavailable") }
     static var mathLevel: String { string("math_level") }
     static var account: String { string("account") }
     static var deleteAccount: String { string("delete_account") }

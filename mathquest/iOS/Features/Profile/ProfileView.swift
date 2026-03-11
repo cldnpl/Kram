@@ -1,5 +1,7 @@
 import PhotosUI
+import StoreKit
 import SwiftUI
+import UIKit
 
 struct ProfileView: View {
     @StateObject private var viewModel = ProfileViewModel()
@@ -129,11 +131,11 @@ struct ProfileView: View {
                     }
 
                     MenuRow(icon: "questionmark.circle.fill", title: L10n.helpSupport, color: .blue) {
-                        EmptyView()
+                        HelpSupportView()
                     }
 
                     MenuRow(icon: "star.fill", title: L10n.rateApp, color: .yellow) {
-                        EmptyView()
+                        RateAppView()
                     }
                 }
                 .padding(.horizontal, 20)
@@ -307,6 +309,143 @@ struct ProfileView: View {
             return "Advanced"
         default:
             return "Beginner"
+        }
+    }
+}
+
+private struct HelpSupportView: View {
+    var body: some View {
+        List {
+            Section {
+                NavigationLink {
+                    FAQView()
+                } label: {
+                    Label(L10n.faqTitle, systemImage: "questionmark.bubble.fill")
+                }
+
+                NavigationLink {
+                    RateAppView()
+                } label: {
+                    Label(L10n.rateApp, systemImage: "star.fill")
+                }
+            }
+        }
+        .navigationTitle(L10n.helpSupport)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct FAQView: View {
+    private struct FAQItem: Identifiable {
+        let id: String
+        let question: String
+        let answer: String
+    }
+
+    private var items: [FAQItem] {
+        [
+            FAQItem(id: "scan", question: L10n.faqQScan, answer: L10n.faqAScan),
+            FAQItem(id: "history", question: L10n.faqQHistory, answer: L10n.faqAHistory),
+            FAQItem(id: "language", question: L10n.faqQLanguage, answer: L10n.faqALanguage),
+            FAQItem(id: "share", question: L10n.faqQShare, answer: L10n.faqAShare),
+            FAQItem(id: "limits", question: L10n.faqQLimits, answer: L10n.faqALimits),
+        ]
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                Text(L10n.faqIntro)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                ForEach(items) { item in
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(item.question)
+                            .font(.headline)
+                        Text(item.answer)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+                    .background(Color(.secondarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+            }
+            .padding(16)
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle(L10n.faqTitle)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+private struct RateAppView: View {
+    @Environment(\.requestReview) private var requestReview
+    @State private var showStoreError = false
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                Text(L10n.ratePageSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                Button {
+                    requestReview()
+                } label: {
+                    Label(L10n.rateInApp, systemImage: "star.bubble.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+
+                Button {
+                    openAppStoreReview()
+                } label: {
+                    Label(L10n.rateOpenStore, systemImage: "arrow.up.right.square.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+
+                Text(L10n.rateAfterPromptHint)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .padding(16)
+        }
+        .background(Color(.systemGroupedBackground))
+        .navigationTitle(L10n.ratePageTitle)
+        .navigationBarTitleDisplayMode(.inline)
+        .alert(L10n.error, isPresented: $showStoreError) {
+            Button(L10n.ok, role: .cancel) {}
+        } message: {
+            Text(L10n.rateStoreUnavailable)
+        }
+    }
+
+    private func openAppStoreReview() {
+        let bundleID = Bundle.main.bundleIdentifier ?? "Kram"
+        let encoded = bundleID.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Kram"
+
+        let candidates = [
+            URL(string: "itms-apps://apps.apple.com/us/search?term=\(encoded)"),
+            URL(string: "https://apps.apple.com/us/search?term=\(encoded)")
+        ].compactMap { $0 }
+        openURLFromCandidates(candidates, at: 0)
+    }
+
+    private func openURLFromCandidates(_ urls: [URL], at index: Int) {
+        guard index < urls.count else {
+            showStoreError = true
+            return
+        }
+        UIApplication.shared.open(urls[index]) { success in
+            if !success {
+                openURLFromCandidates(urls, at: index + 1)
+            }
         }
     }
 }
