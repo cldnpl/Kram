@@ -686,7 +686,13 @@ final class CameraViewModel: ObservableObject {
         )
 
         do {
-            await syncClientToken()
+            let authToken = Self.resolvedToken()
+            let tokenPreview = String(authToken.prefix(18))
+            let isSessionLoggedIn = UserDefaults.standard.bool(forKey: "session_logged_in")
+            let username = UserDefaults.standard.string(forKey: "profile_username") ?? ""
+            print("[ShareLink] Auth context isGuest=\(isGuest) session_logged_in=\(isSessionLoggedIn) username=\(username)")
+            print("[ShareLink] Setting bearer token preview=\(tokenPreview)...")
+            await client.setToken(authToken)
             let body = try JSONEncoder().encode(request)
             print("[ShareLink] POST \(APIConfig.baseURLString)/\(endpoint) (local-item upload)")
             let response: ShareHistoryResponse = try await client.request(
