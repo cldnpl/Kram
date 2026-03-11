@@ -274,12 +274,11 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 		return 0
 	}
 
-	user = appUser{
-		FirebaseUID: firebaseUID,
-		Username:    usernameHint,
-		Name:        "",
+	createValues := map[string]any{
+		"firebase_uid": firebaseUID,
+		"name":         "",
 	}
-	if err := h.db.Create(&user).Error; err != nil {
+	if err := h.db.Table("users").Create(createValues).Error; err != nil {
 		// If another request created the same user concurrently, fetch it.
 		if err := h.db.Where("firebase_uid = ?", firebaseUID).First(&user).Error; err == nil {
 			return user.ID
@@ -291,6 +290,17 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 		}
 		fmt.Printf("failed to create user for firebase_uid=%s: %v\n", firebaseUID, err)
 		return 0
+	}
+
+	// Reload the just-created user.
+	if err := h.db.Where("firebase_uid = ?", firebaseUID).First(&user).Error; err != nil {
+		fmt.Printf("failed to load created user for firebase_uid=%s: %v\n", firebaseUID, err)
+		return 0
+	}
+
+	// Best-effort username sync (ignore if column is absent or conflicts).
+	if usernameHint != "" {
+		_ = h.db.Table("users").Where("id = ?", user.ID).Update("username", usernameHint).Error
 	}
 
 	return user.ID
