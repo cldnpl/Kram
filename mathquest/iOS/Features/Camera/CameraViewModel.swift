@@ -14,6 +14,7 @@ final class CameraViewModel: ObservableObject {
     @Published var showHistory = false
     @Published var showCameraPermissionSheet = false
     @Published var showLoginPrompt = false
+    @Published var lastCapturedImage: UIImage?
     @Published var history: [HistoryItem] = []
     @Published private(set) var focusRectNormalized = CGRect(x: 0.05, y: 0.3, width: 0.9, height: 0.25)
 
@@ -248,6 +249,7 @@ final class CameraViewModel: ObservableObject {
 
         do {
             let croppedImage = croppedImageIfNeeded(image, normalizedRect: cropRectNormalized)
+            lastCapturedImage = croppedImage
             let optimizedImage = downscaledImageIfNeeded(croppedImage, maxDimension: 1600)
 
             guard let imageData = optimizedImage.jpegData(compressionQuality: 0.8) else {
@@ -396,6 +398,7 @@ final class CameraViewModel: ObservableObject {
 
     func reset() {
         state = .idle
+        lastCapturedImage = nil
     }
 
     func fetchHistory() async {

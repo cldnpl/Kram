@@ -164,7 +164,7 @@ struct CameraView: View {
         }
         .navigationDestination(isPresented: $showSolutionPage) {
             if let response = selectedSolution {
-                CameraSolutionPage(response: response)
+                CameraSolutionPage(response: response, capturedImage: viewModel.lastCapturedImage)
                     .onDisappear {
                         let solveId = response.id
                         selectedSolution = nil
@@ -1165,6 +1165,7 @@ private struct GalleryCropSheet: View {
 
 private struct CameraSolutionPage: View {
     let response: SolveResponse
+    var capturedImage: UIImage?
     @State private var visibleSteps: Set<Int> = []
 
     var body: some View {
@@ -1175,6 +1176,18 @@ private struct CameraSolutionPage: View {
                         .font(.title2.bold())
                     Spacer()
                     DifficultyBadge(level: response.difficultyLevel)
+                }
+
+                if let capturedImage {
+                    Image(uiImage: capturedImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 200)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .stroke(Color(.systemGray4), lineWidth: 1)
+                        )
                 }
 
                 VStack(alignment: .leading, spacing: 6) {
