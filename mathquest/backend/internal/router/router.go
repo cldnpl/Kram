@@ -54,6 +54,11 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 
 	// Streak handler
 	streakHandler := streak.NewHandler(db, redisClient, cfg)
+	cameraHandler := camera.NewHandler(db, redisClient, cfg)
+
+	// Public shared-solution routes.
+	app.Get("/s/:token", cameraHandler.SharedLandingPage)
+	api.Get("/camera/shared/:token", cameraHandler.SharedDetail)
 
 	// Protected routes
 	protected := api.Group("", middleware.FirebaseAuth(), middleware.ResolveUserID(db))
@@ -82,7 +87,6 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	})
 
 	// Camera - con OptionalCameraAuth: Bearer (Apple/Google) oppure X-Username (login username)
-	cameraHandler := camera.NewHandler(db, redisClient, cfg)
 	cameraAuth := api.Group("", middleware.OptionalCameraAuth(), middleware.ResolveUserID(db))
 	cameraAuth.Post("/camera/solve", func(c *fiber.Ctx) error {
 		if err := cameraHandler.Solve(c); err != nil {
@@ -96,6 +100,7 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	cameraAuth.Post("/camera/translate", cameraHandler.Translate)
 	cameraAuth.Get("/camera/history", cameraHandler.History)
 	cameraAuth.Get("/camera/history/:id", cameraHandler.HistoryDetail)
+	cameraAuth.Post("/camera/history/:id/share", cameraHandler.ShareHistoryDetail)
 	cameraAuth.Delete("/camera/history/:id", cameraHandler.DeleteHistoryDetail)
 	cameraAuth.Get("/camera/status", cameraHandler.Status)
 

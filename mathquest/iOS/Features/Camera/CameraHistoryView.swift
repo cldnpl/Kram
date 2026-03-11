@@ -1,8 +1,10 @@
 import SwiftUI
+import UIKit
 
 struct CameraHistoryView: View {
     let history: [HistoryItem]
     let loadDetailAction: (Int) async -> HistoryDetailResponse?
+    let shareLinkAction: (Int) async -> URL?
     let deleteAction: (Int) async -> Bool
     @Environment(\.dismiss) private var dismiss
     @State private var selectedItem: HistoryDetailResponse?
@@ -61,6 +63,11 @@ struct CameraHistoryView: View {
                 .sheet(item: $selectedItem) { detail in
                     HistoryDetailView(
                         detail: detail,
+                        shareLinkAction: selectedItemIsSample
+                            ? nil
+                            : {
+                                await shareLinkAction(detail.id)
+                            },
                         onDelete: selectedItemIsSample
                             ? nil
                             : {
@@ -171,12 +178,17 @@ struct HistoryRowView: View {
 
 struct HistoryDetailView: View {
     let detail: HistoryDetailResponse
+    let shareLinkAction: (() async -> URL?)?
     let onDelete: (() async -> Bool)?
     @Environment(\.dismiss) private var dismiss
     @State private var visibleSteps: Set<Int> = []
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
+    @State private var isPreparingShare = false
     @State private var showDeleteFailed = false
+    @State private var showShareFailed = false
+    @State private var shareItems: [Any] = []
+    @State private var showShareSheet = false
 
     var body: some View {
         NavigationStack {
@@ -228,32 +240,13 @@ struct HistoryDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    ShareLink(item: shareText) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                    .accessibilityLabel(L10n.share)
-                }
-                if onDelete != nil {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button {
-                            showDeleteConfirmation = true
-                        } label: {
-                            if isDeleting {
-                                ProgressView()
-                            } else {
-                                Image(systemName: "trash")
-                            }
-                        }
-                        .tint(.red)
-                        .disabled(isDeleting)
-                        .accessibilityLabel(L10n.deleteSolution)
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
                     Button(L10n.done) {
                         dismiss()
                     }
                 }
+            }
+            .safeAreaInset(edge: .bottom) {
+                actionBar
             }
             .alert(L10n.deleteSolution, isPresented: $showDeleteConfirmation) {
                 Button(L10n.cancel, role: .cancel) {}
@@ -270,29 +263,89 @@ struct HistoryDetailView: View {
             } message: {
                 Text(L10n.deleteSolutionFailed)
             }
+            .alert(L10n.error, isPresented: $showShareFailed) {
+                Button(L10n.ok, role: .cancel) {}
+            } message: {
+                Text(L10n.shareLinkFailed)
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ActivityShareSheet(items: shareItems)
+            }
             .task {
                 await animateSteps()
             }
         }
     }
 
-    private var shareText: String {
-        var lines: [String] = [
-            "\(L10n.problem): \(detail.problem)",
-            "\(L10n.solution): \(detail.solution)",
-        ]
-        if !detail.steps.isEmpty {
-            lines.append("\(L10n.solutionSteps):")
-            lines.append(contentsOf: detail.steps.enumerated().map { "\($0.offset + 1). \($0.element)" })
+    private var actionBar: some View {
+        VStack(spacing: 10) {
+            Button {
+                Task {
+                    await shareSolution()
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    if isPreparingShare {
+                        ProgressView()
+                            .tint(.white)
+                        Text(L10n.preparingShare)
+                    } else {
+                        Label(L10n.share, systemImage: "square.and.arrow.up")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(isPreparingShare || isDeleting)
+
+            if onDelete != nil {
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    Label(L10n.deleteSolution, systemImage: "trash")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .disabled(isPreparingShare || isDeleting)
+            }
         }
-        return lines.joined(separator: "\n")
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+        .background(.ultraThinMaterial)
     }
 
     private func animateSteps() async {
+        visibleSteps.removeAll()
         for i in 0..<detail.steps.count {
             try? await Task.sleep(nanoseconds: 200_000_000)
             visibleSteps.insert(i)
         }
+    }
+
+    private func shareSolution() async {
+        guard !isPreparingShare else { return }
+        isPreparingShare = true
+        let shareURL = await resolvedShareURL()
+        isPreparingShare = false
+
+        guard let shareURL else {
+            showShareFailed = true
+            return
+        }
+
+        let text = String(format: L10n.shareSolutionMessage, shareURL.absoluteString)
+        shareItems = [text, shareURL]
+        showShareSheet = true
+    }
+
+    private func resolvedShareURL() async -> URL? {
+        if let shareLinkAction {
+            return await shareLinkAction()
+        }
+        return URL(string: APIConfig.serverBaseURLString)
     }
 
     private func deleteSolution() async {
@@ -327,6 +380,18 @@ struct HistoryDetailView: View {
             )
         ],
         loadDetailAction: { _ in nil },
+        shareLinkAction: { _ in nil },
         deleteAction: { _ in true }
     )
+}
+
+struct ActivityShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {
+    }
 }

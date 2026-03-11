@@ -2,9 +2,12 @@ package camera
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"html"
 	"strconv"
 	"strings"
 	"time"
@@ -126,6 +129,96 @@ func (h *Handler) incrementDailyUsage(ctx context.Context, userID uint) error {
 	pipe.ExpireAt(ctx, key, time.Now().Add(24*time.Hour).Truncate(24*time.Hour))
 	_, err := pipe.Exec(ctx)
 	return err
+}
+
+func parseSolutionSteps(raw json.RawMessage) []string {
+	var steps []string
+	if err := json.Unmarshal(raw, &steps); err != nil {
+		return []string{}
+	}
+	if steps == nil {
+		return []string{}
+	}
+	return steps
+}
+
+func isValidShareToken(token string) bool {
+	if len(token) < 10 || len(token) > 64 {
+		return false
+	}
+	for _, r := range token {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' {
+			continue
+		}
+		return false
+	}
+	return true
+}
+
+func generateShareToken() (string, error) {
+	buf := make([]byte, 18)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(buf), nil
+}
+
+func (h *Handler) ensureShareToken(solution *CameraSolution) (string, error) {
+	if solution.ShareToken != "" {
+		return solution.ShareToken, nil
+	}
+	if h.db == nil {
+		return "", errors.New("database unavailable")
+	}
+
+	for attempt := 0; attempt < 5; attempt++ {
+		token, err := generateShareToken()
+		if err != nil {
+			return "", err
+		}
+
+		now := time.Now()
+		err = h.db.Model(&CameraSolution{}).
+			Where("id = ? AND user_id = ?", solution.ID, solution.UserID).
+			Updates(map[string]any{
+				"share_token": token,
+				"shared_at":   now,
+			}).Error
+
+		if err != nil {
+			if strings.Contains(strings.ToLower(err.Error()), "duplicate") {
+				continue
+			}
+			return "", err
+		}
+
+		solution.ShareToken = token
+		solution.SharedAt = &now
+		return token, nil
+	}
+
+	return "", errors.New("failed to generate unique share token")
+}
+
+func (h *Handler) loadSharedSolutionByToken(token string) (*SharedSolutionResponse, error) {
+	if h.db == nil {
+		return nil, gorm.ErrRecordNotFound
+	}
+
+	var solution CameraSolution
+	if err := h.db.Where("share_token = ?", token).First(&solution).Error; err != nil {
+		return nil, err
+	}
+
+	return &SharedSolutionResponse{
+		Token:           token,
+		Problem:         solution.OriginalProblem,
+		Solution:        solution.Solution,
+		Steps:           parseSolutionSteps(solution.StepsJSON),
+		RawLatex:        solution.RawLatex,
+		DifficultyLevel: solution.DifficultyLevel,
+		CreatedAt:       solution.CreatedAt,
+	}, nil
 }
 
 func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
@@ -395,23 +488,164 @@ func (h *Handler) HistoryDetail(c *fiber.Ctx) error {
 		})
 	}
 
-	var steps []string
-	if err := json.Unmarshal(solution.StepsJSON, &steps); err != nil {
-		steps = []string{}
-	}
-	if steps == nil {
-		steps = []string{}
-	}
-
 	return c.JSON(HistoryDetailResponse{
 		ID:              solution.ID,
 		Problem:         solution.OriginalProblem,
 		Solution:        solution.Solution,
-		Steps:           steps,
+		Steps:           parseSolutionSteps(solution.StepsJSON),
 		RawLatex:        solution.RawLatex,
 		DifficultyLevel: solution.DifficultyLevel,
 		CreatedAt:       solution.CreatedAt,
 	})
+}
+
+// ShareHistoryDetail handles POST /api/camera/history/:id/share
+func (h *Handler) ShareHistoryDetail(c *fiber.Ctx) error {
+	userID := h.resolveUserID(c)
+	if h.db == nil || userID == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "solution not found",
+		})
+	}
+
+	id, err := strconv.ParseUint(c.Params("id"), 10, 32)
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid id",
+		})
+	}
+
+	var solution CameraSolution
+	if err := h.db.Where("id = ? AND user_id = ?", id, userID).First(&solution).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "solution not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to fetch solution",
+		})
+	}
+
+	token, err := h.ensureShareToken(&solution)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to create share link",
+		})
+	}
+
+	return c.JSON(ShareHistoryResponse{
+		Token: token,
+	})
+}
+
+// SharedDetail handles GET /api/camera/shared/:token
+func (h *Handler) SharedDetail(c *fiber.Ctx) error {
+	token := strings.TrimSpace(c.Params("token"))
+	if !isValidShareToken(token) {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid token",
+		})
+	}
+
+	shared, err := h.loadSharedSolutionByToken(token)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "solution not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "failed to load shared solution",
+		})
+	}
+
+	return c.JSON(shared)
+}
+
+// SharedLandingPage handles GET /s/:token
+func (h *Handler) SharedLandingPage(c *fiber.Ctx) error {
+	token := strings.TrimSpace(c.Params("token"))
+	if !isValidShareToken(token) {
+		return c.Status(fiber.StatusBadRequest).SendString("Invalid link")
+	}
+
+	shared, err := h.loadSharedSolutionByToken(token)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return c.Status(fiber.StatusNotFound).SendString("This shared solution was not found.")
+		}
+		return c.Status(fiber.StatusInternalServerError).SendString("Unable to open shared solution.")
+	}
+
+	baseURL := strings.TrimRight(c.BaseURL(), "/")
+	shareURL := baseURL + "/s/" + token
+	appURL := "kram://solution/" + token
+
+	title := html.EscapeString("Kram Solution")
+	problem := html.EscapeString(shared.Problem)
+	answer := html.EscapeString(shared.Solution)
+	escapedShareURL := html.EscapeString(shareURL)
+	escapedAppURL := html.EscapeString(appURL)
+
+	page := fmt.Sprintf(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>%s</title>
+  <meta name="description" content="%s">
+  <meta property="og:title" content="%s">
+  <meta property="og:description" content="Answer: %s">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="%s">
+  <meta name="twitter:card" content="summary">
+  <meta name="apple-itunes-app" content="app-argument=%s">
+  <style>
+    body { margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background:#0b1220; color:#f4f7ff; }
+    .wrap { max-width:720px; margin:0 auto; padding:24px 20px 40px; }
+    h1 { font-size:28px; line-height:1.2; margin:0 0 10px; }
+    .card { background:#141e35; border:1px solid #243154; border-radius:16px; padding:16px; margin-top:14px; }
+    .label { color:#9fb0d9; font-size:12px; text-transform:uppercase; letter-spacing:0.08em; margin-bottom:8px; }
+    .value { color:#f4f7ff; font-size:18px; line-height:1.4; }
+    .cta { display:inline-block; margin-top:20px; background:#35c59d; color:#062c22; padding:12px 18px; border-radius:12px; font-weight:700; text-decoration:none; }
+    .hint { margin-top:12px; color:#9fb0d9; font-size:14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Solve Math Faster with Kram</h1>
+    <div class="card">
+      <div class="label">Problem</div>
+      <div class="value">%s</div>
+    </div>
+    <div class="card">
+      <div class="label">Answer</div>
+      <div class="value">%s</div>
+    </div>
+    <a class="cta" href="%s">Open in Kram App</a>
+    <div class="hint">If the app is installed, this link opens it directly.</div>
+  </div>
+  <script>
+    setTimeout(function () { window.location.href = %q; }, 120);
+  </script>
+</body>
+</html>`,
+		title,
+		problem,
+		title,
+		answer,
+		escapedShareURL,
+		escapedAppURL,
+		problem,
+		answer,
+		escapedAppURL,
+		appURL,
+	)
+
+	c.Set("Content-Type", "text/html; charset=utf-8")
+	c.Set("Cache-Control", "public, max-age=120")
+	return c.SendString(page)
 }
 
 // DeleteHistoryDetail handles DELETE /api/camera/history/:id

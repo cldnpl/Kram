@@ -23,6 +23,7 @@ final class CameraViewModel: ObservableObject {
     private let client = APIClient()
     private var cancellables = Set<AnyCancellable>()
     private var historyDetailsByID: [Int: HistoryDetailResponse] = [:]
+    private var shareURLByID: [Int: URL] = [:]
 
     var isGuest: Bool {
         Auth.auth().currentUser == nil &&
@@ -554,6 +555,7 @@ final class CameraViewModel: ObservableObject {
     func deleteHistoryItem(id: Int) async -> Bool {
         let scope = currentHistoryScope()
         historyDetailsByID[id] = nil
+        shareURLByID[id] = nil
         LocalHistoryStore.delete(id: id, scope: scope)
         history.removeAll { $0.id == id }
 
@@ -573,6 +575,32 @@ final class CameraViewModel: ObservableObject {
             print("Failed to delete history detail: \(error)")
             await fetchHistory()
             return false
+        }
+    }
+
+    func shareURL(forHistoryID id: Int) async -> URL? {
+        guard id > 0 else {
+            return nil
+        }
+
+        if let cached = shareURLByID[id] {
+            return cached
+        }
+
+        do {
+            await syncClientToken()
+            let response: ShareHistoryResponse = try await client.request(
+                "camera/history/\(id)/share",
+                method: "POST"
+            )
+            guard let url = AppLinks.webSharedSolutionURL(token: response.token) else {
+                return nil
+            }
+            shareURLByID[id] = url
+            return url
+        } catch {
+            print("Failed to create share link: \(error)")
+            return nil
         }
     }
 

@@ -91,6 +91,9 @@ struct CameraView: View {
                 loadDetailAction: { id in
                     await viewModel.loadHistoryDetail(id: id)
                 },
+                shareLinkAction: { id in
+                    await viewModel.shareURL(forHistoryID: id)
+                },
                 deleteAction: { id in
                     await viewModel.deleteHistoryItem(id: id)
                 }
@@ -199,6 +202,11 @@ struct CameraView: View {
                 CameraSolutionPage(
                     response: response,
                     capturedImage: viewModel.lastCapturedImage,
+                    shareLinkAction: response.id > 0
+                        ? {
+                            await viewModel.shareURL(forHistoryID: response.id)
+                        }
+                        : nil,
                     deleteAction: response.id != 0
                         ? {
                             await viewModel.deleteHistoryItem(id: response.id)
@@ -1339,12 +1347,17 @@ private struct SolutionLanguageSheet: View {
 private struct CameraSolutionPage: View {
     let response: SolveResponse
     var capturedImage: UIImage?
+    let shareLinkAction: (() async -> URL?)?
     let deleteAction: (() async -> Bool)?
     @Environment(\.dismiss) private var dismiss
     @State private var visibleSteps: Set<Int> = []
     @State private var showDeleteConfirmation = false
     @State private var isDeleting = false
+    @State private var isPreparingShare = false
     @State private var showDeleteFailed = false
+    @State private var showShareFailed = false
+    @State private var shareItems: [Any] = []
+    @State private var showShareSheet = false
 
     var body: some View {
         ScrollView {
@@ -1401,29 +1414,8 @@ private struct CameraSolutionPage: View {
         }
         .navigationTitle(L10n.solved)
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                ShareLink(item: shareText) {
-                    Image(systemName: "square.and.arrow.up")
-                }
-                .accessibilityLabel(L10n.share)
-            }
-            if deleteAction != nil {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        showDeleteConfirmation = true
-                    } label: {
-                        if isDeleting {
-                            ProgressView()
-                        } else {
-                            Image(systemName: "trash")
-                        }
-                    }
-                    .tint(.red)
-                    .disabled(isDeleting)
-                    .accessibilityLabel(L10n.deleteSolution)
-                }
-            }
+        .safeAreaInset(edge: .bottom) {
+            actionBar
         }
         .alert(L10n.deleteSolution, isPresented: $showDeleteConfirmation) {
             Button(L10n.cancel, role: .cancel) {}
@@ -1440,21 +1432,57 @@ private struct CameraSolutionPage: View {
         } message: {
             Text(L10n.deleteSolutionFailed)
         }
+        .alert(L10n.error, isPresented: $showShareFailed) {
+            Button(L10n.ok, role: .cancel) {}
+        } message: {
+            Text(L10n.shareLinkFailed)
+        }
+        .sheet(isPresented: $showShareSheet) {
+            ActivityShareSheet(items: shareItems)
+        }
         .task {
             await animateSteps()
         }
     }
 
-    private var shareText: String {
-        var lines: [String] = [
-            "\(L10n.problem): \(response.problem)",
-            "\(L10n.solution): \(response.solution)",
-        ]
-        if !response.steps.isEmpty {
-            lines.append("\(L10n.solutionSteps):")
-            lines.append(contentsOf: response.steps.enumerated().map { "\($0.offset + 1). \($0.element)" })
+    private var actionBar: some View {
+        VStack(spacing: 10) {
+            Button {
+                Task {
+                    await shareSolution()
+                }
+            } label: {
+                HStack(spacing: 10) {
+                    if isPreparingShare {
+                        ProgressView()
+                            .tint(.white)
+                        Text(L10n.preparingShare)
+                    } else {
+                        Label(L10n.share, systemImage: "square.and.arrow.up")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            .disabled(isPreparingShare || isDeleting)
+
+            if deleteAction != nil {
+                Button(role: .destructive) {
+                    showDeleteConfirmation = true
+                } label: {
+                    Label(L10n.deleteSolution, systemImage: "trash")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
+                .disabled(isPreparingShare || isDeleting)
+            }
         }
-        return lines.joined(separator: "\n")
+        .padding(.horizontal, 16)
+        .padding(.top, 12)
+        .padding(.bottom, 8)
+        .background(.ultraThinMaterial)
     }
 
     private func animateSteps() async {
@@ -1463,6 +1491,29 @@ private struct CameraSolutionPage: View {
             try? await Task.sleep(nanoseconds: 220_000_000)
             visibleSteps.insert(i)
         }
+    }
+
+    private func shareSolution() async {
+        guard !isPreparingShare else { return }
+        isPreparingShare = true
+        let shareURL = await resolvedShareURL()
+        isPreparingShare = false
+
+        guard let shareURL else {
+            showShareFailed = true
+            return
+        }
+
+        let text = String(format: L10n.shareSolutionMessage, shareURL.absoluteString)
+        shareItems = [text, shareURL]
+        showShareSheet = true
+    }
+
+    private func resolvedShareURL() async -> URL? {
+        if let shareLinkAction {
+            return await shareLinkAction()
+        }
+        return URL(string: APIConfig.serverBaseURLString)
     }
 
     private func deleteSolution() async {

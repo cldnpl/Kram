@@ -18,6 +18,10 @@ struct ContentView: View {
     @State private var showCarousel = false
     @State private var showProfileSetup = false
     @State private var isHydratingProfile = false
+    @State private var isLoadingSharedSolution = false
+    @State private var sharedSolutionSheet: SharedSolutionSheet?
+    @State private var sharedSolutionErrorMessage = ""
+    @State private var showSharedSolutionError = false
 
     private var isProfileComplete: Bool {
         !profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
@@ -47,6 +51,43 @@ struct ContentView: View {
         .id("tabs-\(language)")
         .environment(\.locale, Locale(identifier: language))
         .environmentObject(tabSelection)
+        .onOpenURL { url in
+            handleIncomingURL(url)
+        }
+        .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { userActivity in
+            guard let url = userActivity.webpageURL else { return }
+            handleIncomingURL(url)
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .appDidReceiveExternalURL)) { notification in
+            guard let url = notification.object as? URL else { return }
+            handleIncomingURL(url)
+        }
+        .sheet(item: $sharedSolutionSheet) { sheet in
+            HistoryDetailView(
+                detail: sheet.detail,
+                shareLinkAction: {
+                    AppLinks.webSharedSolutionURL(token: sheet.token)
+                },
+                onDelete: nil
+            )
+        }
+        .alert(L10n.error, isPresented: $showSharedSolutionError) {
+            Button(L10n.ok, role: .cancel) {}
+        } message: {
+            Text(sharedSolutionErrorMessage)
+        }
+        .overlay {
+            if isLoadingSharedSolution {
+                ZStack {
+                    Color.black.opacity(0.25)
+                        .ignoresSafeArea()
+                    ProgressView(L10n.loading)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+            }
+        }
         .fullScreenCover(isPresented: $showCarousel) {
             CarouselOnboardingView {
                 hasSeenCarousel = true
@@ -92,6 +133,33 @@ struct ContentView: View {
         }
     }
 
+    private func handleIncomingURL(_ url: URL) {
+        guard case let .sharedSolution(token) = AppLinks.route(from: url) else {
+            return
+        }
+        Task {
+            await openSharedSolution(token: token)
+        }
+    }
+
+    private func openSharedSolution(token: String) async {
+        guard !isLoadingSharedSolution else {
+            return
+        }
+        isLoadingSharedSolution = true
+        defer { isLoadingSharedSolution = false }
+
+        do {
+            let client = APIClient()
+            let response: SharedSolutionResponse = try await client.request("camera/shared/\(token)")
+            tabSelection.selectedTab = 2
+            sharedSolutionSheet = SharedSolutionSheet(response: response)
+        } catch {
+            sharedSolutionErrorMessage = L10n.sharedSolutionLoadFailed
+            showSharedSolutionError = true
+        }
+    }
+
     private func resolvedAuthToken() -> String? {
         if let uid = Auth.auth().currentUser?.uid, !uid.isEmpty {
             return uid
@@ -132,6 +200,26 @@ struct ContentView: View {
         } catch {
             // Keep local values only; profile setup fallback will handle missing data.
         }
+    }
+}
+
+private struct SharedSolutionSheet: Identifiable {
+    let token: String
+    let detail: HistoryDetailResponse
+
+    var id: String { token }
+
+    init(response: SharedSolutionResponse) {
+        token = response.token
+        detail = HistoryDetailResponse(
+            id: 0,
+            problem: response.problem,
+            solution: response.solution,
+            steps: response.steps,
+            rawLatex: response.rawLatex,
+            difficultyLevel: response.difficultyLevel,
+            createdAt: response.createdAt
+        )
     }
 }
 

@@ -172,6 +172,10 @@ struct DeleteHistoryResponse: Decodable {
     let deleted: Bool
 }
 
+struct ShareHistoryResponse: Decodable {
+    let token: String
+}
+
 struct HistoryItem: Decodable, Identifiable {
     let id: Int
     let problem: String
@@ -240,6 +244,36 @@ struct HistoryDetailResponse: Decodable, Identifiable {
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decodeIfPresent(Int.self, forKey: .id) ?? 0
+        problem = try container.decodeIfPresent(String.self, forKey: .problem) ?? ""
+        solution = try container.decodeIfPresent(String.self, forKey: .solution) ?? ""
+        steps = try container.decodeIfPresent([String].self, forKey: .steps) ?? []
+        rawLatex = try container.decodeIfPresent(String.self, forKey: .rawLatex) ?? ""
+        difficultyLevel = try container.decodeIfPresent(String.self, forKey: .difficultyLevel) ?? "unknown"
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+    }
+}
+
+struct SharedSolutionResponse: Decodable, Identifiable {
+    let token: String
+    let problem: String
+    let solution: String
+    let steps: [String]
+    let rawLatex: String
+    let difficultyLevel: String
+    let createdAt: Date
+
+    var id: String { token }
+
+    enum CodingKeys: String, CodingKey {
+        case token, problem, solution, steps
+        case rawLatex = "raw_latex"
+        case difficultyLevel = "difficulty_level"
+        case createdAt = "created_at"
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        token = try container.decodeIfPresent(String.self, forKey: .token) ?? ""
         problem = try container.decodeIfPresent(String.self, forKey: .problem) ?? ""
         solution = try container.decodeIfPresent(String.self, forKey: .solution) ?? ""
         steps = try container.decodeIfPresent([String].self, forKey: .steps) ?? []

@@ -110,6 +110,10 @@ enum L10n {
             "delete_solution": ["it": "Elimina soluzione", "en": "Delete Solution", "fr": "Supprimer la solution", "es": "Eliminar solución", "uz": "Yechimni o'chirish"],
             "delete_solution_message": ["it": "Vuoi eliminare questa soluzione dalla cronologia?", "en": "Do you want to delete this solution from history?", "fr": "Voulez-vous supprimer cette solution de l'historique ?", "es": "¿Quieres eliminar esta solución del historial?", "uz": "Bu yechimni tarixdan o'chirmoqchimisiz?"],
             "delete_solution_failed": ["it": "Impossibile eliminare la soluzione. Riprova.", "en": "Unable to delete solution. Please try again.", "fr": "Impossible de supprimer la solution. Veuillez réessayer.", "es": "No se pudo eliminar la solución. Inténtalo de nuevo.", "uz": "Yechimni o'chirib bo'lmadi. Qayta urinib ko'ring."],
+            "preparing_share": ["it": "Preparazione link...", "en": "Preparing link...", "fr": "Préparation du lien...", "es": "Preparando enlace...", "uz": "Havola tayyorlanmoqda..."],
+            "share_link_failed": ["it": "Impossibile creare il link di condivisione. Riprova.", "en": "Unable to create a share link. Please try again.", "fr": "Impossible de créer un lien de partage. Veuillez réessayer.", "es": "No se pudo crear un enlace para compartir. Inténtalo de nuevo.", "uz": "Ulashish havolasini yaratib bo'lmadi. Qayta urinib ko'ring."],
+            "share_solution_message_format": ["it": "Guarda questa soluzione su Kram: %@", "en": "Check out this solution on Kram: %@", "fr": "Regarde cette solution sur Kram : %@", "es": "Mira esta solución en Kram: %@", "uz": "Kramdagi bu yechimni ko'ring: %@"],
+            "shared_solution_load_failed": ["it": "Impossibile aprire la soluzione condivisa.", "en": "Unable to open the shared solution.", "fr": "Impossible d'ouvrir la solution partagée.", "es": "No se pudo abrir la solución compartida.", "uz": "Ulashilgan yechimni ochib bo'lmadi."],
             "dont_have_account": ["it": "Non hai un account?", "en": "Don't have an account?", "fr": "Pas encore de compte?", "es": "¿No tienes cuenta?", "uz": "Hisobingiz yo'qmi?"],
             "register": ["it": "Registrati", "en": "Register", "fr": "S'inscrire", "es": "Registrarse", "uz": "Ro'yxatdan o'tish"],
             "already_have_account": ["it": "Hai già un account?", "en": "Already have an account?", "fr": "Déjà un compte?", "es": "¿Ya tienes cuenta?", "uz": "Allaqachon hisobingiz bormi?"],
@@ -338,6 +342,10 @@ enum L10n {
     static var deleteSolution: String { string("delete_solution") }
     static var deleteSolutionMessage: String { string("delete_solution_message") }
     static var deleteSolutionFailed: String { string("delete_solution_failed") }
+    static var preparingShare: String { string("preparing_share") }
+    static var shareLinkFailed: String { string("share_link_failed") }
+    static var shareSolutionMessage: String { string("share_solution_message_format") }
+    static var sharedSolutionLoadFailed: String { string("shared_solution_load_failed") }
     static var dontHaveAccount: String { string("dont_have_account") }
     static var register: String { string("register") }
     static var alreadyHaveAccount: String { string("already_have_account") }

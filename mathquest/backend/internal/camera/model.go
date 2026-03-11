@@ -13,6 +13,8 @@ type CameraSolution struct {
 	StepsJSON       json.RawMessage `gorm:"type:jsonb" json:"steps_json"`
 	RawLatex        string          `json:"raw_latex"`
 	DifficultyLevel string          `json:"difficulty_level"`
+	ShareToken      string          `gorm:"size:64;uniqueIndex" json:"-"`
+	SharedAt        *time.Time      `json:"-"`
 	CreatedAt       time.Time       `json:"created_at"`
 }
 
@@ -80,4 +82,18 @@ type StatusResponse struct {
 	DailyLimit int `json:"daily_limit"`
 	UsedToday  int `json:"used_today"`
 	Remaining  int `json:"remaining"`
+}
+
+type ShareHistoryResponse struct {
+	Token string `json:"token"`
+}
+
+type SharedSolutionResponse struct {
+	Token           string    `json:"token"`
+	Problem         string    `json:"problem"`
+	Solution        string    `json:"solution"`
+	Steps           []string  `json:"steps"`
+	RawLatex        string    `json:"raw_latex"`
+	DifficultyLevel string    `json:"difficulty_level"`
+	CreatedAt       time.Time `json:"created_at"`
 }
