@@ -174,11 +174,7 @@ final class CameraViewModel: ObservableObject {
         }
     }
 
-    func capture() async {
-        await capture(focusRectNormalized: focusRectNormalized)
-    }
-
-    func capture(focusRectNormalized: CGRect?) async {
+    func capture(focusRect: CGRect, previewSize: CGSize) async {
         guard canStartSolve() else {
             return
         }
@@ -197,7 +193,8 @@ final class CameraViewModel: ObservableObject {
             await solve(
                 image: image,
                 setProcessingState: true,
-                cropRectNormalized: focusRectNormalized
+                cropRectInPreview: focusRect,
+                previewSize: previewSize
             )
         } catch {
             state = .error(error.localizedDescription)
@@ -223,7 +220,31 @@ final class CameraViewModel: ObservableObject {
             return
         }
 
-        await solve(image: image, setProcessingState: true, cropRectNormalized: nil)
+        await solve(
+            image: image,
+            setProcessingState: true,
+            cropRectInPreview: nil,
+            previewSize: nil
+        )
+    }
+
+    func translateSolution(_ response: SolveResponse, to targetLanguage: String) async throws -> SolveResponse {
+        let request = TranslateSolutionRequest(
+            problem: response.problem,
+            solution: response.solution,
+            steps: response.steps,
+            rawLatex: response.rawLatex,
+            difficultyLevel: response.difficultyLevel,
+            detectedLanguage: response.detectedLanguage,
+            targetLanguage: targetLanguage
+        )
+        let body = try JSONEncoder().encode(request)
+        let translated: TranslateSolutionResponse = try await client.request(
+            "camera/translate",
+            method: "POST",
+            body: body
+        )
+        return response.replacingContent(with: translated)
     }
 
     func setError(_ message: String) {
@@ -242,13 +263,22 @@ final class CameraViewModel: ObservableObject {
         focusRectNormalized = clampedRect
     }
 
-    private func solve(image: UIImage, setProcessingState: Bool, cropRectNormalized: CGRect?) async {
+    private func solve(
+        image: UIImage,
+        setProcessingState: Bool,
+        cropRectInPreview: CGRect?,
+        previewSize: CGSize?
+    ) async {
         if setProcessingState {
             state = .processing
         }
 
         do {
-            let croppedImage = croppedImageIfNeeded(image, normalizedRect: cropRectNormalized)
+            let croppedImage = croppedImageIfNeeded(
+                image,
+                focusRect: cropRectInPreview,
+                previewSize: previewSize
+            )
             lastCapturedImage = croppedImage
             let optimizedImage = downscaledImageIfNeeded(croppedImage, maxDimension: 1600)
 
@@ -279,23 +309,20 @@ final class CameraViewModel: ObservableObject {
         }
     }
 
-    private func croppedImageIfNeeded(_ image: UIImage, normalizedRect: CGRect?) -> UIImage {
-        guard let normalizedRect else {
+    private func croppedImageIfNeeded(_ image: UIImage, focusRect: CGRect?, previewSize: CGSize?) -> UIImage {
+        guard let focusRect,
+              let previewSize,
+              previewSize.width > 0,
+              previewSize.height > 0 else {
             return image
         }
 
         let imageForCropping = normalizedOrientationImage(image)
-        let bounds = CGRect(origin: .zero, size: imageForCropping.size)
-        let cropRect = CGRect(
-            x: normalizedRect.minX * bounds.width,
-            y: normalizedRect.minY * bounds.height,
-            width: normalizedRect.width * bounds.width,
-            height: normalizedRect.height * bounds.height
-        )
-        .standardized
-        .intersection(bounds)
-
-        guard !cropRect.isNull, cropRect.width > 1, cropRect.height > 1 else {
+        guard let cropRect = cropRectInImageSpace(
+            focusRect: focusRect,
+            previewSize: previewSize,
+            imageSize: imageForCropping.size
+        ) else {
             return imageForCropping
         }
 
@@ -303,6 +330,71 @@ final class CameraViewModel: ObservableObject {
         return renderer.image { _ in
             imageForCropping.draw(at: CGPoint(x: -cropRect.origin.x, y: -cropRect.origin.y))
         }
+    }
+
+    // Maps the user-selected preview rect back through the preview's aspect-fill transform.
+    private func cropRectInImageSpace(
+        focusRect: CGRect,
+        previewSize: CGSize,
+        imageSize: CGSize
+    ) -> CGRect? {
+        guard imageSize.width > 0,
+              imageSize.height > 0,
+              previewSize.width > 0,
+              previewSize.height > 0 else {
+            return nil
+        }
+
+        let previewBounds = CGRect(origin: .zero, size: previewSize)
+        let clampedFocusRect = focusRect
+            .standardized
+            .intersection(previewBounds)
+
+        guard !clampedFocusRect.isNull,
+              clampedFocusRect.width > 1,
+              clampedFocusRect.height > 1 else {
+            return nil
+        }
+
+        let imageFrameInPreview = aspectFillFrame(for: imageSize, in: previewBounds)
+        let scale = imageFrameInPreview.width / imageSize.width
+        guard scale > 0 else {
+            return nil
+        }
+
+        let cropRect = CGRect(
+            x: (clampedFocusRect.minX - imageFrameInPreview.minX) / scale,
+            y: (clampedFocusRect.minY - imageFrameInPreview.minY) / scale,
+            width: clampedFocusRect.width / scale,
+            height: clampedFocusRect.height / scale
+        )
+        .standardized
+        .intersection(CGRect(origin: .zero, size: imageSize))
+
+        guard !cropRect.isNull, cropRect.width > 1, cropRect.height > 1 else {
+            return nil
+        }
+
+        return cropRect
+    }
+
+    private func aspectFillFrame(for contentSize: CGSize, in bounds: CGRect) -> CGRect {
+        guard contentSize.width > 0, contentSize.height > 0 else {
+            return bounds
+        }
+
+        let scale = max(bounds.width / contentSize.width, bounds.height / contentSize.height)
+        let fittedSize = CGSize(
+            width: contentSize.width * scale,
+            height: contentSize.height * scale
+        )
+
+        return CGRect(
+            x: bounds.midX - (fittedSize.width / 2),
+            y: bounds.midY - (fittedSize.height / 2),
+            width: fittedSize.width,
+            height: fittedSize.height
+        )
     }
 
     private func normalizedOrientationImage(_ image: UIImage) -> UIImage {

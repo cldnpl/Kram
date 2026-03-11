@@ -26,13 +26,33 @@ type SolveRequest struct {
 }
 
 type SolveResponse struct {
-	ID                  uint     `json:"id"`
-	Problem             string   `json:"problem"`
-	Solution            string   `json:"solution"`
-	Steps               []string `json:"steps"`
-	RawLatex            string   `json:"raw_latex"`
-	DifficultyLevel     string   `json:"difficulty_level"`
-	UsesRemainingToday  int      `json:"uses_remaining_today"`
+	ID                 uint     `json:"id"`
+	Problem            string   `json:"problem"`
+	Solution           string   `json:"solution"`
+	Steps              []string `json:"steps"`
+	RawLatex           string   `json:"raw_latex"`
+	DifficultyLevel    string   `json:"difficulty_level"`
+	DetectedLanguage   string   `json:"detected_language"`
+	UsesRemainingToday int      `json:"uses_remaining_today"`
+}
+
+type TranslateRequest struct {
+	Problem          string   `json:"problem"`
+	Solution         string   `json:"solution"`
+	Steps            []string `json:"steps"`
+	RawLatex         string   `json:"raw_latex"`
+	DifficultyLevel  string   `json:"difficulty_level"`
+	DetectedLanguage string   `json:"detected_language"`
+	TargetLanguage   string   `json:"target_language"`
+}
+
+type TranslateResponse struct {
+	Problem          string   `json:"problem"`
+	Solution         string   `json:"solution"`
+	Steps            []string `json:"steps"`
+	RawLatex         string   `json:"raw_latex"`
+	DifficultyLevel  string   `json:"difficulty_level"`
+	DetectedLanguage string   `json:"detected_language"`
 }
 
 type HistoryItem struct {

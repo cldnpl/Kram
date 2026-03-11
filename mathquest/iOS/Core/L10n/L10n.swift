@@ -212,6 +212,10 @@ enum L10n {
             "drag_move_crop": ["it": "Trascina per spostare il ritaglio. Pizzica per ridimensionare.", "en": "Drag to move crop. Pinch to resize.", "fr": "Faites glisser pour déplacer le cadre. Pincez pour redimensionner.", "es": "Arrastra para mover el recorte. Pellizca para cambiar tamaño.", "uz": "Kesmani ko'chirish uchun torting. O'lchamni o'zgartirish uchun chimchilang."],
             "use_crop": ["it": "Usa ritaglio", "en": "Use Crop", "fr": "Utiliser le recadrage", "es": "Usar recorte", "uz": "Kesmani ishlatish"],
             "failed_load_image": ["it": "Impossibile caricare l'immagine selezionata", "en": "Failed to load selected image", "fr": "Impossible de charger l'image sélectionnée", "es": "No se pudo cargar la imagen seleccionada", "uz": "Tanlangan rasmni yuklab bo'lmadi"],
+            "solution_language_title": ["it": "Scegli la lingua della spiegazione", "en": "Choose explanation language", "fr": "Choisissez la langue de l'explication", "es": "Elige el idioma de la explicación", "uz": "Tushuntirish tilini tanlang"],
+            "solution_language_subtitle_format": ["it": "Questo problema sembra essere in %@. In quale lingua vuoi la spiegazione?", "en": "This problem appears to be in %@. Which language should I use for the explanation?", "fr": "Ce problème semble être en %@. Quelle langue dois-je utiliser pour l'explication ?", "es": "Este problema parece estar en %@. ¿Qué idioma debo usar para la explicación?", "uz": "Bu masala %@ tilida ko'rinadi. Tushuntirish uchun qaysi tildan foydalanay?"],
+            "solution_language_problem_label": ["it": "Lingua del problema", "en": "Problem language", "fr": "Langue du problème", "es": "Idioma del problema", "uz": "Masala tili"],
+            "solution_language_app_label": ["it": "Lingua dell'app", "en": "App language", "fr": "Langue de l'app", "es": "Idioma de la app", "uz": "Ilova tili"],
             "difficulty_elementary": ["it": "Elementare", "en": "Elementary", "fr": "Élémentaire", "es": "Elemental", "uz": "Boshlang'ich"],
             "difficulty_middle_school": ["it": "Scuola media", "en": "Middle School", "fr": "Collège", "es": "Secundaria", "uz": "O'rta maktab"],
             "difficulty_high_school": ["it": "Scuola superiore", "en": "High School", "fr": "Lycée", "es": "Bachillerato", "uz": "Yuqori sinf"],
@@ -432,6 +436,10 @@ enum L10n {
     static var dragMoveCrop: String { string("drag_move_crop") }
     static var useCrop: String { string("use_crop") }
     static var failedLoadImage: String { string("failed_load_image") }
+    static var solutionLanguageTitle: String { string("solution_language_title") }
+    static func solutionLanguageSubtitle(_ language: String) -> String { String(format: string("solution_language_subtitle_format"), language) }
+    static var solutionLanguageProblemLabel: String { string("solution_language_problem_label") }
+    static var solutionLanguageAppLabel: String { string("solution_language_app_label") }
     static var difficultyElementary: String { string("difficulty_elementary") }
     static var difficultyMiddleSchool: String { string("difficulty_middle_school") }
     static var difficultyHighSchool: String { string("difficulty_high_school") }

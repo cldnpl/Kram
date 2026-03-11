@@ -1,7 +1,6 @@
 import PhotosUI
 import SwiftUI
 import UIKit
-import AVFoundation
 
 struct CameraView: View {
     private let minFocusSize = CGSize(width: 120, height: 120)
@@ -20,12 +19,13 @@ struct CameraView: View {
     @State private var showSolutionPage = false
     @State private var focusRect: CGRect = .zero
     @State private var previewSize: CGSize = .zero
-    @State private var previewLayer: AVCaptureVideoPreviewLayer?
     @State private var resizeStartRect: CGRect?
     @State private var activeResizeHandle: FocusHandle?
     @State private var showLoginFromPrompt = false
     @State private var showReviewSheet = false
     @State private var reviewSolveId: Int = 0
+    @State private var pendingLanguageChoice: PendingSolutionLanguageChoice?
+    @State private var isPreparingLocalizedSolution = false
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.scenePhase) private var scenePhase
 
@@ -68,9 +68,8 @@ struct CameraView: View {
         }
         .onChange(of: viewModel.state) { _, newState in
             guard case .success(let response) = newState else { return }
-            selectedSolution = response
-            showSolutionPage = true
             viewModel.stopCamera()
+            handleSolveSuccess(response)
         }
         .onChange(of: scenePhase) { _, newValue in
             guard newValue == .active else { return }
@@ -99,6 +98,23 @@ struct CameraView: View {
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.hidden)
                 .presentationCornerRadius(28)
+        }
+        .sheet(item: $pendingLanguageChoice) { choice in
+            SolutionLanguageSheet(
+                appLanguageName: localizedLanguageName(for: choice.appLanguage),
+                problemLanguageName: localizedLanguageName(for: choice.problemLanguage),
+                subtitle: L10n.solutionLanguageSubtitle(localizedLanguageName(for: choice.problemLanguage)),
+                onChooseAppLanguage: {
+                    chooseSolutionLanguage(choice, targetLanguage: choice.appLanguage)
+                },
+                onChooseProblemLanguage: {
+                    presentSolution(choice.response)
+                }
+            )
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.hidden)
+            .presentationCornerRadius(28)
+            .interactiveDismissDisabled()
         }
         .fullScreenCover(isPresented: $showGalleryCropper) {
             if let selectedGalleryImage {
@@ -193,13 +209,7 @@ struct CameraView: View {
     private var cameraPreview: some View {
         if viewModel.cameraService.isAuthorized {
             GeometryReader { geometry in
-                CameraPreviewView(session: viewModel.cameraService.session) { layer in
-                    guard previewLayer !== layer else { return }
-                    previewLayer = layer
-                    DispatchQueue.main.async {
-                        syncFocusRect(with: geometry.size)
-                    }
-                }
+                CameraPreviewView(session: viewModel.cameraService.session)
                     .onAppear {
                         syncFocusRect(with: geometry.size)
                     }
@@ -258,58 +268,65 @@ struct CameraView: View {
 
     @ViewBuilder
     private var overlayForState: some View {
-        switch viewModel.state {
-        case .idle:
-            EmptyView()
-
-        case .scanning:
-            if let focusRect = activeFocusRect {
-                ZStack {
-                    RoundedRectangle(cornerRadius: focusCornerRadius)
-                        .stroke(Color.green, lineWidth: 3)
-                        .frame(width: focusRect.width, height: focusRect.height)
-                        .position(x: focusRect.midX, y: focusRect.midY)
-
-                    RoundedRectangle(cornerRadius: focusCornerRadius)
-                        .fill(Color.black.opacity(0.3))
-                        .frame(width: focusRect.width, height: focusRect.height)
-                        .overlay {
-                            ScanningLineView()
-                                .clipShape(RoundedRectangle(cornerRadius: focusCornerRadius))
-                        }
-                        .position(x: focusRect.midX, y: focusRect.midY)
-                }
-            }
-
-        case .processing:
+        if isPreparingLocalizedSolution {
             Color.black.opacity(0.6)
                 .overlay {
                     ProcessingOverlay()
                 }
+        } else {
+            switch viewModel.state {
+            case .idle:
+                EmptyView()
 
-        case .success:
-            EmptyView()
+            case .scanning:
+                if let focusRect = activeFocusRect {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: focusCornerRadius)
+                            .stroke(Color.green, lineWidth: 3)
+                            .frame(width: focusRect.width, height: focusRect.height)
+                            .position(x: focusRect.midX, y: focusRect.midY)
 
-        case .error(let message):
-            Color.black.opacity(0.6)
-                .overlay {
-                    VStack(spacing: 16) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 50))
-                            .foregroundColor(.red)
-
-                        Text(message)
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal)
-
-                        Button(L10n.tryAgain) {
-                            viewModel.reset()
-                        }
-                        .buttonStyle(.borderedProminent)
+                        RoundedRectangle(cornerRadius: focusCornerRadius)
+                            .fill(Color.black.opacity(0.3))
+                            .frame(width: focusRect.width, height: focusRect.height)
+                            .overlay {
+                                ScanningLineView()
+                                    .clipShape(RoundedRectangle(cornerRadius: focusCornerRadius))
+                            }
+                            .position(x: focusRect.midX, y: focusRect.midY)
                     }
                 }
+
+            case .processing:
+                Color.black.opacity(0.6)
+                    .overlay {
+                        ProcessingOverlay()
+                    }
+
+            case .success:
+                EmptyView()
+
+            case .error(let message):
+                Color.black.opacity(0.6)
+                    .overlay {
+                        VStack(spacing: 16) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 50))
+                                .foregroundColor(.red)
+
+                            Text(message)
+                                .font(.headline)
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal)
+
+                            Button(L10n.tryAgain) {
+                                viewModel.reset()
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                    }
+            }
         }
     }
 
@@ -337,8 +354,12 @@ struct CameraView: View {
                     .opacity(hasReachedCameraLimit ? 0.5 : 1)
 
                     Button {
+                        let captureRect = activeFocusRect ?? resolvedFocusRect(in: previewSize)
                         Task {
-                            await viewModel.capture(focusRectNormalized: currentFocusRectNormalized)
+                            await viewModel.capture(
+                                focusRect: captureRect,
+                                previewSize: previewSize
+                            )
                         }
                     } label: {
                         ZStack {
@@ -361,6 +382,92 @@ struct CameraView: View {
 
     private var hasUnlimitedCameraUsage: Bool {
         viewModel.dailyLimit < 0 || viewModel.usesRemaining < 0
+    }
+
+    private func handleSolveSuccess(_ response: SolveResponse) {
+        let appLanguage = normalizedSupportedLanguage(L10n.currentLanguage)
+        let problemLanguage = normalizedSupportedLanguage(response.detectedLanguage)
+
+        guard shouldPromptForLanguageChoice(problemLanguage: problemLanguage, appLanguage: appLanguage) else {
+            presentSolution(response)
+            return
+        }
+
+        pendingLanguageChoice = PendingSolutionLanguageChoice(
+            response: response,
+            appLanguage: appLanguage,
+            problemLanguage: problemLanguage
+        )
+    }
+
+    private func presentSolution(_ response: SolveResponse) {
+        let shouldDismissLanguageSheet = pendingLanguageChoice != nil
+        pendingLanguageChoice = nil
+
+        if shouldDismissLanguageSheet {
+            DispatchQueue.main.async {
+                selectedSolution = response
+                showSolutionPage = true
+            }
+        } else {
+            selectedSolution = response
+            showSolutionPage = true
+        }
+    }
+
+    private func chooseSolutionLanguage(_ choice: PendingSolutionLanguageChoice, targetLanguage: String) {
+        pendingLanguageChoice = nil
+        isPreparingLocalizedSolution = true
+
+        Task {
+            let resolvedResponse: SolveResponse
+            do {
+                resolvedResponse = try await viewModel.translateSolution(choice.response, to: targetLanguage)
+            } catch {
+                resolvedResponse = choice.response
+            }
+
+            await MainActor.run {
+                isPreparingLocalizedSolution = false
+                presentSolution(resolvedResponse)
+            }
+        }
+    }
+
+    private func shouldPromptForLanguageChoice(problemLanguage: String, appLanguage: String) -> Bool {
+        problemLanguage != "unknown" && appLanguage != "unknown" && problemLanguage != appLanguage
+    }
+
+    private func normalizedSupportedLanguage(_ raw: String) -> String {
+        switch raw.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "en":
+            return "en"
+        case "it":
+            return "it"
+        case "fr":
+            return "fr"
+        case "es":
+            return "es"
+        case "uz":
+            return "uz"
+        default:
+            return "unknown"
+        }
+    }
+
+    private func localizedLanguageName(for code: String) -> String {
+        switch code {
+        case "it":
+            return L10n.languageItalian
+        case "fr":
+            return L10n.languageFrench
+        case "es":
+            return L10n.languageSpanish
+        case "uz":
+            return L10n.languageUzbek
+        default:
+            return L10n.languageEnglish
+        }
     }
 
     private var hasReachedCameraLimit: Bool {
@@ -567,7 +674,7 @@ struct CameraView: View {
         focusRect = clamped
         previewSize = size
 
-        if updateModel, let normalized = normalizedFocusRectForCapture(from: clamped, in: size) {
+        if updateModel, let normalized = normalizedRect(from: clamped, in: size) {
             viewModel.updateFocusRect(normalizedRect: normalized)
         }
     }
@@ -593,27 +700,6 @@ struct CameraView: View {
         return clampFocusRect(focusRect, in: previewSize)
     }
 
-    private var currentFocusRectNormalized: CGRect? {
-        guard previewSize.width > 0, previewSize.height > 0 else {
-            return nil
-        }
-
-        return normalizedFocusRectForCapture(from: focusRect, in: previewSize)
-    }
-
-    private func normalizedFocusRectForCapture(from rect: CGRect, in size: CGSize) -> CGRect? {
-        if let previewLayer {
-            let converted = previewLayer.metadataOutputRectConverted(fromLayerRect: rect)
-                .standardized
-                .intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
-            if !converted.isNull, converted.width > 0, converted.height > 0 {
-                return converted
-            }
-        }
-
-        return normalizedRect(from: rect, in: size)
-    }
-
     private func normalizedRect(from rect: CGRect, in size: CGSize) -> CGRect? {
         guard size.width > 0, size.height > 0 else {
             return nil
@@ -636,14 +722,6 @@ struct CameraView: View {
     }
 
     private func denormalizedRect(from normalizedRect: CGRect, in size: CGSize) -> CGRect? {
-        if let previewLayer {
-            let converted = previewLayer.layerRectConverted(fromMetadataOutputRect: normalizedRect)
-                .standardized
-            if converted.width > 0, converted.height > 0 {
-                return converted
-            }
-        }
-
         let clamped = normalizedRect
             .standardized
             .intersection(CGRect(x: 0, y: 0, width: 1, height: 1))
@@ -1157,6 +1235,87 @@ private struct GalleryCropSheet: View {
     }
 }
 
+private struct PendingSolutionLanguageChoice: Identifiable {
+    let id = UUID()
+    let response: SolveResponse
+    let appLanguage: String
+    let problemLanguage: String
+}
+
+private struct SolutionLanguageSheet: View {
+    let appLanguageName: String
+    let problemLanguageName: String
+    let subtitle: String
+    let onChooseAppLanguage: () -> Void
+    let onChooseProblemLanguage: () -> Void
+
+    var body: some View {
+        VStack(spacing: 18) {
+            RoundedRectangle(cornerRadius: 2.5)
+                .fill(Color(.systemGray4))
+                .frame(width: 36, height: 5)
+                .padding(.top, 8)
+
+            VStack(spacing: 8) {
+                Text(L10n.solutionLanguageTitle)
+                    .font(.title3.bold())
+                    .multilineTextAlignment(.center)
+
+                Text(subtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.top, 8)
+
+            VStack(spacing: 10) {
+                languageOption(
+                    title: appLanguageName,
+                    subtitle: L10n.solutionLanguageAppLabel,
+                    action: onChooseAppLanguage
+                )
+
+                languageOption(
+                    title: problemLanguageName,
+                    subtitle: L10n.solutionLanguageProblemLabel,
+                    action: onChooseProblemLanguage
+                )
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 20)
+    }
+
+    private func languageOption(title: String, subtitle: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(Color(.secondarySystemGroupedBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 #Preview {
     NavigationStack {
         CameraView()
@@ -1218,19 +1377,6 @@ private struct CameraSolutionPage: View {
                     }
                 }
 
-                if !response.rawLatex.isEmpty {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("LaTeX")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(response.rawLatex)
-                            .font(.system(.caption, design: .monospaced))
-                            .padding(10)
-                            .background(Color(.systemGray6))
-                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
             }
             .padding()
         }

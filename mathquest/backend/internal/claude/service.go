@@ -60,11 +60,12 @@ type ClaudeResponse struct {
 }
 
 type MathSolution struct {
-	Problem         string   `json:"problem"`
-	Solution        string   `json:"solution"`
-	Steps           []string `json:"steps"`
-	RawLatex        string   `json:"raw_latex"`
-	DifficultyLevel string   `json:"difficulty_level"`
+	Problem          string   `json:"problem"`
+	Solution         string   `json:"solution"`
+	Steps            []string `json:"steps"`
+	RawLatex         string   `json:"raw_latex"`
+	DifficultyLevel  string   `json:"difficulty_level"`
+	DetectedLanguage string   `json:"detected_language"`
 }
 
 const solveMathPrompt = `You are a careful math tutor helping students solve problems step by step.
@@ -77,6 +78,7 @@ Rules you MUST follow:
 - Do not invent missing numbers, symbols, or words.
 - If the image is unclear or incomplete, say so explicitly in "solution" and "steps" instead of guessing.
 - Keep "problem" as the exact transcription of what you can read from the image.
+- Set "detected_language" to one of: en, it, fr, es, uz, unknown.
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
 {
@@ -84,8 +86,35 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no co
   "solution": "final answer or a clear message if unreadable",
   "steps": ["step 1 explanation", "step 2 explanation", ...],
   "raw_latex": "the problem and solution in LaTeX format",
-  "difficulty_level": "elementary|middle_school|high_school|college"
+  "difficulty_level": "elementary|middle_school|high_school|college",
+  "detected_language": "en|it|fr|es|uz|unknown"
 }
+`
+
+const translateMathPromptTemplate = `You are translating a solved math explanation for a student.
+
+Translate the provided JSON into %s.
+
+Rules you MUST follow:
+- Translate the human-readable prose in "problem", "solution", and every string in "steps".
+- Keep numbers, equations, symbols, and mathematical meaning unchanged.
+- Keep "raw_latex" unchanged.
+- Keep "difficulty_level" unchanged.
+- Keep "detected_language" unchanged.
+- Return the same number of steps.
+
+IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
+{
+  "problem": "translated problem text",
+  "solution": "translated final answer",
+  "steps": ["translated step 1", "translated step 2", ...],
+  "raw_latex": "original raw latex",
+  "difficulty_level": "elementary|middle_school|high_school|college",
+  "detected_language": "en|it|fr|es|uz|unknown"
+}
+
+Here is the JSON to translate:
+%s
 `
 
 func parseSolutionFromText(responseText string) (*MathSolution, error) {
@@ -144,58 +173,20 @@ func (s *Service) SolveMathProblem(imageBase64, mediaType string) (*MathSolution
 		},
 	}
 
-	jsonData, err := json.Marshal(reqBody)
+	responseText, err := s.runJSONRequest(reqBody)
 	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
+		return nil, err
 	}
-
-	req, err := http.NewRequest("POST", claudeAPIURL, bytes.NewBuffer(jsonData))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("x-api-key", s.apiKey)
-	req.Header.Set("anthropic-version", "2023-06-01")
-
-	resp, err := s.client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to call Claude API: %w", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("Claude API error (status %d): %s", resp.StatusCode, string(body))
-	}
-
-	var claudeResp ClaudeResponse
-	if err := json.Unmarshal(body, &claudeResp); err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	if claudeResp.Error != nil {
-		return nil, fmt.Errorf("Claude API error: %s", claudeResp.Error.Message)
-	}
-
-	if len(claudeResp.Content) == 0 {
-		return nil, fmt.Errorf("no content in Claude response")
-	}
-
-	responseText := strings.TrimSpace(claudeResp.Content[0].Text)
 	solution, err := parseSolutionFromText(responseText)
 	if err != nil {
 		// If parsing fails, try to extract info manually
 		return &MathSolution{
-			Problem:         "Unable to parse problem from image",
-			Solution:        "Could not parse model response as structured solution. Please retake the photo.",
-			Steps:           []string{"Could not parse structured response.", responseText},
-			RawLatex:        "",
-			DifficultyLevel: "unknown",
+			Problem:          "Unable to parse problem from image",
+			Solution:         "Could not parse model response as structured solution. Please retake the photo.",
+			Steps:            []string{"Could not parse structured response.", responseText},
+			RawLatex:         "",
+			DifficultyLevel:  "unknown",
+			DetectedLanguage: "unknown",
 		}, nil
 	}
 
@@ -211,6 +202,144 @@ func (s *Service) SolveMathProblem(imageBase64, mediaType string) (*MathSolution
 	if strings.TrimSpace(solution.DifficultyLevel) == "" {
 		solution.DifficultyLevel = "unknown"
 	}
+	solution.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
 
 	return solution, nil
+}
+
+func (s *Service) TranslateMathSolution(solution *MathSolution, targetLanguage string) (*MathSolution, error) {
+	if s.apiKey == "" {
+		return nil, fmt.Errorf("Claude API key not configured")
+	}
+
+	normalizedTarget := normalizeSupportedLanguage(targetLanguage)
+	if normalizedTarget == "unknown" {
+		return nil, fmt.Errorf("unsupported target language: %s", targetLanguage)
+	}
+
+	payload, err := json.Marshal(solution)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal translation payload: %w", err)
+	}
+
+	reqBody := ClaudeRequest{
+		Model:     claudeModel,
+		MaxTokens: 2048,
+		Messages: []Message{
+			{
+				Role: "user",
+				Content: []ContentBlock{
+					{
+						Type: "text",
+						Text: fmt.Sprintf(
+							translateMathPromptTemplate,
+							languageNameForPrompt(normalizedTarget),
+							string(payload),
+						),
+					},
+				},
+			},
+		},
+	}
+
+	responseText, err := s.runJSONRequest(reqBody)
+	if err != nil {
+		return nil, err
+	}
+
+	translated, err := parseSolutionFromText(responseText)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse translated solution: %w", err)
+	}
+
+	if translated.Steps == nil {
+		translated.Steps = []string{}
+	}
+	if strings.TrimSpace(translated.DifficultyLevel) == "" {
+		translated.DifficultyLevel = solution.DifficultyLevel
+	}
+	if strings.TrimSpace(translated.RawLatex) == "" {
+		translated.RawLatex = solution.RawLatex
+	}
+	translated.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
+
+	return translated, nil
+}
+
+func (s *Service) runJSONRequest(reqBody ClaudeRequest) (string, error) {
+	jsonData, err := json.Marshal(reqBody)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequest("POST", claudeAPIURL, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("x-api-key", s.apiKey)
+	req.Header.Set("anthropic-version", "2023-06-01")
+
+	resp, err := s.client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to call Claude API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("Claude API error (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	var claudeResp ClaudeResponse
+	if err := json.Unmarshal(body, &claudeResp); err != nil {
+		return "", fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	if claudeResp.Error != nil {
+		return "", fmt.Errorf("Claude API error: %s", claudeResp.Error.Message)
+	}
+
+	if len(claudeResp.Content) == 0 {
+		return "", fmt.Errorf("no content in Claude response")
+	}
+
+	return strings.TrimSpace(claudeResp.Content[0].Text), nil
+}
+
+func normalizeSupportedLanguage(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "en", "english":
+		return "en"
+	case "it", "italian", "italiano":
+		return "it"
+	case "fr", "french", "francais", "français":
+		return "fr"
+	case "es", "spanish", "espanol", "español":
+		return "es"
+	case "uz", "uzbek", "o'zbek", "ozbek":
+		return "uz"
+	default:
+		return "unknown"
+	}
+}
+
+func languageNameForPrompt(code string) string {
+	switch code {
+	case "it":
+		return "Italian"
+	case "fr":
+		return "French"
+	case "es":
+		return "Spanish"
+	case "uz":
+		return "Uzbek"
+	default:
+		return "English"
+	}
 }

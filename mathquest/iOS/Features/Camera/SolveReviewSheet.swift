@@ -6,103 +6,79 @@ struct SolveReviewSheet: View {
     @Binding var isPresented: Bool
 
     private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
-
-    enum ReviewStep { case stars, category, detail, thankYou }
-
-    @State private var step: ReviewStep = .stars
     @State private var rating: Int = 0
     @State private var selectedCategory: String?
     @State private var selectedDetail: String?
+    @State private var isSubmitting = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Drag indicator
+        VStack(spacing: 18) {
             RoundedRectangle(cornerRadius: 2.5)
                 .fill(Color(.systemGray4))
                 .frame(width: 36, height: 5)
                 .padding(.top, 8)
 
-            switch step {
-            case .stars:
-                starsView
-                    .transition(.asymmetric(
-                        insertion: .opacity,
-                        removal: .move(edge: .leading).combined(with: .opacity)
-                    ))
-            case .category:
-                categoryView
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .leading).combined(with: .opacity)
-                    ))
-            case .detail:
-                detailView
-                    .transition(.asymmetric(
-                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                        removal: .move(edge: .leading).combined(with: .opacity)
-                    ))
-            case .thankYou:
-                thankYouView
-                    .transition(.scale.combined(with: .opacity))
-            }
+            VStack(spacing: 18) {
+                Text(L10n.reviewTitle)
+                    .font(.title3.bold())
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 8)
 
-            Spacer()
-        }
-        .padding(.horizontal, 24)
-        .animation(.spring(response: 0.4, dampingFraction: 0.8), value: step)
-    }
+                starsRow
 
-    // MARK: - Step 1: Stars
+                if rating > 0 {
+                    VStack(alignment: .leading, spacing: 10) {
+                        sectionLabel(categoryTitle)
 
-    private var starsView: some View {
-        VStack(spacing: 20) {
-            // App icon
-            Image(systemName: "function")
-                .font(.system(size: 28, weight: .bold))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [appPurple, appPurple.opacity(0.7)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 56, height: 56)
-                .background(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(appPurple.opacity(0.12))
-                )
-                .padding(.top, 24)
-
-            Text(L10n.reviewTitle)
-                .font(.title3.bold())
-                .multilineTextAlignment(.center)
-
-            HStack(spacing: 12) {
-                ForEach(1...5, id: \.self) { star in
-                    Button {
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            rating = star
+                        chipGrid(items: categories, selectedItem: selectedCategory) { category in
+                            selectedCategory = category
+                            selectedDetail = nil
                         }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            withAnimation {
-                                step = .category
+                    }
+
+                    if let selectedCategory {
+                        VStack(alignment: .leading, spacing: 10) {
+                            sectionLabel(selectedCategory)
+
+                            chipGrid(items: details, selectedItem: selectedDetail) { detail in
+                                guard !isSubmitting else { return }
+                                selectedDetail = detail
+                                submitFeedback()
                             }
                         }
-                    } label: {
-                        Image(systemName: star <= rating ? "star.fill" : "star")
-                            .font(.system(size: 36))
-                            .foregroundColor(star <= rating ? .yellow : Color(.systemGray3))
-                            .scaleEffect(star <= rating ? 1.15 : 1.0)
-                            .animation(.spring(response: 0.3, dampingFraction: 0.5), value: rating)
                     }
-                    .buttonStyle(.plain)
+
+                    Spacer(minLength: 0)
+                } else {
+                    Spacer(minLength: 0)
                 }
             }
-            .padding(.bottom, 8)
         }
+        .padding(.horizontal, 24)
+        .padding(.bottom, 20)
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: rating)
+        .animation(.spring(response: 0.3, dampingFraction: 0.85), value: selectedCategory)
     }
 
-    // MARK: - Step 2: Category
+    private var starsRow: some View {
+        HStack(spacing: 12) {
+            ForEach(1...5, id: \.self) { star in
+                Button {
+                    guard !isSubmitting else { return }
+                    rating = star
+                    selectedCategory = nil
+                    selectedDetail = nil
+                } label: {
+                    Image(systemName: star <= rating ? "star.fill" : "star")
+                        .font(.system(size: 30))
+                        .foregroundStyle(star <= rating ? Color.yellow : Color(.systemGray3))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 6)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+    }
 
     private var categoryTitle: String {
         switch rating {
@@ -114,6 +90,8 @@ struct SolveReviewSheet: View {
 
     private var categories: [String] {
         switch rating {
+        case 0:
+            return []
         case 5:
             return [
                 L10n.reviewCatCapturing,
@@ -137,43 +115,6 @@ struct SolveReviewSheet: View {
             ]
         }
     }
-
-    private var categoryView: some View {
-        VStack(spacing: 16) {
-            Text(categoryTitle)
-                .font(.title3.bold())
-                .multilineTextAlignment(.center)
-                .padding(.top, 24)
-
-            VStack(spacing: 10) {
-                ForEach(categories, id: \.self) { category in
-                    Button {
-                        selectedCategory = category
-                        withAnimation {
-                            step = .detail
-                        }
-                    } label: {
-                        HStack {
-                            Text(category)
-                                .font(.body)
-                                .foregroundColor(.primary)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 14)
-                        .background(Color(.secondarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-    }
-
-    // MARK: - Step 3: Detail
 
     private var details: [String] {
         guard let cat = selectedCategory else { return [] }
@@ -216,67 +157,55 @@ struct SolveReviewSheet: View {
         }
     }
 
-    private var detailView: some View {
-        VStack(spacing: 16) {
-            Text(selectedCategory ?? "")
-                .font(.title3.bold())
-                .multilineTextAlignment(.center)
-                .padding(.top, 24)
-
-            VStack(spacing: 10) {
-                ForEach(details, id: \.self) { detail in
-                    Button {
-                        selectedDetail = detail
-                        submitFeedback()
-                        withAnimation {
-                            step = .thankYou
-                        }
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            isPresented = false
-                        }
-                    } label: {
-                        HStack {
-                            Text(detail)
-                                .font(.body)
-                                .foregroundColor(.primary)
-                            Spacer()
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 14)
-                        .background(Color(.secondarySystemGroupedBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
+    private func sectionLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.secondary)
+            .lineLimit(2)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 
-    // MARK: - Thank You
+    private func chipGrid(
+        items: [String],
+        selectedItem: String?,
+        action: @escaping (String) -> Void
+    ) -> some View {
+        LazyVGrid(
+            columns: [
+                GridItem(.flexible(), spacing: 10),
+                GridItem(.flexible(), spacing: 10)
+            ],
+            spacing: 10
+        ) {
+            ForEach(items, id: \.self) { item in
+                let isSelected = selectedItem == item
 
-    private var thankYouView: some View {
-        VStack(spacing: 16) {
-            Spacer().frame(height: 32)
-
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [appPurple, appPurple.opacity(0.7)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-
-            Text(L10n.reviewThanks)
-                .font(.title3.bold())
-                .multilineTextAlignment(.center)
+                Button {
+                    action(item)
+                } label: {
+                    Text(item)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(isSelected ? .white : .primary)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, minHeight: 52, alignment: .leading)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(isSelected ? appPurple : Color(.secondarySystemGroupedBackground))
+                        )
+                }
+                .buttonStyle(.plain)
+                .disabled(isSubmitting)
+            }
         }
     }
 
     // MARK: - Submission
 
     private func submitFeedback() {
+        guard !isSubmitting else { return }
+        isSubmitting = true
         Self.markReviewed(solveId: solveId)
 
         let payload: [String: Any] = [
@@ -299,6 +228,10 @@ struct SolveReviewSheet: View {
                 #if DEBUG
                 print("[SolveReview] Failed to submit feedback: \(error)")
                 #endif
+            }
+
+            await MainActor.run {
+                isPresented = false
             }
         }
     }

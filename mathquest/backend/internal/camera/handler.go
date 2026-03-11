@@ -57,6 +57,23 @@ func normalizeSubscriptionTier(raw string) string {
 	}
 }
 
+func normalizeSolutionLanguage(raw string) string {
+	switch strings.ToLower(strings.TrimSpace(raw)) {
+	case "en":
+		return "en"
+	case "it":
+		return "it"
+	case "fr":
+		return "fr"
+	case "es":
+		return "es"
+	case "uz":
+		return "uz"
+	default:
+		return "unknown"
+	}
+}
+
 func (h *Handler) dailyLimitForTier(tier string) int {
 	switch tier {
 	case "pro":
@@ -249,7 +266,64 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 		Steps:              solution.Steps,
 		RawLatex:           solution.RawLatex,
 		DifficultyLevel:    solution.DifficultyLevel,
+		DetectedLanguage:   normalizeSolutionLanguage(solution.DetectedLanguage),
 		UsesRemainingToday: remaining,
+	})
+}
+
+// Translate handles POST /api/camera/translate
+func (h *Handler) Translate(c *fiber.Ctx) error {
+	var req TranslateRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	targetLanguage := normalizeSolutionLanguage(req.TargetLanguage)
+	if targetLanguage == "unknown" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "target_language is unsupported",
+		})
+	}
+
+	source := &claude.MathSolution{
+		Problem:          req.Problem,
+		Solution:         req.Solution,
+		Steps:            req.Steps,
+		RawLatex:         req.RawLatex,
+		DifficultyLevel:  req.DifficultyLevel,
+		DetectedLanguage: normalizeSolutionLanguage(req.DetectedLanguage),
+	}
+
+	if source.Steps == nil {
+		source.Steps = []string{}
+	}
+	if source.DifficultyLevel == "" {
+		source.DifficultyLevel = "unknown"
+	}
+
+	translated, err := h.claudeSvc.TranslateMathSolution(source, targetLanguage)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": fmt.Sprintf("failed to translate solution: %v", err),
+		})
+	}
+
+	if translated.Steps == nil {
+		translated.Steps = []string{}
+	}
+	if translated.DifficultyLevel == "" {
+		translated.DifficultyLevel = source.DifficultyLevel
+	}
+
+	return c.JSON(TranslateResponse{
+		Problem:          translated.Problem,
+		Solution:         translated.Solution,
+		Steps:            translated.Steps,
+		RawLatex:         translated.RawLatex,
+		DifficultyLevel:  translated.DifficultyLevel,
+		DetectedLanguage: normalizeSolutionLanguage(translated.DetectedLanguage),
 	})
 }
 

@@ -211,21 +211,6 @@ struct HistoryDetailView: View {
                         }
                     }
 
-                    // LaTeX if available
-                    if !detail.rawLatex.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("LaTeX")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-
-                            Text(detail.rawLatex)
-                                .font(.system(.caption, design: .monospaced))
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
                 }
                 .padding()
             }

@@ -93,6 +93,7 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 		}
 		return nil
 	})
+	cameraAuth.Post("/camera/translate", cameraHandler.Translate)
 	cameraAuth.Get("/camera/history", cameraHandler.History)
 	cameraAuth.Get("/camera/history/:id", cameraHandler.HistoryDetail)
 	cameraAuth.Get("/camera/status", cameraHandler.Status)
