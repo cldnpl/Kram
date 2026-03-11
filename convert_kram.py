@@ -16,6 +16,7 @@ with open('dataset/metadata.jsonl', 'w') as f:
         img_path = f"dataset/images/{img_name}"
         
         # Crea un'immagine bianca
+        # Crea un'immagine bianca
         img = Image.new('RGB', (800, 300), color=(255, 255, 255))
         d = ImageDraw.Draw(img)
         
