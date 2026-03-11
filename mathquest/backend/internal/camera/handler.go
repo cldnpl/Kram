@@ -179,12 +179,16 @@ func (h *Handler) ensureShareToken(solution *CameraSolution) (string, error) {
 		}
 
 		now := time.Now()
-		err = h.db.Model(&CameraSolution{}).
-			Where("id = ? AND user_id = ?", solution.ID, solution.UserID).
-			Updates(map[string]any{
-				"share_token": token,
-				"shared_at":   now,
-			}).Error
+		query := h.db.Model(&CameraSolution{})
+		if solution.UserID > 0 {
+			query = query.Where("id = ? AND user_id = ?", solution.ID, solution.UserID)
+		} else {
+			query = query.Where("id = ?", solution.ID)
+		}
+		err = query.Updates(map[string]any{
+			"share_token": token,
+			"shared_at":   now,
+		}).Error
 
 		if err != nil {
 			if strings.Contains(strings.ToLower(err.Error()), "duplicate") {
@@ -590,9 +594,9 @@ func (h *Handler) ShareHistoryDetail(c *fiber.Ctx) error {
 // Creates a shareable solution record from client-provided content (used for local/offline items).
 func (h *Handler) ShareCreate(c *fiber.Ctx) error {
 	userID := h.resolveUserID(c)
-	if h.db == nil || userID == 0 {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "unable to resolve user",
+	if h.db == nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "database unavailable",
 		})
 	}
 
@@ -613,7 +617,6 @@ func (h *Handler) ShareCreate(c *fiber.Ctx) error {
 	stepsJSON, _ := json.Marshal(req.Steps)
 	now := time.Now()
 	solution := CameraSolution{
-		UserID:          userID,
 		OriginalProblem: req.Problem,
 		Solution:        req.Solution,
 		StepsJSON:       stepsJSON,
@@ -621,8 +624,15 @@ func (h *Handler) ShareCreate(c *fiber.Ctx) error {
 		DifficultyLevel: req.DifficultyLevel,
 		CreatedAt:       now,
 	}
+	createQuery := h.db
+	if userID > 0 {
+		solution.UserID = userID
+	} else {
+		// Allow sharing even when auth token cannot be mapped to a users row yet.
+		createQuery = createQuery.Omit("UserID")
+	}
 
-	if err := h.db.Create(&solution).Error; err != nil {
+	if err := createQuery.Create(&solution).Error; err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": "failed to save shareable solution",
 		})
