@@ -93,6 +93,7 @@ Rules you MUST follow:
 - If OCR output looks corrupted, random, or inconsistent, stop and return a clean retake message instead of forcing a long solution.
 - Keep reasoning efficient: do not repeat already completed transformations and avoid redundant recalculations.
 - If the full derivation is very long, provide a concise but complete sequence of essential steps to avoid timeout.
+- If you cannot compute a required determinant with certainty (especially 4x4), set "solution" to exactly "Errore di Capacità" and do not invent numeric results.
 - Keep "problem" as the exact transcription of what you can read from the image.
 - Set "detected_language" to one of: en, it, fr, es, uz, unknown.
 - Set "should_save_to_history" to false if the image is unclear, incomplete, unreadable, or the result is just an error/retake message. Otherwise set it to true.
@@ -113,11 +114,13 @@ Rules you MUST follow:
 - Inside the explanation, every mathematical reference (variables, symbols, expressions, identities, intermediate results) MUST be rendered in LaTeX delimiters and prefer display blocks $$...$$.
   - In explanation text, never write linear/plain notation such as pi/2, x^2, a/b, integral(...), or plain dx.
   - Never use programming-style operators in explanation prose (for example * or ^ as plain text). Use only LaTeX math notation.
+  - Do not use bullet lists for mathematical content.
+  - Do not output orphan punctuation/isolated tokens outside valid prose or LaTeX.
   - Explanations must clearly state what transformation/property/rule is used and why it is valid.
   - Mention identities explicitly when used, and include intermediate algebraic reasoning without skipping essential steps.
   - Explanation quality: at least 2 complete sentences per step, not short phrases.
   - Structure explanations into short paragraphs (2-3 lines each) separated by a blank line ("\n\n") inside the same step string.
-  - For each step explanation, explicitly include these three labels: **Azione**, **Ratio**, **Proprietà**.
+  - For each step explanation, explicitly include these three labels in this exact order: **Titolo Step**, **Logica**, **Proprietà**.
   - Each paragraph must include at least one bold technical operation label using Markdown (for example **Sostituzione**, **Semplificazione**, **Proprietà**, **Risultato parziale**).
   - Whenever you reference formulas, symbolic values, or intermediate expressions in explanation prose, write them in LaTeX using $...$ (inline) or $$...$$ (isolated).
   - Never use ellipses ("...") in explanations; write complete statements.
@@ -535,6 +538,10 @@ func normalizeStepExplanation(raw string) string {
 		"result", "risultato",
 		"Equivalent transformation", "Trasformazione equivalente",
 		"equivalent transformation", "trasformazione equivalente",
+		"Ratio", "Logica",
+		"ratio", "logica",
+		"Action", "Azione",
+		"action", "azione",
 	)
 	explanation = replacer.Replace(explanation)
 
@@ -555,12 +562,16 @@ func normalizeStepExplanation(raw string) string {
 	reMul := regexp.MustCompile(`\b([A-Za-z0-9]+)\s*\*\s*([A-Za-z0-9]+)\b`)
 	explanation = reMul.ReplaceAllString(explanation, `$$$1 \\times $2$$`)
 
-	// Ensure explicit logical structure: Azione / Ratio / Proprietà.
+	// Remove accidental list prefixes to keep compact prose structure.
+	reListPrefix := regexp.MustCompile(`(?m)^\s*[-*]\s+`)
+	explanation = reListPrefix.ReplaceAllString(explanation, "")
+
+	// Ensure explicit logical structure: Titolo Step / Logica / Proprietà.
 	lower := strings.ToLower(explanation)
-	if !strings.Contains(lower, "**azione") || !strings.Contains(lower, "**ratio") || !strings.Contains(lower, "**propriet") {
+	if !strings.Contains(lower, "**titolo step") || !strings.Contains(lower, "**logica") || !strings.Contains(lower, "**propriet") {
 		explanation = strings.TrimSpace(explanation)
-		explanation = "**Azione:** " + explanation + "\n\n" +
-			"**Ratio:** questo passaggio è necessario per mantenere l'equivalenza del sistema e avanzare verso la soluzione.\n\n" +
+		explanation = "**Titolo Step:** passaggio di trasformazione equivalente\n\n" +
+			"**Logica:** " + explanation + "\n\n" +
 			"**Proprietà:** applichiamo regole algebriche equivalenti (sostituzione, semplificazione o proprietà dei determinanti, quando richiesto)."
 	}
 
@@ -695,6 +706,10 @@ func defaultShouldSaveToHistory(solution *MathSolution) bool {
 		"problem is unclear",
 		"problem is incomplete",
 		"unreadable",
+		"errore di capacità",
+		"scatta di nuovo la foto",
+		"non riesco a leggere chiaramente",
+		"non è stato letto chiaramente",
 	}
 	for _, phrase := range blockedPhrases {
 		if strings.Contains(combined, phrase) {
