@@ -1,7 +1,6 @@
 import PhotosUI
 import SwiftUI
 import UIKit
-import WebKit
 
 struct CameraView: View {
     private let minFocusSize = CGSize(width: 120, height: 120)
@@ -420,19 +419,11 @@ struct CameraView: View {
             return
         }
 
-        isPreparingLocalizedSolution = true
-        Task {
-            let localized: SolveResponse
-            do {
-                localized = try await viewModel.translateSolution(response, to: appLanguage)
-            } catch {
-                localized = response
-            }
-            await MainActor.run {
-                isPreparingLocalizedSolution = false
-                presentSolution(localized)
-            }
-        }
+        pendingLanguageChoice = PendingSolutionLanguageChoice(
+            response: response,
+            appLanguage: appLanguage,
+            problemLanguage: problemLanguage
+        )
     }
 
     private func presentSolution(_ response: SolveResponse) {
@@ -1367,28 +1358,9 @@ private struct CameraSolutionPage: View {
         hasShareAction || deleteAction != nil
     }
 
-    private var functionExpression: String? {
-        FunctionExpressionExtractor.extract(from: response.problem, rawLatex: response.rawLatex)
-    }
-
-    private var displayedSteps: [String] {
-        guard functionExpression != nil else { return response.steps }
-        let filtered = response.steps.filter { DomainStepExtractor.looksLikeDomainStep($0) }
-        if !filtered.isEmpty {
-            return filtered
-        }
-        return [
-            "$$\\displaystyle x \\in \\mathbb{R}$$ || **Titolo Step:** dominio della funzione\n\n**Logica:** non risultano vincoli aggiuntivi da radici pari, logaritmi o denominatori nulli.\n\n**Proprietà:** il dominio coincide con l'insieme dei reali quando l'espressione è sempre definita."
-        ]
-    }
-
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                if let functionExpression {
-                    FunctionGraphCard(expression: functionExpression)
-                }
-
                 HStack {
                     Text(L10n.solution)
                         .font(.title2.bold())
@@ -1414,7 +1386,7 @@ private struct CameraSolutionPage: View {
                     Text(L10n.steps)
                         .font(.headline)
 
-                    ForEach(Array(displayedSteps.enumerated()), id: \.offset) { index, step in
+                    ForEach(Array(response.steps.enumerated()), id: \.offset) { index, step in
                         StepCardView(
                             stepNumber: index + 1,
                             content: step,
@@ -1509,7 +1481,7 @@ private struct CameraSolutionPage: View {
 
     private func animateSteps() async {
         visibleSteps.removeAll()
-        for i in 0..<displayedSteps.count {
+        for i in 0..<response.steps.count {
             try? await Task.sleep(nanoseconds: 220_000_000)
             visibleSteps.insert(i)
         }
@@ -1556,258 +1528,5 @@ private struct CameraSolutionPage: View {
         } else {
             showDeleteFailed = true
         }
-    }
-}
-
-private enum DomainStepExtractor {
-    static func looksLikeDomainStep(_ raw: String) -> Bool {
-        let value = raw.lowercased()
-        let patterns = [
-            "\\neq", "\\ge", "\\le", "\\sqrt", "\\ln", "\\log",
-            "\\in", "\\mathbb", "\\cup", "\\cap", "dominio", "domain"
-        ]
-        return patterns.contains { value.contains($0) }
-    }
-}
-
-private enum FunctionExpressionExtractor {
-    static func extract(from problem: String, rawLatex: String) -> String? {
-        let merged = problem + " " + rawLatex
-        let candidates = [
-            #"f\s*\(\s*x\s*\)\s*=\s*([^\n,;]+)"#,
-            #"y\s*=\s*([^\n,;]+)"#
-        ]
-
-        for pattern in candidates {
-            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else { continue }
-            let range = NSRange(merged.startIndex..<merged.endIndex, in: merged)
-            guard let match = regex.firstMatch(in: merged, options: [], range: range),
-                  match.numberOfRanges > 1,
-                  let matchRange = Range(match.range(at: 1), in: merged) else { continue }
-            let expression = String(merged[matchRange]).trimmingCharacters(in: .whitespacesAndNewlines)
-            let cleaned = sanitizeForGraph(expression)
-            if !cleaned.isEmpty {
-                return cleaned
-            }
-        }
-        return nil
-    }
-
-    private static func sanitizeForGraph(_ raw: String) -> String {
-        var value = raw
-        value = value.replacingOccurrences(of: "$$", with: "")
-        value = value.replacingOccurrences(of: "\\(", with: "")
-        value = value.replacingOccurrences(of: "\\)", with: "")
-        value = value.replacingOccurrences(of: "\\[", with: "")
-        value = value.replacingOccurrences(of: "\\]", with: "")
-        value = value.replacingOccurrences(of: "π", with: "pi")
-        value = value.replacingOccurrences(of: "−", with: "-")
-        value = value.replacingOccurrences(of: "×", with: "*")
-        value = value.replacingOccurrences(of: "÷", with: "/")
-        value = value.replacingOccurrences(of: " ", with: "")
-        value = value.replacingOccurrences(of: "{", with: "(")
-        value = value.replacingOccurrences(of: "}", with: ")")
-        if value.hasPrefix("f(x)=") {
-            value = String(value.dropFirst(5))
-        }
-        if value.hasPrefix("y=") {
-            value = String(value.dropFirst(2))
-        }
-
-        let allowed = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789+-*/^().,_|")
-        if value.unicodeScalars.contains(where: { !allowed.contains($0) }) {
-            return ""
-        }
-        return String(value.prefix(160))
-    }
-}
-
-private struct FunctionGraphCard: View {
-    let expression: String
-    private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
-
-    var body: some View {
-        FunctionGraphWebView(expression: expression)
-            .frame(height: 272)
-            .frame(maxWidth: .infinity)
-            .background(Color.white)
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(appPurple.opacity(0.22), lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-}
-
-private struct FunctionGraphWebView: UIViewRepresentable {
-    let expression: String
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
-
-    func makeUIView(context: Context) -> WKWebView {
-        let config = WKWebViewConfiguration()
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.isOpaque = false
-        webView.backgroundColor = .white
-        webView.scrollView.isScrollEnabled = false
-        webView.scrollView.bounces = false
-        webView.isUserInteractionEnabled = false
-        return webView
-    }
-
-    func updateUIView(_ uiView: WKWebView, context: Context) {
-        let html = htmlTemplate(expression: expression)
-        if context.coordinator.lastHTML != html {
-            uiView.loadHTMLString(html, baseURL: nil)
-            context.coordinator.lastHTML = html
-        }
-    }
-
-    private func htmlTemplate(expression: String) -> String {
-        let escaped = escapeJS(expression)
-        return """
-        <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-          <style>
-            html, body {
-              margin: 0;
-              padding: 0;
-              width: 100%;
-              height: 100%;
-              background: #ffffff;
-              overflow: hidden;
-            }
-            #c {
-              width: 100%;
-              height: 100%;
-              display: block;
-            }
-          </style>
-        </head>
-        <body>
-          <canvas id="c"></canvas>
-          <script>
-            (function () {
-              const exprRaw = "\(escaped)";
-              const canvas = document.getElementById('c');
-              const ctx = canvas.getContext('2d');
-              const dpr = window.devicePixelRatio || 1;
-              const xMin = -10, xMax = 10, yMin = -10, yMax = 10;
-
-              function toX(x, w) { return ((x - xMin) / (xMax - xMin)) * w; }
-              function toY(y, h) { return h - ((y - yMin) / (yMax - yMin)) * h; }
-
-              function chooseStep(span) {
-                const target = span / 10;
-                const p = Math.pow(10, Math.floor(Math.log10(target)));
-                for (const c of [1,2,5,10]) { if (c*p >= target) return c*p; }
-                return 10*p;
-              }
-
-              function buildFunction(raw) {
-                let e = raw.replace(/\\s+/g, '');
-                if (!/^[A-Za-z0-9+\\-*/^().,_|]+$/.test(e)) return null;
-                e = e.replace(/\\^/g, '**')
-                     .replace(/\\bpi\\b/gi, 'Math.PI')
-                     .replace(/\\be\\b/g, 'Math.E')
-                     .replace(/\\bln\\s*\\(/gi, 'Math.log(')
-                     .replace(/\\blog\\s*\\(/gi, 'Math.log10(')
-                     .replace(/\\bsin\\s*\\(/gi, 'Math.sin(')
-                     .replace(/\\bcos\\s*\\(/gi, 'Math.cos(')
-                     .replace(/\\btan\\s*\\(/gi, 'Math.tan(')
-                     .replace(/\\bsqrt\\s*\\(/gi, 'Math.sqrt(')
-                     .replace(/\\babs\\s*\\(/gi, 'Math.abs(')
-                     .replace(/\\bexp\\s*\\(/gi, 'Math.exp(');
-                try {
-                  return new Function('x', '"use strict"; return (' + e + ');');
-                } catch (_) {
-                  return null;
-                }
-              }
-
-              function draw() {
-                const w = canvas.clientWidth;
-                const h = canvas.clientHeight;
-                ctx.clearRect(0,0,w,h);
-
-                ctx.strokeStyle = '#e6e6e6';
-                ctx.lineWidth = 1;
-                const sx = chooseStep(xMax - xMin), sy = chooseStep(yMax - yMin);
-                for (let gx = Math.ceil(xMin/sx)*sx; gx <= xMax; gx += sx) {
-                  const px = toX(gx, w); ctx.beginPath(); ctx.moveTo(px,0); ctx.lineTo(px,h); ctx.stroke();
-                }
-                for (let gy = Math.ceil(yMin/sy)*sy; gy <= yMax; gy += sy) {
-                  const py = toY(gy, h); ctx.beginPath(); ctx.moveTo(0,py); ctx.lineTo(w,py); ctx.stroke();
-                }
-
-                ctx.strokeStyle = '#000000';
-                ctx.lineWidth = 1.8;
-                ctx.beginPath(); ctx.moveTo(toX(0,w),0); ctx.lineTo(toX(0,w),h); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0,toY(0,h)); ctx.lineTo(w,toY(0,h)); ctx.stroke();
-
-                const fn = buildFunction(exprRaw);
-                if (!fn) return;
-
-                const n = 1200, dx = (xMax - xMin) / n;
-                const asymptotes = [];
-                let prevFinite = false, prevY = 0;
-
-                ctx.strokeStyle = '#5f3dc4';
-                ctx.lineWidth = 2.3;
-                ctx.beginPath();
-                for (let i=0; i<=n; i++) {
-                  const x = xMin + i*dx;
-                  let y;
-                  try { y = fn(x); } catch (_) { y = NaN; }
-                  const finite = Number.isFinite(y) && Math.abs(y) < 1e6;
-                  if (!finite) { if (prevFinite) asymptotes.push(x); prevFinite = false; continue; }
-
-                  const px = toX(x, w), py = toY(y, h);
-                  if (!prevFinite || Math.abs(y - prevY) > (yMax - yMin) * 1.2) ctx.moveTo(px, py);
-                  else ctx.lineTo(px, py);
-                  prevFinite = true;
-                  prevY = y;
-                }
-                ctx.stroke();
-
-                ctx.strokeStyle = '#000000';
-                ctx.setLineDash([5,5]);
-                ctx.lineWidth = 1.1;
-                for (const xa of asymptotes) {
-                  const px = toX(xa, w);
-                  ctx.beginPath(); ctx.moveTo(px,0); ctx.lineTo(px,h); ctx.stroke();
-                }
-                ctx.setLineDash([]);
-              }
-
-              function resize() {
-                const rect = canvas.getBoundingClientRect();
-                canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-                canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-                ctx.setTransform(dpr,0,0,dpr,0,0);
-                draw();
-              }
-
-              resize();
-              window.addEventListener('resize', resize);
-            })();
-          </script>
-        </body>
-        </html>
-        """
-    }
-
-    private func escapeJS(_ value: String) -> String {
-        value
-            .replacingOccurrences(of: "\\", with: "\\\\")
-            .replacingOccurrences(of: "\"", with: "\\\"")
-            .replacingOccurrences(of: "\n", with: "")
-    }
-
-    final class Coordinator {
-        var lastHTML: String?
     }
 }
