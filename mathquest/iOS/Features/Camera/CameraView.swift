@@ -1,7 +1,6 @@
 import PhotosUI
 import SwiftUI
 import UIKit
-import WebKit
 
 struct CameraView: View {
     private let minFocusSize = CGSize(width: 120, height: 120)
@@ -1362,37 +1361,12 @@ private struct CameraSolutionPage: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                if let graph = response.graph {
-                    FunctionGraphCard(graph: graph)
-                }
-
-                if !response.steps.isEmpty {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(L10n.steps)
-                            .font(.headline)
-
-                        ForEach(Array(response.steps.enumerated()), id: \.offset) { index, step in
-                            StepCardView(
-                                stepNumber: index + 1,
-                                content: step,
-                                isVisible: visibleSteps.contains(index)
-                            )
-                            .animation(
-                                .spring(response: 0.45, dampingFraction: 0.72).delay(Double(index) * 0.1),
-                                value: visibleSteps.contains(index)
-                            )
-                        }
-                    }
-                }
-
                 HStack {
                     Text(L10n.solution)
                         .font(.title2.bold())
                     Spacer()
                     DifficultyBadge(level: response.difficultyLevel)
                 }
-
-                AnswerCardView(answer: response.solution, isVisible: true)
 
                 if let capturedImage {
                     Image(uiImage: capturedImage)
@@ -1404,6 +1378,25 @@ private struct CameraSolutionPage: View {
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
                                 .stroke(Color(.systemGray4), lineWidth: 1)
                         )
+                }
+
+                AnswerCardView(answer: response.solution, isVisible: true)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(L10n.steps)
+                        .font(.headline)
+
+                    ForEach(Array(response.steps.enumerated()), id: \.offset) { index, step in
+                        StepCardView(
+                            stepNumber: index + 1,
+                            content: step,
+                            isVisible: visibleSteps.contains(index)
+                        )
+                        .animation(
+                            .spring(response: 0.45, dampingFraction: 0.72).delay(Double(index) * 0.1),
+                            value: visibleSteps.contains(index)
+                        )
+                    }
                 }
 
             }
@@ -1535,273 +1528,5 @@ private struct CameraSolutionPage: View {
         } else {
             showDeleteFailed = true
         }
-    }
-}
-
-private struct FunctionGraphCard: View {
-    let graph: FunctionGraph
-    private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
-
-    var body: some View {
-        FunctionGraphWebView(graph: graph)
-            .frame(height: 270)
-            .frame(maxWidth: .infinity)
-            .background(Color(.secondarySystemBackground))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(appPurple.opacity(0.24), lineWidth: 1)
-            )
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-}
-
-private struct FunctionGraphWebView: UIViewRepresentable {
-    let graph: FunctionGraph
-
-    func makeCoordinator() -> Coordinator {
-        Coordinator()
-    }
-
-    func makeUIView(context: Context) -> WKWebView {
-        let config = WKWebViewConfiguration()
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.isOpaque = false
-        webView.backgroundColor = .clear
-        webView.scrollView.isScrollEnabled = false
-        webView.scrollView.bounces = false
-        webView.isUserInteractionEnabled = false
-        return webView
-    }
-
-    func updateUIView(_ uiView: WKWebView, context: Context) {
-        let html = htmlTemplate(graph: graph)
-        if context.coordinator.lastHTML != html {
-            uiView.loadHTMLString(html, baseURL: nil)
-            context.coordinator.lastHTML = html
-        }
-    }
-
-    private func htmlTemplate(graph: FunctionGraph) -> String {
-        let expression = escapeHTML(graph.expression)
-        let xMin = graph.xMin
-        let xMax = graph.xMax
-        let yMin = graph.yMin
-        let yMax = graph.yMax
-
-        return """
-        <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-          <style>
-            html, body {
-              margin: 0;
-              padding: 0;
-              width: 100%;
-              height: 100%;
-              background: transparent;
-              overflow: hidden;
-            }
-            #canvas {
-              width: 100%;
-              height: 100%;
-              display: block;
-            }
-          </style>
-        </head>
-        <body>
-          <canvas id="canvas"></canvas>
-          <script>
-            (function () {
-              const expr = "\(expression)";
-              const xMin = \(xMin);
-              const xMax = \(xMax);
-              const yMin = \(yMin);
-              const yMax = \(yMax);
-              const canvas = document.getElementById('canvas');
-              const ctx = canvas.getContext('2d');
-              const dpr = window.devicePixelRatio || 1;
-
-              function resize() {
-                const rect = canvas.getBoundingClientRect();
-                canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-                canvas.height = Math.max(1, Math.floor(rect.height * dpr));
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-                draw();
-              }
-
-              function toX(x, w) {
-                return ((x - xMin) / (xMax - xMin)) * w;
-              }
-
-              function toY(y, h) {
-                return h - ((y - yMin) / (yMax - yMin)) * h;
-              }
-
-              function drawGrid(w, h) {
-                ctx.strokeStyle = '#d8d8e8';
-                ctx.lineWidth = 1;
-                const stepX = chooseStep(xMax - xMin);
-                const stepY = chooseStep(yMax - yMin);
-
-                for (let gx = Math.ceil(xMin / stepX) * stepX; gx <= xMax; gx += stepX) {
-                  const px = toX(gx, w);
-                  ctx.beginPath();
-                  ctx.moveTo(px, 0);
-                  ctx.lineTo(px, h);
-                  ctx.stroke();
-                }
-
-                for (let gy = Math.ceil(yMin / stepY) * stepY; gy <= yMax; gy += stepY) {
-                  const py = toY(gy, h);
-                  ctx.beginPath();
-                  ctx.moveTo(0, py);
-                  ctx.lineTo(w, py);
-                  ctx.stroke();
-                }
-              }
-
-              function drawAxes(w, h) {
-                ctx.strokeStyle = '#5f3dc4';
-                ctx.lineWidth = 1.8;
-                const yAxisX = toX(0, w);
-                const xAxisY = toY(0, h);
-
-                ctx.beginPath();
-                ctx.moveTo(yAxisX, 0);
-                ctx.lineTo(yAxisX, h);
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(0, xAxisY);
-                ctx.lineTo(w, xAxisY);
-                ctx.stroke();
-              }
-
-              function chooseStep(span) {
-                const target = span / 10;
-                const power = Math.pow(10, Math.floor(Math.log10(target)));
-                const choices = [1, 2, 5, 10];
-                for (const c of choices) {
-                  const s = c * power;
-                  if (s >= target) return s;
-                }
-                return 10 * power;
-              }
-
-              function draw() {
-                const w = canvas.clientWidth;
-                const h = canvas.clientHeight;
-                ctx.clearRect(0, 0, w, h);
-
-                drawGrid(w, h);
-                drawAxes(w, h);
-
-                const safe = expr.replace(/\\s+/g, '');
-                if (!/^[A-Za-z0-9+\\-*/^().,_|]+$/.test(safe)) {
-                  return;
-                }
-
-                let jsExpr = safe;
-                jsExpr = jsExpr.replace(/\\^/g, '**');
-                jsExpr = jsExpr.replace(/\\bpi\\b/gi, 'Math.PI');
-                jsExpr = jsExpr.replace(/\\be\\b/g, 'Math.E');
-                jsExpr = jsExpr.replace(/\\bln\\s*\\(/gi, 'Math.log(');
-                jsExpr = jsExpr.replace(/\\blog\\s*\\(/gi, 'Math.log10(');
-                jsExpr = jsExpr.replace(/\\bsin\\s*\\(/gi, 'Math.sin(');
-                jsExpr = jsExpr.replace(/\\bcos\\s*\\(/gi, 'Math.cos(');
-                jsExpr = jsExpr.replace(/\\btan\\s*\\(/gi, 'Math.tan(');
-                jsExpr = jsExpr.replace(/\\bsqrt\\s*\\(/gi, 'Math.sqrt(');
-                jsExpr = jsExpr.replace(/\\babs\\s*\\(/gi, 'Math.abs(');
-                jsExpr = jsExpr.replace(/\\bexp\\s*\\(/gi, 'Math.exp(');
-
-                let fn;
-                try {
-                  fn = new Function('x', '"use strict"; return (' + jsExpr + ');');
-                } catch (e) {
-                  return;
-                }
-
-                const n = 1200;
-                const dx = (xMax - xMin) / n;
-                const asymptotes = [];
-                let prevFinite = false;
-                let prevY = 0;
-
-                ctx.strokeStyle = '#2f9e44';
-                ctx.lineWidth = 2.2;
-                ctx.beginPath();
-
-                for (let i = 0; i <= n; i++) {
-                  const x = xMin + i * dx;
-                  let y;
-                  try {
-                    y = fn(x);
-                  } catch (e) {
-                    y = NaN;
-                  }
-                  const finite = Number.isFinite(y) && Math.abs(y) < 1e6;
-
-                  if (!finite) {
-                    if (prevFinite) {
-                      asymptotes.push(x);
-                    }
-                    prevFinite = false;
-                    continue;
-                  }
-
-                  const px = toX(x, w);
-                  const py = toY(y, h);
-                  const clipped = py > -5000 && py < h + 5000;
-
-                  if (!clipped) {
-                    prevFinite = false;
-                    continue;
-                  }
-
-                  if (!prevFinite || Math.abs(y - prevY) > (yMax - yMin) * 1.2) {
-                    ctx.moveTo(px, py);
-                  } else {
-                    ctx.lineTo(px, py);
-                  }
-
-                  prevFinite = true;
-                  prevY = y;
-                }
-                ctx.stroke();
-
-                ctx.strokeStyle = '#f03e3e';
-                ctx.setLineDash([6, 6]);
-                ctx.lineWidth = 1.2;
-                for (const xA of asymptotes) {
-                  const px = toX(xA, w);
-                  ctx.beginPath();
-                  ctx.moveTo(px, 0);
-                  ctx.lineTo(px, h);
-                  ctx.stroke();
-                }
-                ctx.setLineDash([]);
-              }
-
-              resize();
-              window.addEventListener('resize', resize);
-            })();
-          </script>
-        </body>
-        </html>
-        """
-    }
-
-    private func escapeHTML(_ string: String) -> String {
-        string
-            .replacingOccurrences(of: "&", with: "&amp;")
-            .replacingOccurrences(of: "<", with: "&lt;")
-            .replacingOccurrences(of: ">", with: "&gt;")
-            .replacingOccurrences(of: "\"", with: "&quot;")
-            .replacingOccurrences(of: "'", with: "&#39;")
-            .replacingOccurrences(of: "\\", with: "\\\\")
-    }
-
-    final class Coordinator {
-        var lastHTML: String?
     }
 }
