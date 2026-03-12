@@ -1,14 +1,90 @@
 import Foundation
 
+// MARK: - Graph Data
+
+struct CriticalPoint: Decodable {
+    let x: String
+    let y: String
+    let type: String // "maximum", "minimum", "inflection", "discontinuity"
+
+    init(x: String, y: String, type: String) {
+        self.x = x
+        self.y = y
+        self.type = type
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        x = try container.decodeIfPresent(String.self, forKey: .x) ?? "0"
+        y = try container.decodeIfPresent(String.self, forKey: .y) ?? "0"
+        type = try container.decodeIfPresent(String.self, forKey: .type) ?? "unknown"
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case x, y, type
+    }
+}
+
+struct GraphData: Decodable {
+    let isFunction: Bool
+    let expression: String
+    let variable: String
+    let domain: String
+    let range: String
+    let intercepts: [String: [String]]
+    let asymptotes: [String: [String]]
+    let criticalPoints: [CriticalPoint]
+    let behavior: [String: String]
+
+    enum CodingKeys: String, CodingKey {
+        case isFunction = "is_function"
+        case expression, variable, domain, range, intercepts, asymptotes
+        case criticalPoints = "critical_points"
+        case behavior
+    }
+
+    init(
+        isFunction: Bool, expression: String, variable: String,
+        domain: String, range: String,
+        intercepts: [String: [String]], asymptotes: [String: [String]],
+        criticalPoints: [CriticalPoint], behavior: [String: String]
+    ) {
+        self.isFunction = isFunction
+        self.expression = expression
+        self.variable = variable
+        self.domain = domain
+        self.range = range
+        self.intercepts = intercepts
+        self.asymptotes = asymptotes
+        self.criticalPoints = criticalPoints
+        self.behavior = behavior
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        isFunction = try container.decodeIfPresent(Bool.self, forKey: .isFunction) ?? false
+        expression = try container.decodeIfPresent(String.self, forKey: .expression) ?? ""
+        variable = try container.decodeIfPresent(String.self, forKey: .variable) ?? "x"
+        domain = try container.decodeIfPresent(String.self, forKey: .domain) ?? ""
+        range = try container.decodeIfPresent(String.self, forKey: .range) ?? ""
+        intercepts = try container.decodeIfPresent([String: [String]].self, forKey: .intercepts) ?? [:]
+        asymptotes = try container.decodeIfPresent([String: [String]].self, forKey: .asymptotes) ?? [:]
+        criticalPoints = try container.decodeIfPresent([CriticalPoint].self, forKey: .criticalPoints) ?? []
+        behavior = try container.decodeIfPresent([String: String].self, forKey: .behavior) ?? [:]
+    }
+}
+
 // MARK: - Request Models
 
 struct SolveRequest: Encodable {
     let imageBase64: String
     let mediaType: String
+    let preferredLanguage: String
 
     enum CodingKeys: String, CodingKey {
         case imageBase64 = "image_base64"
         case mediaType = "media_type"
+        case preferredLanguage = "preferred_language"
     }
 }
 
@@ -16,6 +92,7 @@ struct TranslateSolutionRequest: Encodable {
     let problem: String
     let solution: String
     let steps: [String]
+    let stepsDetail: [String]
     let rawLatex: String
     let difficultyLevel: String
     let detectedLanguage: String
@@ -24,6 +101,7 @@ struct TranslateSolutionRequest: Encodable {
 
     enum CodingKeys: String, CodingKey {
         case problem, solution, steps
+        case stepsDetail = "steps_detail"
         case rawLatex = "raw_latex"
         case difficultyLevel = "difficulty_level"
         case detectedLanguage = "detected_language"
@@ -39,19 +117,23 @@ struct SolveResponse: Decodable {
     let problem: String
     let solution: String
     let steps: [String]
+    let stepsDetail: [String]
     let rawLatex: String
     let difficultyLevel: String
     let detectedLanguage: String
     let shouldSaveToHistory: Bool
     let usesRemainingToday: Int
+    let graphData: GraphData?
 
     enum CodingKeys: String, CodingKey {
         case id, problem, solution, steps
+        case stepsDetail = "steps_detail"
         case rawLatex = "raw_latex"
         case difficultyLevel = "difficulty_level"
         case detectedLanguage = "detected_language"
         case shouldSaveToHistory = "should_save_to_history"
         case usesRemainingToday = "uses_remaining_today"
+        case graphData = "graph_data"
     }
 
     init(
@@ -59,21 +141,25 @@ struct SolveResponse: Decodable {
         problem: String,
         solution: String,
         steps: [String],
+        stepsDetail: [String] = [],
         rawLatex: String,
         difficultyLevel: String,
         detectedLanguage: String,
         shouldSaveToHistory: Bool,
-        usesRemainingToday: Int
+        usesRemainingToday: Int,
+        graphData: GraphData? = nil
     ) {
         self.id = id
         self.problem = problem
         self.solution = solution
         self.steps = steps
+        self.stepsDetail = stepsDetail
         self.rawLatex = rawLatex
         self.difficultyLevel = difficultyLevel
         self.detectedLanguage = detectedLanguage
         self.shouldSaveToHistory = shouldSaveToHistory
         self.usesRemainingToday = usesRemainingToday
+        self.graphData = graphData
     }
 
     init(from decoder: Decoder) throws {
@@ -83,12 +169,14 @@ struct SolveResponse: Decodable {
         problem = try container.decodeIfPresent(String.self, forKey: .problem) ?? ""
         solution = try container.decodeIfPresent(String.self, forKey: .solution) ?? ""
         steps = try container.decodeIfPresent([String].self, forKey: .steps) ?? []
+        stepsDetail = try container.decodeIfPresent([String].self, forKey: .stepsDetail) ?? []
         rawLatex = try container.decodeIfPresent(String.self, forKey: .rawLatex) ?? ""
         difficultyLevel = try container.decodeIfPresent(String.self, forKey: .difficultyLevel) ?? "unknown"
         detectedLanguage = try container.decodeIfPresent(String.self, forKey: .detectedLanguage) ?? "unknown"
         shouldSaveToHistory = try container.decodeIfPresent(Bool.self, forKey: .shouldSaveToHistory)
             ?? Self.defaultShouldSaveToHistory(problem: problem, solution: solution, steps: steps)
         usesRemainingToday = try container.decodeIfPresent(Int.self, forKey: .usesRemainingToday) ?? 0
+        graphData = try container.decodeIfPresent(GraphData.self, forKey: .graphData)
     }
 
     func replacingContent(with translated: TranslateSolutionResponse) -> SolveResponse {
@@ -97,11 +185,13 @@ struct SolveResponse: Decodable {
             problem: translated.problem,
             solution: translated.solution,
             steps: translated.steps,
+            stepsDetail: translated.stepsDetail,
             rawLatex: translated.rawLatex,
             difficultyLevel: translated.difficultyLevel,
             detectedLanguage: translated.detectedLanguage,
             shouldSaveToHistory: translated.shouldSaveToHistory,
-            usesRemainingToday: usesRemainingToday
+            usesRemainingToday: usesRemainingToday,
+            graphData: graphData
         )
     }
 
@@ -137,6 +227,7 @@ struct TranslateSolutionResponse: Decodable {
     let problem: String
     let solution: String
     let steps: [String]
+    let stepsDetail: [String]
     let rawLatex: String
     let difficultyLevel: String
     let detectedLanguage: String
@@ -144,6 +235,7 @@ struct TranslateSolutionResponse: Decodable {
 
     enum CodingKeys: String, CodingKey {
         case problem, solution, steps
+        case stepsDetail = "steps_detail"
         case rawLatex = "raw_latex"
         case difficultyLevel = "difficulty_level"
         case detectedLanguage = "detected_language"
@@ -156,6 +248,7 @@ struct TranslateSolutionResponse: Decodable {
         problem = try container.decodeIfPresent(String.self, forKey: .problem) ?? ""
         solution = try container.decodeIfPresent(String.self, forKey: .solution) ?? ""
         steps = try container.decodeIfPresent([String].self, forKey: .steps) ?? []
+        stepsDetail = try container.decodeIfPresent([String].self, forKey: .stepsDetail) ?? []
         rawLatex = try container.decodeIfPresent(String.self, forKey: .rawLatex) ?? ""
         difficultyLevel = try container.decodeIfPresent(String.self, forKey: .difficultyLevel) ?? "unknown"
         detectedLanguage = try container.decodeIfPresent(String.self, forKey: .detectedLanguage) ?? "unknown"

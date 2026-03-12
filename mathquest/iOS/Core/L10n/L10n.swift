@@ -223,6 +223,17 @@ enum L10n {
             "solved": ["it": "Risolto", "en": "Solved", "fr": "Résolu", "es": "Resuelto", "uz": "Yechildi"],
             "answer": ["it": "Risposta", "en": "Answer", "fr": "Réponse", "es": "Respuesta", "uz": "Javob"],
             "steps": ["it": "Passaggi", "en": "Steps", "fr": "Étapes", "es": "Pasos", "uz": "Bosqichlar"],
+            "graph_title": ["it": "Grafico", "en": "Graph", "fr": "Graphique", "es": "Gráfico", "uz": "Grafik"],
+            "domain": ["it": "Dominio", "en": "Domain", "fr": "Domaine", "es": "Dominio", "uz": "Soha"],
+            "range": ["it": "Immagine", "en": "Range", "fr": "Image", "es": "Rango", "uz": "Qiymatlar"],
+            "x_intercepts": ["it": "Intersezioni X", "en": "X Intercepts", "fr": "Intersections X", "es": "Intersecciones X", "uz": "X kesishmalar"],
+            "y_intercepts": ["it": "Intersezioni Y", "en": "Y Intercepts", "fr": "Intersections Y", "es": "Intersecciones Y", "uz": "Y kesishmalar"],
+            "asymptotes": ["it": "Asintoti", "en": "Asymptotes", "fr": "Asymptotes", "es": "Asíntotas", "uz": "Asimptotalar"],
+            "critical_points": ["it": "Punti critici", "en": "Critical Points", "fr": "Points critiques", "es": "Puntos críticos", "uz": "Kritik nuqtalar"],
+            "expand": ["it": "Espandi", "en": "Expand", "fr": "Développer", "es": "Expandir", "uz": "Kengaytirish"],
+            "collapse": ["it": "Comprimi", "en": "Collapse", "fr": "Réduire", "es": "Contraer", "uz": "Yig'ish"],
+            "input_view": ["it": "Immagine originale", "en": "Original Image", "fr": "Image originale", "es": "Imagen original", "uz": "Asl rasm"],
+            "step_by_step": ["it": "Risoluzione passo passo", "en": "Step-by-Step Resolution", "fr": "Résolution étape par étape", "es": "Resolución paso a paso", "uz": "Bosqichma-bosqich yechim"],
             "solving": ["it": "Risoluzione...", "en": "Solving...", "fr": "Résolution...", "es": "Resolviendo...", "uz": "Yechilmoqda..."],
             "camera_access_required": ["it": "Accesso fotocamera richiesto", "en": "Camera access required", "fr": "Accès caméra requis", "es": "Se requiere acceso a la cámara", "uz": "Kameraga ruxsat kerak"],
             "open_settings": ["it": "Apri impostazioni", "en": "Open Settings", "fr": "Ouvrir les réglages", "es": "Abrir ajustes", "uz": "Sozlamalarni ochish"],
@@ -473,6 +484,17 @@ enum L10n {
     static var solved: String { string("solved") }
     static var answer: String { string("answer") }
     static var steps: String { string("steps") }
+    static var graphTitle: String { string("graph_title") }
+    static var domain: String { string("domain") }
+    static var range: String { string("range") }
+    static var xIntercepts: String { string("x_intercepts") }
+    static var yIntercepts: String { string("y_intercepts") }
+    static var asymptotes: String { string("asymptotes") }
+    static var criticalPoints: String { string("critical_points") }
+    static var expand: String { string("expand") }
+    static var collapse: String { string("collapse") }
+    static var inputView: String { string("input_view") }
+    static var stepByStep: String { string("step_by_step") }
     static var solving: String { string("solving") }
     static var cameraAccessRequired: String { string("camera_access_required") }
     static var openSettings: String { string("open_settings") }

@@ -240,6 +240,7 @@ final class CameraViewModel: ObservableObject {
             problem: response.problem,
             solution: response.solution,
             steps: response.steps,
+            stepsDetail: response.stepsDetail,
             rawLatex: response.rawLatex,
             difficultyLevel: response.difficultyLevel,
             detectedLanguage: response.detectedLanguage,
@@ -296,7 +297,8 @@ final class CameraViewModel: ObservableObject {
             }
             let base64 = imageData.base64EncodedString()
 
-            let request = SolveRequest(imageBase64: base64, mediaType: "image/jpeg")
+            let preferredLang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
+            let request = SolveRequest(imageBase64: base64, mediaType: "image/jpeg", preferredLanguage: preferredLang)
             let body = try JSONEncoder().encode(request)
             await syncClientToken()
             let response: SolveResponse = try await client.request("camera/solve", method: "POST", body: body)

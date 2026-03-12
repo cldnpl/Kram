@@ -228,7 +228,7 @@ struct HistoryDetailView: View {
 
                     // Steps
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(L10n.solutionSteps)
+                        Label(L10n.stepByStep, systemImage: "list.number")
                             .font(.headline)
 
                         ForEach(Array(detail.steps.enumerated()), id: \.offset) { index, step in

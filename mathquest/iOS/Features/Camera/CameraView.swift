@@ -1375,16 +1375,23 @@ private struct CameraSolutionPage: View {
                     DifficultyBadge(level: response.difficultyLevel)
                 }
 
+                // 1. INPUT VIEW — Original scanned image
                 if let capturedImage {
-                    Image(uiImage: capturedImage)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxHeight: 200)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .stroke(Color(.systemGray4), lineWidth: 1)
-                        )
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label(L10n.inputView, systemImage: "photo")
+                            .font(.caption.bold())
+                            .foregroundColor(.secondary)
+
+                        Image(uiImage: capturedImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 200)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(Color(.systemGray4), lineWidth: 1)
+                            )
+                    }
                 }
 
                 VStack(alignment: .leading, spacing: 6) {
@@ -1396,16 +1403,24 @@ private struct CameraSolutionPage: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
+                // 2. GRAPHICAL VIEW — Only for functions
+                if let graphData = response.graphData, graphData.isFunction {
+                    MathGraphView(graphData: graphData)
+                }
+
+                // 3. Answer card
                 AnswerCardView(answer: response.solution, isVisible: true)
 
+                // 4. STEP-BY-STEP RESOLUTION
                 VStack(alignment: .leading, spacing: 8) {
-                    Text(L10n.steps)
+                    Label(L10n.stepByStep, systemImage: "list.number")
                         .font(.headline)
 
                     ForEach(Array(response.steps.enumerated()), id: \.offset) { index, step in
                         StepCardView(
                             stepNumber: index + 1,
                             content: step,
+                            detail: index < response.stepsDetail.count ? response.stepsDetail[index] : "",
                             isVisible: visibleSteps.contains(index)
                         )
                         .animation(

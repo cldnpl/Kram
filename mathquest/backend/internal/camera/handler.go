@@ -352,7 +352,11 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 	}
 
 	// Call Claude API
-	solution, err := h.claudeSvc.SolveMathProblem(req.ImageBase64, req.MediaType)
+	preferredLang := req.PreferredLanguage
+	if preferredLang == "" {
+		preferredLang = "en"
+	}
+	solution, err := h.claudeSvc.SolveMathProblem(req.ImageBase64, req.MediaType, preferredLang)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": fmt.Sprintf("failed to solve problem: %v", err),
@@ -403,16 +407,42 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 		}
 	}
 
+	var graphResp *GraphDataResponse
+	if solution.GraphData != nil && solution.GraphData.IsFunction {
+		criticalPts := make([]CriticalPointResponse, len(solution.GraphData.CriticalPoints))
+		for i, cp := range solution.GraphData.CriticalPoints {
+			criticalPts[i] = CriticalPointResponse{X: cp.X, Y: cp.Y, Type: cp.Type}
+		}
+		graphResp = &GraphDataResponse{
+			IsFunction:     solution.GraphData.IsFunction,
+			Expression:     solution.GraphData.Expression,
+			Variable:       solution.GraphData.Variable,
+			Domain:         solution.GraphData.Domain,
+			Range:          solution.GraphData.Range,
+			Intercepts:     solution.GraphData.Intercepts,
+			Asymptotes:     solution.GraphData.Asymptotes,
+			CriticalPoints: criticalPts,
+			Behavior:       solution.GraphData.Behavior,
+		}
+	}
+
+	stepsDetail := solution.StepsDetail
+	if stepsDetail == nil {
+		stepsDetail = []string{}
+	}
+
 	return c.JSON(SolveResponse{
 		ID:                  savedID,
 		Problem:             solution.Problem,
 		Solution:            solution.Solution,
 		Steps:               solution.Steps,
+		StepsDetail:         stepsDetail,
 		RawLatex:            solution.RawLatex,
 		DifficultyLevel:     solution.DifficultyLevel,
 		DetectedLanguage:    normalizeSolutionLanguage(solution.DetectedLanguage),
 		ShouldSaveToHistory: shouldSaveToHistory,
 		UsesRemainingToday:  remaining,
+		GraphData:           graphResp,
 	})
 }
 
@@ -436,6 +466,7 @@ func (h *Handler) Translate(c *fiber.Ctx) error {
 		Problem:             req.Problem,
 		Solution:            req.Solution,
 		Steps:               req.Steps,
+		StepsDetail:         req.StepsDetail,
 		RawLatex:            req.RawLatex,
 		DifficultyLevel:     req.DifficultyLevel,
 		DetectedLanguage:    normalizeSolutionLanguage(req.DetectedLanguage),
@@ -444,6 +475,9 @@ func (h *Handler) Translate(c *fiber.Ctx) error {
 
 	if source.Steps == nil {
 		source.Steps = []string{}
+	}
+	if source.StepsDetail == nil {
+		source.StepsDetail = []string{}
 	}
 	if source.DifficultyLevel == "" {
 		source.DifficultyLevel = "unknown"
@@ -459,6 +493,9 @@ func (h *Handler) Translate(c *fiber.Ctx) error {
 	if translated.Steps == nil {
 		translated.Steps = []string{}
 	}
+	if translated.StepsDetail == nil {
+		translated.StepsDetail = []string{}
+	}
 	if translated.DifficultyLevel == "" {
 		translated.DifficultyLevel = source.DifficultyLevel
 	}
@@ -467,6 +504,7 @@ func (h *Handler) Translate(c *fiber.Ctx) error {
 		Problem:             translated.Problem,
 		Solution:            translated.Solution,
 		Steps:               translated.Steps,
+		StepsDetail:         translated.StepsDetail,
 		RawLatex:            translated.RawLatex,
 		DifficultyLevel:     translated.DifficultyLevel,
 		DetectedLanguage:    normalizeSolutionLanguage(translated.DetectedLanguage),

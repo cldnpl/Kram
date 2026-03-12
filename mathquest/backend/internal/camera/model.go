@@ -23,26 +23,48 @@ func (CameraSolution) TableName() string {
 }
 
 type SolveRequest struct {
-	ImageBase64 string `json:"image_base64"`
-	MediaType   string `json:"media_type"`
+	ImageBase64       string `json:"image_base64"`
+	MediaType         string `json:"media_type"`
+	PreferredLanguage string `json:"preferred_language,omitempty"`
+}
+
+type GraphDataResponse struct {
+	IsFunction     bool                `json:"is_function"`
+	Expression     string              `json:"expression"`
+	Variable       string              `json:"variable"`
+	Domain         string              `json:"domain"`
+	Range          string              `json:"range"`
+	Intercepts     map[string][]string `json:"intercepts"`
+	Asymptotes     map[string][]string `json:"asymptotes"`
+	CriticalPoints []CriticalPointResponse `json:"critical_points"`
+	Behavior       map[string]string   `json:"behavior"`
+}
+
+type CriticalPointResponse struct {
+	X    string `json:"x"`
+	Y    string `json:"y"`
+	Type string `json:"type"`
 }
 
 type SolveResponse struct {
-	ID                  uint     `json:"id"`
-	Problem             string   `json:"problem"`
-	Solution            string   `json:"solution"`
-	Steps               []string `json:"steps"`
-	RawLatex            string   `json:"raw_latex"`
-	DifficultyLevel     string   `json:"difficulty_level"`
-	DetectedLanguage    string   `json:"detected_language"`
-	ShouldSaveToHistory bool     `json:"should_save_to_history"`
-	UsesRemainingToday  int      `json:"uses_remaining_today"`
+	ID                  uint               `json:"id"`
+	Problem             string             `json:"problem"`
+	Solution            string             `json:"solution"`
+	Steps               []string           `json:"steps"`
+	StepsDetail         []string           `json:"steps_detail"`
+	RawLatex            string             `json:"raw_latex"`
+	DifficultyLevel     string             `json:"difficulty_level"`
+	DetectedLanguage    string             `json:"detected_language"`
+	ShouldSaveToHistory bool               `json:"should_save_to_history"`
+	UsesRemainingToday  int                `json:"uses_remaining_today"`
+	GraphData           *GraphDataResponse `json:"graph_data,omitempty"`
 }
 
 type TranslateRequest struct {
 	Problem             string   `json:"problem"`
 	Solution            string   `json:"solution"`
 	Steps               []string `json:"steps"`
+	StepsDetail         []string `json:"steps_detail"`
 	RawLatex            string   `json:"raw_latex"`
 	DifficultyLevel     string   `json:"difficulty_level"`
 	DetectedLanguage    string   `json:"detected_language"`
@@ -54,6 +76,7 @@ type TranslateResponse struct {
 	Problem             string   `json:"problem"`
 	Solution            string   `json:"solution"`
 	Steps               []string `json:"steps"`
+	StepsDetail         []string `json:"steps_detail"`
 	RawLatex            string   `json:"raw_latex"`
 	DifficultyLevel     string   `json:"difficulty_level"`
 	DetectedLanguage    string   `json:"detected_language"`
