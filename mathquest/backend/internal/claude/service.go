@@ -87,13 +87,15 @@ Analyze the math problem in this image and provide a complete solution.
 Read the problem exactly as written in the image before solving.
 
 Rules you MUST follow:
-- Preserve the original language and script from the image (for example Uzbek, Russian, English). Do not translate unless explicitly asked.
+- Use ONLY Italian language in all prose fields ("solution" and explanations). English tokens are forbidden in prose.
+- Preserve the original language and script from the image only in "problem" transcription. Write "solution" and step explanations in Italian.
 - Do not invent missing numbers, symbols, or words.
 - If the image is unclear or incomplete, say so explicitly in "solution" and "steps" instead of guessing.
 - If OCR output looks corrupted, random, or inconsistent, stop and return a clean retake message instead of forcing a long solution.
 - Keep reasoning efficient: do not repeat already completed transformations and avoid redundant recalculations.
 - If the full derivation is very long, provide a concise but complete sequence of essential steps to avoid timeout.
 - If you cannot compute a required determinant with certainty (especially 4x4), set "solution" to exactly "Errore di Capacità" and do not invent numeric results.
+- If the input defines a function (for example f(x)=...), start "solution" with a compact graph-style summary in Italian: Cartesian axes behavior, intercepts, and curve trend.
 - Keep "problem" as the exact transcription of what you can read from the image.
 - Set "detected_language" to one of: en, it, fr, es, uz, unknown.
 - Set "should_save_to_history" to false if the image is unclear, incomplete, unreadable, or the result is just an error/retake message. Otherwise set it to true.
@@ -474,6 +476,9 @@ func normalizeStepFormula(raw string) string {
 	// Remove common prose tokens that should never appear inside step boxes.
 	reBadWords := regexp.MustCompile(`(?i)\b(therefore|thus|substituting|substitute|equivalent|transformation|apply|property|sostituzione|semplificazione|propriet[àa]|risultato|passaggio)\b`)
 	formula = reBadWords.ReplaceAllString(formula, " ")
+	reCamelOrOps := regexp.MustCompile(`(?i)\b(usegaussianelimination|backsubstitute|back-substitute|applyrowoperations|rowoperations|gaussianelimination)\b`)
+	formula = reCamelOrOps.ReplaceAllString(formula, " ")
+	formula = stripNonMathWords(formula)
 
 	// Convert linear fractions/powers to proper LaTeX.
 	reFrac := regexp.MustCompile(`(?i)(\\pi|[A-Za-z0-9]+)\s*/\s*(\\pi|[A-Za-z0-9]+)`)
@@ -537,6 +542,12 @@ func normalizeStepExplanation(raw string) string {
 		"result", "risultato",
 		"Equivalent transformation", "Trasformazione equivalente",
 		"equivalent transformation", "trasformazione equivalente",
+		"Gaussian elimination", "eliminazione di Gauss",
+		"gaussian elimination", "eliminazione di Gauss",
+		"back-substitute", "sostituzione all'indietro",
+		"back substitute", "sostituzione all'indietro",
+		"Apply row operations", "Applichiamo operazioni elementari di riga",
+		"apply row operations", "applichiamo operazioni elementari di riga",
 		"Ratio", "Logica",
 		"ratio", "logica",
 		"Action", "Azione",
@@ -559,6 +570,8 @@ func normalizeStepExplanation(raw string) string {
 	explanation = strings.NewReplacer("{", " ", "}", " ").Replace(explanation)
 	reSymbolicNoise := regexp.MustCompile(`[=+\-*/^_{}[\]<>|]+`)
 	explanation = reSymbolicNoise.ReplaceAllString(explanation, " ")
+	reCamelOrOps := regexp.MustCompile(`(?i)\b(usegaussianelimination|backsubstitute|back-substitute|applyrowoperations|rowoperations|gaussianelimination)\b`)
+	explanation = reCamelOrOps.ReplaceAllString(explanation, " ")
 
 	// Remove accidental list prefixes to keep compact prose structure.
 	reListPrefix := regexp.MustCompile(`(?m)^\s*[-*]\s+`)
@@ -575,7 +588,7 @@ func normalizeStepExplanation(raw string) string {
 
 	// Ensure each paragraph has bold operation label and no residual English filler.
 	paragraphs := strings.Split(explanation, "\n\n")
-	reEnglishResidual := regexp.MustCompile(`(?i)\b(the|and|or|we|can|using|apply|property|result|substituting|therefore)\b`)
+	reEnglishResidual := regexp.MustCompile(`(?i)\b(the|and|or|we|can|using|use|apply|property|result|substituting|therefore|method|calculate|compute|gaussian|elimination|back|substitute|row|operations?)\b`)
 	reDigitsOnly := regexp.MustCompile(`^\s*\d+\s*$`)
 	rePunctOnly := regexp.MustCompile(`^[\s\p{P}]+$`)
 	for i := range paragraphs {
@@ -600,6 +613,66 @@ func normalizeStepExplanation(raw string) string {
 	explanation = strings.TrimSpace(explanation)
 
 	return explanation
+}
+
+func stripNonMathWords(input string) string {
+	tokens := strings.Fields(input)
+	if len(tokens) == 0 {
+		return ""
+	}
+	reDigit := regexp.MustCompile(`\d`)
+	reMathSymbol := regexp.MustCompile(`[=+\-*/^(){}\[\]|<>]`)
+	reHyphenProse := regexp.MustCompile(`(?i)[a-z]{3,}-[a-z]{3,}`)
+	reSingleLetter := regexp.MustCompile(`(?i)[a-z]`)
+
+	isAllowedWord := func(word string) bool {
+		allowed := map[string]struct{}{
+			"x": {}, "y": {}, "z": {}, "t": {}, "u": {}, "v": {}, "w": {},
+			"a": {}, "b": {}, "c": {}, "d": {}, "e": {}, "f": {}, "g": {}, "h": {},
+			"m": {}, "n": {}, "p": {}, "q": {}, "r": {}, "s": {}, "k": {},
+			"sin": {}, "cos": {}, "tan": {}, "cot": {}, "sec": {}, "csc": {},
+			"log": {}, "ln": {}, "exp": {}, "det": {}, "pi": {},
+			"alpha": {}, "beta": {}, "gamma": {}, "delta": {}, "theta": {}, "lambda": {}, "sigma": {}, "omega": {},
+		}
+		_, ok := allowed[word]
+		return ok
+	}
+
+	var kept []string
+	for _, token := range tokens {
+		trimmed := strings.Trim(token, ".,;:!?")
+		if trimmed == "" {
+			continue
+		}
+		lower := strings.ToLower(trimmed)
+
+		if strings.Contains(trimmed, `\`) {
+			kept = append(kept, token)
+			continue
+		}
+		if reDigit.MatchString(trimmed) {
+			kept = append(kept, token)
+			continue
+		}
+		if reMathSymbol.MatchString(trimmed) {
+			// Drop long hyphenated prose tokens like "back-substitute".
+			if strings.Contains(trimmed, "-") && reHyphenProse.MatchString(trimmed) {
+				continue
+			}
+			kept = append(kept, token)
+			continue
+		}
+		if len(trimmed) == 1 && reSingleLetter.MatchString(trimmed) {
+			kept = append(kept, token)
+			continue
+		}
+		if isAllowedWord(lower) {
+			kept = append(kept, token)
+			continue
+		}
+	}
+
+	return strings.Join(kept, " ")
 }
 
 func stripMathDelimiters(raw string) string {
