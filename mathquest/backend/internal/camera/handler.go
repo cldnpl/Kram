@@ -78,6 +78,32 @@ func normalizeSolutionLanguage(raw string) string {
 	}
 }
 
+func toGraphResponse(graph *claude.FunctionGraph) *FunctionGraphResponse {
+	if graph == nil {
+		return nil
+	}
+	return &FunctionGraphResponse{
+		Expression: graph.Expression,
+		XMin:       graph.XMin,
+		XMax:       graph.XMax,
+		YMin:       graph.YMin,
+		YMax:       graph.YMax,
+	}
+}
+
+func toClaudeGraph(graph *FunctionGraphResponse) *claude.FunctionGraph {
+	if graph == nil {
+		return nil
+	}
+	return &claude.FunctionGraph{
+		Expression: graph.Expression,
+		XMin:       graph.XMin,
+		XMax:       graph.XMax,
+		YMin:       graph.YMin,
+		YMax:       graph.YMax,
+	}
+}
+
 func (h *Handler) dailyLimitForTier(tier string) int {
 	switch tier {
 	case "pro":
@@ -367,6 +393,7 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 			Solution:            "I could not process this scan right now. Please retake the photo.",
 			Steps:               []string{},
 			RawLatex:            "",
+			Graph:               nil,
 			DifficultyLevel:     "unknown",
 			DetectedLanguage:    "unknown",
 			ShouldSaveToHistory: false,
@@ -424,6 +451,7 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 		Solution:            solution.Solution,
 		Steps:               solution.Steps,
 		RawLatex:            solution.RawLatex,
+		Graph:               toGraphResponse(solution.Graph),
 		DifficultyLevel:     solution.DifficultyLevel,
 		DetectedLanguage:    normalizeSolutionLanguage(solution.DetectedLanguage),
 		ShouldSaveToHistory: shouldSaveToHistory,
@@ -452,6 +480,7 @@ func (h *Handler) Translate(c *fiber.Ctx) error {
 		Solution:            req.Solution,
 		Steps:               req.Steps,
 		RawLatex:            req.RawLatex,
+		Graph:               toClaudeGraph(req.Graph),
 		DifficultyLevel:     req.DifficultyLevel,
 		DetectedLanguage:    normalizeSolutionLanguage(req.DetectedLanguage),
 		ShouldSaveToHistory: &req.ShouldSaveToHistory,
@@ -483,6 +512,7 @@ func (h *Handler) Translate(c *fiber.Ctx) error {
 		Solution:            translated.Solution,
 		Steps:               translated.Steps,
 		RawLatex:            translated.RawLatex,
+		Graph:               toGraphResponse(translated.Graph),
 		DifficultyLevel:     translated.DifficultyLevel,
 		DetectedLanguage:    normalizeSolutionLanguage(translated.DetectedLanguage),
 		ShouldSaveToHistory: translated.ShouldSaveToHistory == nil || *translated.ShouldSaveToHistory,

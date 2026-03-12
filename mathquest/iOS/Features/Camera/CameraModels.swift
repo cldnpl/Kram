@@ -17,13 +17,14 @@ struct TranslateSolutionRequest: Encodable {
     let solution: String
     let steps: [String]
     let rawLatex: String
+    let graph: FunctionGraph?
     let difficultyLevel: String
     let detectedLanguage: String
     let shouldSaveToHistory: Bool
     let targetLanguage: String
 
     enum CodingKeys: String, CodingKey {
-        case problem, solution, steps
+        case problem, solution, steps, graph
         case rawLatex = "raw_latex"
         case difficultyLevel = "difficulty_level"
         case detectedLanguage = "detected_language"
@@ -40,13 +41,14 @@ struct SolveResponse: Decodable {
     let solution: String
     let steps: [String]
     let rawLatex: String
+    let graph: FunctionGraph?
     let difficultyLevel: String
     let detectedLanguage: String
     let shouldSaveToHistory: Bool
     let usesRemainingToday: Int
 
     enum CodingKeys: String, CodingKey {
-        case id, problem, solution, steps
+        case id, problem, solution, steps, graph
         case rawLatex = "raw_latex"
         case difficultyLevel = "difficulty_level"
         case detectedLanguage = "detected_language"
@@ -60,6 +62,7 @@ struct SolveResponse: Decodable {
         solution: String,
         steps: [String],
         rawLatex: String,
+        graph: FunctionGraph?,
         difficultyLevel: String,
         detectedLanguage: String,
         shouldSaveToHistory: Bool,
@@ -70,6 +73,7 @@ struct SolveResponse: Decodable {
         self.solution = solution
         self.steps = steps
         self.rawLatex = rawLatex
+        self.graph = graph
         self.difficultyLevel = difficultyLevel
         self.detectedLanguage = detectedLanguage
         self.shouldSaveToHistory = shouldSaveToHistory
@@ -84,6 +88,7 @@ struct SolveResponse: Decodable {
         solution = try container.decodeIfPresent(String.self, forKey: .solution) ?? ""
         steps = try container.decodeIfPresent([String].self, forKey: .steps) ?? []
         rawLatex = try container.decodeIfPresent(String.self, forKey: .rawLatex) ?? ""
+        graph = try container.decodeIfPresent(FunctionGraph.self, forKey: .graph)
         difficultyLevel = try container.decodeIfPresent(String.self, forKey: .difficultyLevel) ?? "unknown"
         detectedLanguage = try container.decodeIfPresent(String.self, forKey: .detectedLanguage) ?? "unknown"
         shouldSaveToHistory = try container.decodeIfPresent(Bool.self, forKey: .shouldSaveToHistory)
@@ -98,6 +103,7 @@ struct SolveResponse: Decodable {
             solution: translated.solution,
             steps: translated.steps,
             rawLatex: translated.rawLatex,
+            graph: translated.graph,
             difficultyLevel: translated.difficultyLevel,
             detectedLanguage: translated.detectedLanguage,
             shouldSaveToHistory: translated.shouldSaveToHistory,
@@ -138,12 +144,13 @@ struct TranslateSolutionResponse: Decodable {
     let solution: String
     let steps: [String]
     let rawLatex: String
+    let graph: FunctionGraph?
     let difficultyLevel: String
     let detectedLanguage: String
     let shouldSaveToHistory: Bool
 
     enum CodingKeys: String, CodingKey {
-        case problem, solution, steps
+        case problem, solution, steps, graph
         case rawLatex = "raw_latex"
         case difficultyLevel = "difficulty_level"
         case detectedLanguage = "detected_language"
@@ -157,10 +164,27 @@ struct TranslateSolutionResponse: Decodable {
         solution = try container.decodeIfPresent(String.self, forKey: .solution) ?? ""
         steps = try container.decodeIfPresent([String].self, forKey: .steps) ?? []
         rawLatex = try container.decodeIfPresent(String.self, forKey: .rawLatex) ?? ""
+        graph = try container.decodeIfPresent(FunctionGraph.self, forKey: .graph)
         difficultyLevel = try container.decodeIfPresent(String.self, forKey: .difficultyLevel) ?? "unknown"
         detectedLanguage = try container.decodeIfPresent(String.self, forKey: .detectedLanguage) ?? "unknown"
         shouldSaveToHistory = try container.decodeIfPresent(Bool.self, forKey: .shouldSaveToHistory)
             ?? SolveResponse.defaultShouldSaveToHistory(problem: problem, solution: solution, steps: steps)
+    }
+}
+
+struct FunctionGraph: Codable {
+    let expression: String
+    let xMin: Double
+    let xMax: Double
+    let yMin: Double
+    let yMax: Double
+
+    enum CodingKeys: String, CodingKey {
+        case expression
+        case xMin = "x_min"
+        case xMax = "x_max"
+        case yMin = "y_min"
+        case yMax = "y_max"
     }
 }
 

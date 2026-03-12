@@ -237,6 +237,7 @@ final class CameraViewModel: ObservableObject {
             solution: response.solution,
             steps: response.steps,
             rawLatex: response.rawLatex,
+            graph: response.graph,
             difficultyLevel: response.difficultyLevel,
             detectedLanguage: response.detectedLanguage,
             shouldSaveToHistory: response.shouldSaveToHistory,

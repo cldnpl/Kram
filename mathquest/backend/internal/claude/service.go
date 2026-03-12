@@ -72,13 +72,22 @@ type ClaudeResponse struct {
 }
 
 type MathSolution struct {
-	Problem             string   `json:"problem"`
-	Solution            string   `json:"solution"`
-	Steps               []string `json:"steps"`
-	RawLatex            string   `json:"raw_latex"`
-	DifficultyLevel     string   `json:"difficulty_level"`
-	DetectedLanguage    string   `json:"detected_language"`
-	ShouldSaveToHistory *bool    `json:"should_save_to_history,omitempty"`
+	Problem             string         `json:"problem"`
+	Solution            string         `json:"solution"`
+	Steps               []string       `json:"steps"`
+	RawLatex            string         `json:"raw_latex"`
+	Graph               *FunctionGraph `json:"graph,omitempty"`
+	DifficultyLevel     string         `json:"difficulty_level"`
+	DetectedLanguage    string         `json:"detected_language"`
+	ShouldSaveToHistory *bool          `json:"should_save_to_history,omitempty"`
+}
+
+type FunctionGraph struct {
+	Expression string  `json:"expression"`
+	XMin       float64 `json:"x_min"`
+	XMax       float64 `json:"x_max"`
+	YMin       float64 `json:"y_min"`
+	YMax       float64 `json:"y_max"`
 }
 
 const solveMathPrompt = `You are a careful math tutor helping students solve problems step by step.
@@ -96,6 +105,9 @@ Rules you MUST follow:
 - If the full derivation is very long, provide a concise but complete sequence of essential steps to avoid timeout.
 - If you cannot compute a required determinant with certainty (especially 4x4), set "solution" to exactly "Errore di Capacità" and do not invent numeric results.
 - If the input defines a function (for example f(x)=...), start "solution" with a compact graph-style summary in Italian: Cartesian axes behavior, intercepts, and curve trend.
+- If the input defines a function (for example f(x)=...), "graph" is mandatory and must include a valid plotting expression in variable x plus numeric bounds.
+  - In "graph.expression", use explicit multiplication "*" (for example 2*x, not 2x) and standard function names: sin, cos, tan, ln, log, sqrt, abs, exp, pi, e.
+- If the input is not a function graph task, omit "graph" or set it to null.
 - Keep "problem" as the exact transcription of what you can read from the image.
 - Set "detected_language" to one of: en, it, fr, es, uz, unknown.
 - Set "should_save_to_history" to false if the image is unclear, incomplete, unreadable, or the result is just an error/retake message. Otherwise set it to true.
@@ -135,6 +147,13 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no co
   "solution": "final answer or a clear message if unreadable",
   "steps": ["$$\\displaystyle <latex step 1>$$ || <detailed explanation 1>", "$$\\displaystyle <latex step 2>$$ || <detailed explanation 2>"],
   "raw_latex": "the problem and solution in LaTeX format",
+  "graph": {
+    "expression": "plot expression in x using ASCII math syntax (example: x^2-4, sin(x), log(x))",
+    "x_min": -10,
+    "x_max": 10,
+    "y_min": -10,
+    "y_max": 10
+  },
   "difficulty_level": "elementary|middle_school|high_school|college",
   "detected_language": "en|it|fr|es|uz|unknown",
   "should_save_to_history": true
@@ -152,6 +171,7 @@ Rules you MUST follow:
 - Keep "difficulty_level" unchanged.
 - Keep "detected_language" unchanged.
 - Keep "should_save_to_history" unchanged.
+- Keep "graph" unchanged.
 - Return the same number of steps.
 - For each step string in "steps", preserve the exact format "LATEX_STEP || EXPLANATION".
 - Do NOT translate or alter the LaTeX part before "||".
@@ -168,6 +188,13 @@ IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no co
   "solution": "translated final answer",
   "steps": ["$$\\displaystyle <same latex step 1>$$ || <translated detailed explanation 1>", "$$\\displaystyle <same latex step 2>$$ || <translated detailed explanation 2>"],
   "raw_latex": "original raw latex",
+  "graph": {
+    "expression": "same original expression",
+    "x_min": -10,
+    "x_max": 10,
+    "y_min": -10,
+    "y_max": 10
+  },
   "difficulty_level": "elementary|middle_school|high_school|college",
   "detected_language": "en|it|fr|es|uz|unknown",
   "should_save_to_history": true
@@ -298,6 +325,9 @@ func (s *Service) TranslateMathSolution(solution *MathSolution, targetLanguage s
 	}
 
 	normalizeSolutionPayload(translated)
+	if translated.Graph == nil && solution.Graph != nil {
+		translated.Graph = solution.Graph
+	}
 	if strings.TrimSpace(translated.DifficultyLevel) == "" || translated.DifficultyLevel == "unknown" {
 		translated.DifficultyLevel = strings.TrimSpace(solution.DifficultyLevel)
 	}
@@ -434,6 +464,8 @@ func normalizeSolutionPayload(solution *MathSolution) {
 	if solution.DifficultyLevel == "" {
 		solution.DifficultyLevel = "unknown"
 	}
+
+	normalizeGraphPayload(solution)
 
 	solution.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
 	if solution.ShouldSaveToHistory == nil {
@@ -613,6 +645,95 @@ func normalizeStepExplanation(raw string) string {
 	explanation = strings.TrimSpace(explanation)
 
 	return explanation
+}
+
+func normalizeGraphPayload(solution *MathSolution) {
+	if solution == nil {
+		return
+	}
+
+	functionInput := looksLikeFunctionInput(solution.Problem, solution.RawLatex)
+	if solution.Graph != nil {
+		expr := sanitizeGraphExpression(solution.Graph.Expression)
+		if expr == "" {
+			solution.Graph = nil
+		} else {
+			solution.Graph.Expression = expr
+			solution.Graph.XMin = normalizeGraphBound(solution.Graph.XMin, -10)
+			solution.Graph.XMax = normalizeGraphBound(solution.Graph.XMax, 10)
+			solution.Graph.YMin = normalizeGraphBound(solution.Graph.YMin, -10)
+			solution.Graph.YMax = normalizeGraphBound(solution.Graph.YMax, 10)
+			if solution.Graph.XMin >= solution.Graph.XMax {
+				solution.Graph.XMin = -10
+				solution.Graph.XMax = 10
+			}
+			if solution.Graph.YMin >= solution.Graph.YMax {
+				solution.Graph.YMin = -10
+				solution.Graph.YMax = 10
+			}
+		}
+	}
+
+	// Hard requirement: for function input, graph must exist before any steps.
+	if functionInput && (solution.Graph == nil || strings.TrimSpace(solution.Graph.Expression) == "") {
+		solution.Solution = "Errore di Capacità: impossibile generare il grafico della funzione in modo affidabile."
+		solution.Steps = []string{}
+		solution.ShouldSaveToHistory = boolPtr(false)
+	}
+}
+
+func normalizeGraphBound(value, fallback float64) float64 {
+	if value == 0 {
+		return fallback
+	}
+	if value > 500 || value < -500 {
+		return fallback
+	}
+	return value
+}
+
+func looksLikeFunctionInput(problem, rawLatex string) bool {
+	joined := strings.ToLower(problem + " " + rawLatex)
+	re := regexp.MustCompile(`(?i)(f\s*\(\s*x\s*\)\s*=|y\s*=|funzione|function|grafico|graph)`)
+	return re.MatchString(joined)
+}
+
+func sanitizeGraphExpression(raw string) string {
+	expr := strings.TrimSpace(raw)
+	if expr == "" {
+		return ""
+	}
+
+	// Strip wrappers and keep plotting-safe ASCII syntax.
+	expr = strings.TrimPrefix(expr, "$$")
+	expr = strings.TrimSuffix(expr, "$$")
+	expr = strings.ReplaceAll(expr, `\(`, "")
+	expr = strings.ReplaceAll(expr, `\)`, "")
+	expr = strings.ReplaceAll(expr, `\[`, "")
+	expr = strings.ReplaceAll(expr, `\]`, "")
+	expr = strings.ReplaceAll(expr, "π", "pi")
+	expr = strings.ReplaceAll(expr, "−", "-")
+	expr = strings.ReplaceAll(expr, "×", "*")
+	expr = strings.ReplaceAll(expr, "÷", "/")
+	expr = strings.ReplaceAll(expr, " ", "")
+	expr = strings.TrimPrefix(expr, "f(x)=")
+	expr = strings.TrimPrefix(expr, "y=")
+
+	allowed := regexp.MustCompile(`^[A-Za-z0-9+\-*/^().,_| ]+$`)
+	if !allowed.MatchString(expr) {
+		return ""
+	}
+
+	// Disallow prose/camel tokens in plotting expression.
+	badWords := regexp.MustCompile(`(?i)(gaussian|elimination|substitute|apply|therefore|method|passaggio|propriet|calcolo)`)
+	if badWords.MatchString(expr) {
+		return ""
+	}
+
+	if len(expr) > 160 {
+		expr = expr[:160]
+	}
+	return expr
 }
 
 func stripNonMathWords(input string) string {
