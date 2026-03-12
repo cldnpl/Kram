@@ -96,6 +96,7 @@ Rules you MUST follow:
 - If the full derivation is very long, provide a concise but complete sequence of essential steps to avoid timeout.
 - If you cannot compute a required determinant with certainty (especially 4x4), set "solution" to exactly "Errore di Capacità" and do not invent numeric results.
 - If the input defines a function (for example f(x)=...), start "solution" with a compact graph-style summary in Italian: Cartesian axes behavior, intercepts, and curve trend.
+- If the input defines a function (for example f(x)=...), "steps" must contain ONLY domain calculation steps (restriction inequalities, exclusions, and final domain set).
 - Keep "problem" as the exact transcription of what you can read from the image.
 - Set "detected_language" to one of: en, it, fr, es, uz, unknown.
 - Set "should_save_to_history" to false if the image is unclear, incomplete, unreadable, or the result is just an error/retake message. Otherwise set it to true.
@@ -425,6 +426,23 @@ func normalizeSolutionPayload(solution *MathSolution) {
 	}
 	solution.Steps = trimmedSteps
 
+	if looksLikeFunctionInput(solution.Problem, solution.RawLatex) {
+		domainOnly := make([]string, 0, len(solution.Steps))
+		for _, step := range solution.Steps {
+			if looksLikeDomainStep(step) {
+				domainOnly = append(domainOnly, step)
+			}
+		}
+		if len(domainOnly) == 0 {
+			domainOnly = []string{
+				`$$\displaystyle x \in \mathbb{R}$$ || **Titolo Step:** dominio della funzione` + "\n\n" +
+					`**Logica:** in assenza di radici pari, denominatori o logaritmi con vincoli, il dominio è l'insieme dei numeri reali.` + "\n\n" +
+					`**Proprietà:** il dominio si ottiene imponendo che ogni espressione sia definita.`,
+			}
+		}
+		solution.Steps = domainOnly
+	}
+
 	if solution.Solution == "" {
 		solution.Solution = "I could not read the math expression clearly. Please retake the photo."
 	}
@@ -442,6 +460,36 @@ func normalizeSolutionPayload(solution *MathSolution) {
 	if !defaultShouldSaveToHistory(solution) {
 		solution.ShouldSaveToHistory = boolPtr(false)
 	}
+}
+
+func looksLikeFunctionInput(problem, rawLatex string) bool {
+	joined := strings.ToLower(strings.TrimSpace(problem + " " + rawLatex))
+	re := regexp.MustCompile(`(?i)(f\s*\(\s*x\s*\)\s*=|y\s*=|funzione|function|grafico|graph)`)
+	return re.MatchString(joined)
+}
+
+func looksLikeDomainStep(step string) bool {
+	value := strings.ToLower(step)
+	patterns := []string{
+		`\\neq`,
+		`\\ge`,
+		`\\le`,
+		`\\sqrt`,
+		`\\ln`,
+		`\\log`,
+		`\\in`,
+		`\\mathbb`,
+		`\\cup`,
+		`\\cap`,
+		`dominio`,
+		`domain`,
+	}
+	for _, p := range patterns {
+		if strings.Contains(value, p) {
+			return true
+		}
+	}
+	return false
 }
 
 func normalizeStepEntry(raw string) string {
