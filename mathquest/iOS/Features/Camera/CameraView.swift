@@ -556,14 +556,6 @@ struct CameraView: View {
                 .buttonStyle(.borderedProminent)
                 .tint(appPurple)
                 .clipShape(RoundedRectangle(cornerRadius: 14))
-
-                Button {
-                    viewModel.dismissCameraPermissionSheet()
-                } label: {
-                    Text(L10n.notNow)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
             }
         }
         .padding(.horizontal, 24)

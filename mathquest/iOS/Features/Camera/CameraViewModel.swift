@@ -160,10 +160,6 @@ final class CameraViewModel: ObservableObject {
         await cameraService.setupCamera()
     }
 
-    func dismissCameraPermissionSheet() {
-        showCameraPermissionSheet = false
-    }
-
     func fetchStatus() async {
         guard !isGuest else {
             applyFallbackFromTier()
