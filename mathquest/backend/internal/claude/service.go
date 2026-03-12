@@ -100,25 +100,30 @@ Rules you MUST follow:
 - In each step:
   - The part before "||" MUST contain only mathematical content in LaTeX (no prose words, no plain-language commentary).
   - The LaTeX part MUST be wrapped in double dollars and start with \displaystyle, for example: $$\displaystyle \frac{1}{2}x=3$$
+  - Every mathematical expression must be pure LaTeX display style only; no orphan symbols, no broken fragments, no loose commas/numbers.
   - Use professional LaTeX only. Never use linear notation like a/b or integral(f(x)); use \frac{a}{b}, \int, \sin^n(x), greek symbols, etc.
   - In step LaTeX, never use "/" for fractions; always use \frac{...}{...}.
   - For definite integrals, limits must be vertical with \int_{...}^{...} (for example \int_{0}^{\frac{\pi}{2}}), never side-written limits.
+  - If matrices/determinants are used, render with proper environments such as \begin{cases}...\end{cases} and \begin{vmatrix}...\end{vmatrix}.
   - Keep the full equation or transformation centered-ready and complete; do not output incoherent fragments.
   - If the expression is long, structure LaTeX using multiline formatting (for example \begin{aligned} line_1 \\ line_2 \end{aligned}) and keep alignment coherent (especially around "=").
   - Do not introduce stray OCR letters like "i" or "I" unless mathematically intended and explicitly defined.
 - The part after "||" MUST be a complete, detailed explanation in Italian.
 - The explanation language must be fully Italian; do not mix English words.
-- Inside the explanation, every mathematical reference (variables, symbols, expressions, identities, intermediate results) MUST be rendered in LaTeX delimiters: use $...$ inline and $$...$$ for isolated formulas.
+- Inside the explanation, every mathematical reference (variables, symbols, expressions, identities, intermediate results) MUST be rendered in LaTeX delimiters and prefer display blocks $$...$$.
   - In explanation text, never write linear/plain notation such as pi/2, x^2, a/b, integral(...), or plain dx.
   - Never use programming-style operators in explanation prose (for example * or ^ as plain text). Use only LaTeX math notation.
   - Explanations must clearly state what transformation/property/rule is used and why it is valid.
   - Mention identities explicitly when used, and include intermediate algebraic reasoning without skipping essential steps.
   - Explanation quality: at least 2 complete sentences per step, not short phrases.
   - Structure explanations into short paragraphs (2-3 lines each) separated by a blank line ("\n\n") inside the same step string.
+  - For each step explanation, explicitly include these three labels: **Azione**, **Ratio**, **Proprietà**.
   - Each paragraph must include at least one bold technical operation label using Markdown (for example **Sostituzione**, **Semplificazione**, **Proprietà**, **Risultato parziale**).
   - Whenever you reference formulas, symbolic values, or intermediate expressions in explanation prose, write them in LaTeX using $...$ (inline) or $$...$$ (isolated).
   - Never use ellipses ("...") in explanations; write complete statements.
   - Avoid short fragments like "therefore", "RHS", "apply property" without details.
+  - If the user/problem requests Cramer, show all determinants explicitly (D, Dx, Dy, Dz, Dw as needed) with full determinant computation steps, no omissions.
+  - Before final solution, include a verification by substitution into original equations; if verification fails, recompute.
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
 {
@@ -512,8 +517,16 @@ func normalizeStepExplanation(raw string) string {
 	replacer := strings.NewReplacer(
 		"Therefore", "Quindi",
 		"therefore", "quindi",
+		"Then", "Quindi",
+		"then", "quindi",
 		"Substituting", "Sostituendo",
 		"substituting", "sostituendo",
+		"Using", "Usando",
+		"using", "usando",
+		"Apply", "Applichiamo",
+		"apply", "applichiamo",
+		"We can", "Possiamo",
+		"we can", "possiamo",
 		"Simplification", "Semplificazione",
 		"simplification", "semplificazione",
 		"Property", "Proprietà",
@@ -536,16 +549,31 @@ func normalizeStepExplanation(raw string) string {
 	rePow := regexp.MustCompile(`\b([A-Za-z])\s*\^\s*([0-9]+)\b`)
 	explanation = rePow.ReplaceAllString(explanation, `$$$1^{$2}$$`)
 
+	rePowVar := regexp.MustCompile(`\b([A-Za-z])\s*\^\s*([A-Za-z]+)\b`)
+	explanation = rePowVar.ReplaceAllString(explanation, `$$$1^{$2}$$`)
+
 	reMul := regexp.MustCompile(`\b([A-Za-z0-9]+)\s*\*\s*([A-Za-z0-9]+)\b`)
 	explanation = reMul.ReplaceAllString(explanation, `$$$1 \\times $2$$`)
 
-	// Ensure each paragraph has bold operation label.
+	// Ensure explicit logical structure: Azione / Ratio / Proprietà.
+	lower := strings.ToLower(explanation)
+	if !strings.Contains(lower, "**azione") || !strings.Contains(lower, "**ratio") || !strings.Contains(lower, "**propriet") {
+		explanation = strings.TrimSpace(explanation)
+		explanation = "**Azione:** " + explanation + "\n\n" +
+			"**Ratio:** questo passaggio è necessario per mantenere l'equivalenza del sistema e avanzare verso la soluzione.\n\n" +
+			"**Proprietà:** applichiamo regole algebriche equivalenti (sostituzione, semplificazione o proprietà dei determinanti, quando richiesto)."
+	}
+
+	// Ensure each paragraph has bold operation label and no residual English filler.
 	paragraphs := strings.Split(explanation, "\n\n")
+	reEnglishResidual := regexp.MustCompile(`(?i)\b(the|and|or|we|can|using|apply|property|result|substituting|therefore)\b`)
 	for i := range paragraphs {
 		p := strings.TrimSpace(paragraphs[i])
 		if p == "" {
 			continue
 		}
+		p = reEnglishResidual.ReplaceAllString(p, "")
+		p = strings.TrimSpace(p)
 		if !strings.Contains(p, "**") {
 			paragraphs[i] = "**Semplificazione.** " + p
 		} else {
@@ -580,8 +608,8 @@ func stripMathDelimiters(raw string) string {
 
 func unreadableRetakeSolution() *MathSolution {
 	return &MathSolution{
-		Problem:             "Problem text could not be read clearly from image.",
-		Solution:            "I could not read the math expression clearly. Please retake the photo.",
+		Problem:             "Il testo del problema non è stato letto chiaramente dall'immagine.",
+		Solution:            "Non riesco a leggere chiaramente l'espressione matematica. Scatta di nuovo la foto.",
 		Steps:               []string{},
 		RawLatex:            "",
 		DifficultyLevel:     "unknown",
