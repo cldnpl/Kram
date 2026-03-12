@@ -111,9 +111,9 @@ Rules you MUST follow:
   - Do not introduce stray OCR letters like "i" or "I" unless mathematically intended and explicitly defined.
 - The part after "||" MUST be a complete, detailed explanation in Italian.
 - The explanation language must be fully Italian; do not mix English words.
-- Inside the explanation, every mathematical reference (variables, symbols, expressions, identities, intermediate results) MUST be rendered in LaTeX delimiters and prefer display blocks $$...$$.
-  - In explanation text, never write linear/plain notation such as pi/2, x^2, a/b, integral(...), or plain dx.
-  - Never use programming-style operators in explanation prose (for example * or ^ as plain text). Use only LaTeX math notation.
+  - Inside the explanation, write only literal logical reasoning in prose.
+  - Do not place equations or LaTeX formulas inside the explanation text.
+  - Do not output symbolic math fragments in explanation (they belong only to LATEX_STEP).
   - Do not use bullet lists for mathematical content.
   - Do not output orphan punctuation/isolated tokens outside valid prose or LaTeX.
   - Explanations must clearly state what transformation/property/rule is used and why it is valid.
@@ -122,7 +122,6 @@ Rules you MUST follow:
   - Structure explanations into short paragraphs (2-3 lines each) separated by a blank line ("\n\n") inside the same step string.
   - For each step explanation, explicitly include these three labels in this exact order: **Titolo Step**, **Logica**, **Proprietà**.
   - Each paragraph must include at least one bold technical operation label using Markdown (for example **Sostituzione**, **Semplificazione**, **Proprietà**, **Risultato parziale**).
-  - Whenever you reference formulas, symbolic values, or intermediate expressions in explanation prose, write them in LaTeX using $...$ (inline) or $$...$$ (isolated).
   - Never use ellipses ("...") in explanations; write complete statements.
   - Avoid short fragments like "therefore", "RHS", "apply property" without details.
   - If the user/problem requests Cramer, show all determinants explicitly (D, Dx, Dy, Dz, Dw as needed) with full determinant computation steps, no omissions.
@@ -156,9 +155,9 @@ Rules you MUST follow:
 - Do NOT translate or alter the LaTeX part before "||".
 - Translate ONLY the explanation text after "||" into the target language.
 - In translated explanations, use only the target language (except math symbols/LaTeX); do not leave mixed-language fragments.
-- Keep paragraph breaks ("\n\n"), Markdown bold markers, and LaTeX delimiters $...$ / $$...$$ exactly valid after translation.
+- Keep paragraph breaks ("\n\n") and Markdown bold markers valid after translation.
 - Keep the LaTeX step format as $$\displaystyle <formula>$$ exactly valid after translation.
-- In translated explanations, preserve strict math notation with $...$ inline and $$...$$ for isolated formulas; do not output linear notation.
+- In translated explanations, keep only literal logic prose (no formulas/equations/LaTeX snippets).
 - Keep output lightweight and avoid adding any extra keys or metadata.
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
@@ -545,22 +544,21 @@ func normalizeStepExplanation(raw string) string {
 	)
 	explanation = replacer.Replace(explanation)
 
-	// Normalize math notation in prose to LaTeX.
-	explanation = strings.ReplaceAll(explanation, "π", `\pi`)
-	rePi := regexp.MustCompile(`(?i)\bpi\b`)
-	explanation = rePi.ReplaceAllString(explanation, `\pi`)
+	// Keep explanation as literal prose only: strip formulas and symbolic math snippets.
+	reDisplayMathDollar := regexp.MustCompile(`(?s)\$\$.*?\$\$`)
+	explanation = reDisplayMathDollar.ReplaceAllString(explanation, "espressione matematica")
+	reInlineMathDollar := regexp.MustCompile(`(?s)\$[^$]+\$`)
+	explanation = reInlineMathDollar.ReplaceAllString(explanation, "espressione matematica")
+	reDisplayMathBrackets := regexp.MustCompile(`(?s)\\\[.*?\\\]`)
+	explanation = reDisplayMathBrackets.ReplaceAllString(explanation, "espressione matematica")
+	reInlineMathBrackets := regexp.MustCompile(`(?s)\\\(.*?\\\)`)
+	explanation = reInlineMathBrackets.ReplaceAllString(explanation, "espressione matematica")
 
-	reFrac := regexp.MustCompile(`(?i)(\\pi|[A-Za-z0-9]+)\s*/\s*(\\pi|[A-Za-z0-9]+)`)
-	explanation = reFrac.ReplaceAllString(explanation, `$$\\frac{$1}{$2}$$`)
-
-	rePow := regexp.MustCompile(`\b([A-Za-z])\s*\^\s*([0-9]+)\b`)
-	explanation = rePow.ReplaceAllString(explanation, `$$$1^{$2}$$`)
-
-	rePowVar := regexp.MustCompile(`\b([A-Za-z])\s*\^\s*([A-Za-z]+)\b`)
-	explanation = rePowVar.ReplaceAllString(explanation, `$$$1^{$2}$$`)
-
-	reMul := regexp.MustCompile(`\b([A-Za-z0-9]+)\s*\*\s*([A-Za-z0-9]+)\b`)
-	explanation = reMul.ReplaceAllString(explanation, `$$$1 \\times $2$$`)
+	reLatexCommands := regexp.MustCompile(`\\[A-Za-z]+(\{[^{}]*\})*`)
+	explanation = reLatexCommands.ReplaceAllString(explanation, "espressione matematica")
+	explanation = strings.NewReplacer("{", " ", "}", " ").Replace(explanation)
+	reSymbolicNoise := regexp.MustCompile(`[=+\-*/^_{}[\]<>|]+`)
+	explanation = reSymbolicNoise.ReplaceAllString(explanation, " ")
 
 	// Remove accidental list prefixes to keep compact prose structure.
 	reListPrefix := regexp.MustCompile(`(?m)^\s*[-*]\s+`)
@@ -578,6 +576,8 @@ func normalizeStepExplanation(raw string) string {
 	// Ensure each paragraph has bold operation label and no residual English filler.
 	paragraphs := strings.Split(explanation, "\n\n")
 	reEnglishResidual := regexp.MustCompile(`(?i)\b(the|and|or|we|can|using|apply|property|result|substituting|therefore)\b`)
+	reDigitsOnly := regexp.MustCompile(`^\s*\d+\s*$`)
+	rePunctOnly := regexp.MustCompile(`^[\s\p{P}]+$`)
 	for i := range paragraphs {
 		p := strings.TrimSpace(paragraphs[i])
 		if p == "" {
@@ -590,8 +590,14 @@ func normalizeStepExplanation(raw string) string {
 		} else {
 			paragraphs[i] = p
 		}
+		if reDigitsOnly.MatchString(paragraphs[i]) || rePunctOnly.MatchString(paragraphs[i]) {
+			paragraphs[i] = ""
+		}
 	}
 	explanation = strings.TrimSpace(strings.Join(paragraphs, "\n\n"))
+	reSpaces := regexp.MustCompile(`[ \t]{2,}`)
+	explanation = reSpaces.ReplaceAllString(explanation, " ")
+	explanation = strings.TrimSpace(explanation)
 
 	return explanation
 }
