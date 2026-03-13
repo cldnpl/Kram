@@ -31,6 +31,7 @@ class CameraProvider extends ChangeNotifier {
   List<HistoryItem> get history => _history;
   Set<int> get visibleSteps => _visibleSteps;
   bool get isCameraReady => _cameraController?.value.isInitialized ?? false;
+  bool get hasUnlimitedAccess => _dailyLimit < 0 || _usesRemaining < 0;
 
   Future<void> _initCamera() async {
     try {
@@ -70,7 +71,7 @@ class CameraProvider extends ChangeNotifier {
   }
 
   Future<void> capture() async {
-    if (_usesRemaining <= 0) {
+    if (!hasUnlimitedAccess && _usesRemaining <= 0) {
       _state = CameraState.error;
       _errorMessage = 'Daily limit reached. Come back tomorrow!';
       notifyListeners();
@@ -103,7 +104,12 @@ class CameraProvider extends ChangeNotifier {
       final response = await _api.solve(base64Image, 'image/jpeg');
 
       _solution = response;
-      _usesRemaining = response.usesRemainingToday;
+      if (response.usesRemainingToday < 0) {
+        _dailyLimit = -1;
+        _usesRemaining = -1;
+      } else {
+        _usesRemaining = response.usesRemainingToday;
+      }
       _state = CameraState.success;
       notifyListeners();
 

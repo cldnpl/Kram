@@ -131,6 +131,11 @@ final class SubscriptionManager: ObservableObject {
     }
 
     func syncEntitlements() async {
+        if SubscriptionTier.isDeveloperOverrideActive {
+            updateTier(.max)
+            return
+        }
+
         var resolvedTier: SubscriptionTier = .free
 
         for await entitlement in Transaction.currentEntitlements {

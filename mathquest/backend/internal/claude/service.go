@@ -2,15 +2,27 @@ package claude
 
 import (
 	"bytes"
+	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
+	"time"
 )
 
 const claudeAPIURL = "https://api.anthropic.com/v1/messages"
 const claudeModel = "claude-sonnet-4-20250514"
+const claudeRequestTimeout = 28 * time.Second
+const maxImageBase64Chars = 10 * 1024 * 1024
+const minImageBase64Chars = 64
+const maxResponseProblemChars = 2000
+const maxResponseSolutionChars = 2500
+const maxResponseRawLatexChars = 4000
+const maxResponseStepChars = 2200
+const maxResponseSteps = 14
 
 type Service struct {
 	apiKey string
@@ -20,7 +32,7 @@ type Service struct {
 func NewService(apiKey string) *Service {
 	return &Service{
 		apiKey: apiKey,
-		client: &http.Client{},
+		client: &http.Client{Timeout: claudeRequestTimeout},
 	}
 }
 
@@ -59,136 +71,73 @@ type ClaudeResponse struct {
 	} `json:"error"`
 }
 
-type GraphData struct {
-	IsFunction  bool              `json:"is_function"`
-	Expression  string            `json:"expression"`
-	Variable    string            `json:"variable"`
-	Domain      string            `json:"domain"`
-	Range       string            `json:"range"`
-	Intercepts  map[string][]string `json:"intercepts"`
-	Asymptotes  map[string][]string `json:"asymptotes"`
-	CriticalPoints []CriticalPoint `json:"critical_points"`
-	Behavior    map[string]string `json:"behavior"`
-}
-
-type CriticalPoint struct {
-	X    string `json:"x"`
-	Y    string `json:"y"`
-	Type string `json:"type"` // "maximum", "minimum", "inflection", "discontinuity"
-}
-
 type MathSolution struct {
-	Problem             string     `json:"problem"`
-	Solution            string     `json:"solution"`
-	Steps               []string   `json:"steps"`
-	StepsDetail         []string   `json:"steps_detail,omitempty"`
-	RawLatex            string     `json:"raw_latex"`
-	DifficultyLevel     string     `json:"difficulty_level"`
-	DetectedLanguage    string     `json:"detected_language"`
-	ShouldSaveToHistory *bool      `json:"should_save_to_history,omitempty"`
-	GraphData           *GraphData `json:"graph_data,omitempty"`
+	Problem             string   `json:"problem"`
+	Solution            string   `json:"solution"`
+	Steps               []string `json:"steps"`
+	RawLatex            string   `json:"raw_latex"`
+	DifficultyLevel     string   `json:"difficulty_level"`
+	DetectedLanguage    string   `json:"detected_language"`
+	ShouldSaveToHistory *bool    `json:"should_save_to_history,omitempty"`
 }
 
-const solveMathPromptTemplate = `You are a rigorous math tutor. You solve ANY type of math problem (Algebra, Analysis, Geometry, Trigonometry, Calculus, Physics, Linear Algebra, etc.) with absolute precision.
+const solveMathPrompt = `You are a careful math tutor helping students solve problems step by step.
 
 Analyze the math problem in this image and provide a complete solution.
 Read the problem exactly as written in the image before solving.
 
-═══════════════════════════════════════════════════════════════════════
-PROTOCOLLO DI SISTEMA PERMANENTE E UNIVERSALE — NESSUNA ECCEZIONE
-═══════════════════════════════════════════════════════════════════════
+Rules you MUST follow:
+- Use ONLY Italian language in all prose fields ("solution" and explanations). English tokens are forbidden in prose.
+- Preserve the original language and script from the image only in "problem" transcription. Write "solution" and step explanations in Italian.
+- Do not invent missing numbers, symbols, or words.
+- If the image is unclear or incomplete, say so explicitly in "solution" and "steps" instead of guessing.
+- If OCR output looks corrupted, random, or inconsistent, stop and return a clean retake message instead of forcing a long solution.
+- Keep reasoning efficient: do not repeat already completed transformations and avoid redundant recalculations.
+- If the full derivation is very long, provide a concise but complete sequence of essential steps to avoid timeout.
+- If you cannot compute a required determinant with certainty (especially 4x4), set "solution" to exactly "Errore di Capacità" and do not invent numeric results.
+- If the input defines a function (for example f(x)=...), start "solution" with a compact graph-style summary in Italian: Cartesian axes behavior, intercepts, and curve trend.
+- Keep "problem" as the exact transcription of what you can read from the image.
+- Set "detected_language" to one of: en, it, fr, es, uz, unknown.
+- Set "should_save_to_history" to false if the image is unclear, incomplete, unreadable, or the result is just an error/retake message. Otherwise set it to true.
+- Each item in "steps" MUST use this exact format: "LATEX_STEP || DETAILED_EXPLANATION".
+- In each step:
+  - The part before "||" MUST contain only mathematical content in LaTeX (no prose words, no plain-language commentary).
+  - The LaTeX part MUST be wrapped in double dollars and start with \displaystyle, for example: $$\displaystyle \frac{1}{2}x=3$$
+  - Every mathematical expression must be pure LaTeX display style only; no orphan symbols, no broken fragments, no loose commas/numbers.
+  - Use professional LaTeX only. Never use linear notation like a/b or integral(f(x)); use \frac{a}{b}, \int, \sin^n(x), greek symbols, etc.
+  - In step LaTeX, never use "/" for fractions; always use \frac{...}{...}.
+  - For definite integrals, limits must be vertical with \int_{...}^{...} (for example \int_{0}^{\frac{\pi}{2}}), never side-written limits.
+  - If matrices/determinants are used, render with proper environments such as \begin{cases}...\end{cases} and \begin{vmatrix}...\end{vmatrix}.
+  - Keep the full equation or transformation centered-ready and complete; do not output incoherent fragments.
+  - If the expression is long, structure LaTeX using multiline formatting (for example \begin{aligned} line_1 \\ line_2 \end{aligned}) and keep alignment coherent (especially around "=").
+  - Do not introduce stray OCR letters like "i" or "I" unless mathematically intended and explicitly defined.
+- The part after "||" MUST be a complete, detailed explanation in Italian.
+- The explanation language must be fully Italian; do not mix English words.
+  - Inside the explanation, write only literal logical reasoning in prose.
+  - Do not place equations or LaTeX formulas inside the explanation text.
+  - Do not output symbolic math fragments in explanation (they belong only to LATEX_STEP).
+  - Do not use bullet lists for mathematical content.
+  - Do not output orphan punctuation/isolated tokens outside valid prose or LaTeX.
+  - Explanations must clearly state what transformation/property/rule is used and why it is valid.
+  - Mention identities explicitly when used, and include intermediate algebraic reasoning without skipping essential steps.
+  - Explanation quality: at least 2 complete sentences per step, not short phrases.
+  - Structure explanations into short paragraphs (2-3 lines each) separated by a blank line ("\n\n") inside the same step string.
+  - For each step explanation, explicitly include these three labels in this exact order: **Titolo Step**, **Logica**, **Proprietà**.
+  - Each paragraph must include at least one bold technical operation label using Markdown (for example **Sostituzione**, **Semplificazione**, **Proprietà**, **Risultato parziale**).
+  - Never use ellipses ("...") in explanations; write complete statements.
+  - Avoid short fragments like "therefore", "RHS", "apply property" without details.
+  - If the user/problem requests Cramer, show all determinants explicitly (D, Dx, Dy, Dz, Dw as needed) with full determinant computation steps, no omissions.
+  - Before final solution, include a verification by substitution into original equations; if verification fails, recompute.
 
-Queste regole si applicano a QUALSIASI input, senza eccezioni.
-Questa è la UNICA modalità di risposta permanente.
-
-══════════════════════════════════════════════════════════════
-§1. LINGUA DI SISTEMA (MANDATORIA)
-══════════════════════════════════════════════════════════════
-- La lingua dell'utente è: %s.
-- Ogni singola parola generata (titoli, step, spiegazioni, commenti, "solution") DEVE essere ESCLUSIVAMENTE in %s.
-- È PROIBITO l'uso dell'inglese o di termini tecnici non tradotti (es. "defined" → vietato).
-- "problem": mantieni la trascrizione esatta dall'immagine (lingua originale).
-- "solution" e tutto il resto: DEVE essere interamente in %s.
-
-══════════════════════════════════════════════════════════════
-§2. PROTOCOLLO OCR-TRIGGER — ATTIVAZIONE GRAFICA AUTOMATICA
-══════════════════════════════════════════════════════════════
-Quando l'OCR rileva una FUNZIONE (y=..., f(x)=..., o qualsiasi curva), si attiva
-AUTOMATICAMENTE questa sequenza obbligatoria:
-
-A) TRIGGER GRAFICO IMMEDIATO:
-   - "graph_data" DEVE essere incluso. È un ERRORE CRITICO DI SISTEMA non includerlo.
-   - Il grafico è la PRIMA cosa visibile dopo la scansione.
-   - Resa visiva: sfondo BIANCO, assi NERI, curva VIOLA.
-   - "expression": JavaScript-evaluable (es. "1/x", "Math.sin(x)", "x*x - 4").
-   - "domain"/"range": notazione matematica (es. "(-∞, 0) ∪ (0, +∞)").
-   - "intercepts": {"x": [...], "y": [...]}.
-   - "asymptotes": {"vertical": [...], "horizontal": [...], "oblique": []}.
-   - "critical_points": [{"x": "v", "y": "v", "type": "minimum|maximum|inflection|discontinuity"}].
-   - "behavior": descrizione comportamento agli estremi.
-
-B) FILTRO STEP — MINIMALISMO (SOLO PER FUNZIONI):
-   - Negli step VISIBILI ("steps" array), calcola SOLO IL DOMINIO.
-   - NON mostrare derivate, integrali, intersezioni, studio del segno o altro nei riquadri step.
-   - L'array "steps" deve avere UN SOLO ELEMENTO: la formula del dominio.
-   - Formato: "$\\small\\displaystyle <formula dominio pura>$"
-   - ZERO parole: NO "Dominio:", NO "D:", NO "defined". Solo il calcolo matematico.
-   - Per funzioni con più condizioni (radicandi, denominatori), usa il sistema:
-     "$\\small\\displaystyle \\begin{cases} x^2-1 \\geq 0 \\\\ x-2 \\neq 0 \\end{cases} \\implies D=(-\\infty,-1]\\cup[1,2)\\cup(2,+\\infty)$"
-   - Esempio SBAGLIATO: "Dominio: $\\displaystyle x \\neq 0$" ← CONTIENE PAROLE, VIETATO.
-
-C) EXPAND — ANALISI COMPLETA (SOLO PER FUNZIONI):
-   - L'array "steps_detail" (1 elemento, corrispondente allo step del dominio) contiene
-     l'INTERA analisi completa della funzione, interamente in %s:
-   - DEVE includere (separati da intestazioni **bold**):
-     • **Dominio**: calcolo dettagliato con ogni condizione
-     • **Intersezioni con gli assi**: calcoli x=0 e y=0
-     • **Segno della funzione**: studio del segno completo
-     • **Limiti e asintoti**: tutti i limiti agli estremi del dominio, classificazione asintoti
-     • **Derivata prima**: calcolo, studio del segno, crescenza/decrescenza
-     • **Punti critici**: massimi, minimi, flessi
-     • **Derivata seconda** (se rilevante): concavità
-   - Tutte le formule in $\\displaystyle ...$ LaTeX.
-   - Ogni proprietà e teorema citato esplicitamente.
-   - TUTTI i calcoli intermedi mostrati, nessun passaggio saltato.
-
-══════════════════════════════════════════════════════════════
-§3. PROBLEMI NON-FUNZIONE (equazioni, aritmetica, geometria, ecc.)
-══════════════════════════════════════════════════════════════
-- "graph_data": null.
-- "steps": multipli step, ciascuno contenente SOLO formula LaTeX pura.
-  Formato: "$\\small\\displaystyle <formula>$". ZERO PAROLE.
-- "steps_detail": stessa lunghezza di "steps", ogni voce è la spiegazione
-  completa e dettagliata di quel passaggio in %s, con ogni proprietà citata.
-
-══════════════════════════════════════════════════════════════
-§4. REGOLE LATEX
-══════════════════════════════════════════════════════════════
-- TUTTE le formule usano \\displaystyle. "steps" usa anche \\small.
-- Formule compatte e pulite, come in un libro di testo universitario.
-- ZERO errori di rendering: nessun carattere orfano, nessuna lettera isolata.
-- Nessuna soluzione approssimata o allucinata.
-
-══════════════════════════════════════════════════════════════
-§5. REGOLE GENERALI
-══════════════════════════════════════════════════════════════
-- Non inventare numeri, simboli o parole mancanti.
-- Se l'immagine è poco chiara: "should_save_to_history" = false.
-- "problem": trascrizione esatta dall'immagine.
-- "detected_language": lingua dell'IMMAGINE (en|it|fr|es|uz|unknown).
-- "difficulty_level": imposta accuratamente.
-
-IMPORTANT: Respond ONLY with valid JSON (no markdown, no code blocks):
+IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
 {
-  "problem": "trascrizione esatta dall'immagine",
-  "solution": "risposta finale in %s",
-  "steps": ["$\\small\\displaystyle <formula pura>$"],
-  "steps_detail": ["Analisi completa in %s..."],
-  "raw_latex": "soluzione completa in \\displaystyle LaTeX",
+  "problem": "exact text transcribed from image",
+  "solution": "final answer or a clear message if unreadable",
+  "steps": ["$$\\displaystyle <latex step 1>$$ || <detailed explanation 1>", "$$\\displaystyle <latex step 2>$$ || <detailed explanation 2>"],
+  "raw_latex": "the problem and solution in LaTeX format",
   "difficulty_level": "elementary|middle_school|high_school|college",
   "detected_language": "en|it|fr|es|uz|unknown",
-  "should_save_to_history": true,
-  "graph_data": null
+  "should_save_to_history": true
 }
 `
 
@@ -197,22 +146,27 @@ const translateMathPromptTemplate = `You are translating a solved math explanati
 Translate the provided JSON into %s.
 
 Rules you MUST follow:
-- Translate the human-readable prose in "problem", "solution", every string in "steps", and every string in "steps_detail".
-- ALL text (labels, explanations, comments) must be ENTIRELY in %s. No mixed languages.
-- Keep numbers, equations, symbols, LaTeX formulas, and mathematical meaning unchanged.
+- Translate the human-readable prose in "problem", "solution", and every string in "steps".
+- Keep numbers, equations, symbols, and mathematical meaning unchanged.
 - Keep "raw_latex" unchanged.
 - Keep "difficulty_level" unchanged.
 - Keep "detected_language" unchanged.
 - Keep "should_save_to_history" unchanged.
-- Return the same number of steps and steps_detail.
-- In "steps_detail", translate all bold paragraph headers and explanations while preserving LaTeX formulas.
+- Return the same number of steps.
+- For each step string in "steps", preserve the exact format "LATEX_STEP || EXPLANATION".
+- Do NOT translate or alter the LaTeX part before "||".
+- Translate ONLY the explanation text after "||" into the target language.
+- In translated explanations, use only the target language (except math symbols/LaTeX); do not leave mixed-language fragments.
+- Keep paragraph breaks ("\n\n") and Markdown bold markers valid after translation.
+- Keep the LaTeX step format as $$\displaystyle <formula>$$ exactly valid after translation.
+- In translated explanations, keep only literal logic prose (no formulas/equations/LaTeX snippets).
+- Keep output lightweight and avoid adding any extra keys or metadata.
 
 IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
 {
   "problem": "translated problem text",
   "solution": "translated final answer",
-  "steps": ["translated step 1", "translated step 2", ...],
-  "steps_detail": ["translated detail 1", "translated detail 2", ...],
+  "steps": ["$$\\displaystyle <same latex step 1>$$ || <translated detailed explanation 1>", "$$\\displaystyle <same latex step 2>$$ || <translated detailed explanation 2>"],
   "raw_latex": "original raw latex",
   "difficulty_level": "elementary|middle_school|high_school|college",
   "detected_language": "en|it|fr|es|uz|unknown",
@@ -250,20 +204,19 @@ func parseSolutionFromText(responseText string) (*MathSolution, error) {
 	return nil, fmt.Errorf("response is not valid solution JSON")
 }
 
-func (s *Service) SolveMathProblem(imageBase64, mediaType, preferredLanguage string) (*MathSolution, error) {
+func (s *Service) SolveMathProblem(imageBase64, mediaType string) (*MathSolution, error) {
 	if s.apiKey == "" {
 		return nil, fmt.Errorf("Claude API key not configured")
 	}
 
-	langName := languageNameForPrompt(normalizeSupportedLanguage(preferredLanguage))
-	if langName == "" {
-		langName = "English"
+	sanitizedImage, sanitizeErr := sanitizeImageBase64(imageBase64)
+	if sanitizeErr != nil {
+		return unreadableRetakeSolution(), nil
 	}
-	prompt := fmt.Sprintf(solveMathPromptTemplate, langName, langName, langName, langName, langName, langName, langName)
 
 	reqBody := ClaudeRequest{
 		Model:     claudeModel,
-		MaxTokens: 4096,
+		MaxTokens: 1536,
 		Messages: []Message{
 			{
 				Role: "user",
@@ -273,12 +226,12 @@ func (s *Service) SolveMathProblem(imageBase64, mediaType, preferredLanguage str
 						Source: &ImageSource{
 							Type:      "base64",
 							MediaType: mediaType,
-							Data:      imageBase64,
+							Data:      sanitizedImage,
 						},
 					},
 					{
 						Type: "text",
-						Text: prompt,
+						Text: solveMathPrompt,
 					},
 				},
 			},
@@ -287,48 +240,14 @@ func (s *Service) SolveMathProblem(imageBase64, mediaType, preferredLanguage str
 
 	responseText, err := s.runJSONRequest(reqBody)
 	if err != nil {
-		return nil, err
+		return unreadableRetakeSolution(), nil
 	}
 	solution, err := parseSolutionFromText(responseText)
 	if err != nil {
-		// If parsing fails, try to extract info manually
-		return &MathSolution{
-			Problem:             "Unable to parse problem from image",
-			Solution:            "Could not parse model response as structured solution. Please retake the photo.",
-			Steps:               []string{"Could not parse structured response.", responseText},
-			RawLatex:            "",
-			DifficultyLevel:     "unknown",
-			DetectedLanguage:    "unknown",
-			ShouldSaveToHistory: boolPtr(false),
-		}, nil
+		return unreadableRetakeSolution(), nil
 	}
 
-	if solution.Steps == nil {
-		solution.Steps = []string{}
-	}
-	if solution.StepsDetail == nil {
-		solution.StepsDetail = []string{}
-	}
-	// Ensure steps_detail has same length as steps
-	for len(solution.StepsDetail) < len(solution.Steps) {
-		solution.StepsDetail = append(solution.StepsDetail, "")
-	}
-	if len(solution.StepsDetail) > len(solution.Steps) {
-		solution.StepsDetail = solution.StepsDetail[:len(solution.Steps)]
-	}
-	if strings.TrimSpace(solution.Solution) == "" {
-		solution.Solution = "Could not determine a final answer from the image."
-	}
-	if strings.TrimSpace(solution.Problem) == "" {
-		solution.Problem = "Problem text could not be read clearly from image."
-	}
-	if strings.TrimSpace(solution.DifficultyLevel) == "" {
-		solution.DifficultyLevel = "unknown"
-	}
-	solution.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
-	if solution.ShouldSaveToHistory == nil {
-		solution.ShouldSaveToHistory = boolPtr(defaultShouldSaveToHistory(solution))
-	}
+	normalizeSolutionPayload(solution)
 
 	return solution, nil
 }
@@ -350,7 +269,7 @@ func (s *Service) TranslateMathSolution(solution *MathSolution, targetLanguage s
 
 	reqBody := ClaudeRequest{
 		Model:     claudeModel,
-		MaxTokens: 4096,
+		MaxTokens: 2048,
 		Messages: []Message{
 			{
 				Role: "user",
@@ -359,7 +278,6 @@ func (s *Service) TranslateMathSolution(solution *MathSolution, targetLanguage s
 						Type: "text",
 						Text: fmt.Sprintf(
 							translateMathPromptTemplate,
-							languageNameForPrompt(normalizedTarget),
 							languageNameForPrompt(normalizedTarget),
 							string(payload),
 						),
@@ -379,23 +297,12 @@ func (s *Service) TranslateMathSolution(solution *MathSolution, targetLanguage s
 		return nil, fmt.Errorf("failed to parse translated solution: %w", err)
 	}
 
-	if translated.Steps == nil {
-		translated.Steps = []string{}
-	}
-	if translated.StepsDetail == nil {
-		translated.StepsDetail = []string{}
-	}
-	for len(translated.StepsDetail) < len(translated.Steps) {
-		translated.StepsDetail = append(translated.StepsDetail, "")
-	}
-	if len(translated.StepsDetail) > len(translated.Steps) {
-		translated.StepsDetail = translated.StepsDetail[:len(translated.Steps)]
-	}
-	if strings.TrimSpace(translated.DifficultyLevel) == "" {
-		translated.DifficultyLevel = solution.DifficultyLevel
+	normalizeSolutionPayload(translated)
+	if strings.TrimSpace(translated.DifficultyLevel) == "" || translated.DifficultyLevel == "unknown" {
+		translated.DifficultyLevel = strings.TrimSpace(solution.DifficultyLevel)
 	}
 	if strings.TrimSpace(translated.RawLatex) == "" {
-		translated.RawLatex = solution.RawLatex
+		translated.RawLatex = strings.TrimSpace(solution.RawLatex)
 	}
 	translated.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
 	if solution.ShouldSaveToHistory != nil {
@@ -413,7 +320,10 @@ func (s *Service) runJSONRequest(reqBody ClaudeRequest) (string, error) {
 		return "", fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", claudeAPIURL, bytes.NewBuffer(jsonData))
+	ctx, cancel := context.WithTimeout(context.Background(), claudeRequestTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", claudeAPIURL, bytes.NewBuffer(jsonData))
 	if err != nil {
 		return "", fmt.Errorf("failed to create request: %w", err)
 	}
@@ -434,7 +344,7 @@ func (s *Service) runJSONRequest(reqBody ClaudeRequest) (string, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("Claude API error (status %d): %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("Claude API error (status %d): %s", resp.StatusCode, compactErrorSnippet(string(body), 360))
 	}
 
 	var claudeResp ClaudeResponse
@@ -451,6 +361,372 @@ func (s *Service) runJSONRequest(reqBody ClaudeRequest) (string, error) {
 	}
 
 	return strings.TrimSpace(claudeResp.Content[0].Text), nil
+}
+
+func sanitizeImageBase64(raw string) (string, error) {
+	value := strings.TrimSpace(raw)
+	if value == "" {
+		return "", fmt.Errorf("empty image payload")
+	}
+
+	if strings.HasPrefix(value, "data:") {
+		if comma := strings.Index(value, ","); comma >= 0 && comma+1 < len(value) {
+			value = value[comma+1:]
+		}
+	}
+
+	value = strings.ReplaceAll(value, "\n", "")
+	value = strings.ReplaceAll(value, "\r", "")
+	value = strings.TrimSpace(value)
+
+	if len(value) < minImageBase64Chars {
+		return "", fmt.Errorf("image payload too short")
+	}
+	if len(value) > maxImageBase64Chars {
+		return "", fmt.Errorf("image payload too large")
+	}
+
+	normalized := strings.NewReplacer("-", "+", "_", "/").Replace(value)
+	if rem := len(normalized) % 4; rem != 0 {
+		normalized += strings.Repeat("=", 4-rem)
+	}
+
+	if _, err := base64.StdEncoding.DecodeString(normalized); err != nil {
+		return "", fmt.Errorf("invalid base64 image payload: %w", err)
+	}
+
+	return normalized, nil
+}
+
+func normalizeSolutionPayload(solution *MathSolution) {
+	if solution == nil {
+		return
+	}
+
+	solution.Problem = clampString(strings.TrimSpace(solution.Problem), maxResponseProblemChars)
+	solution.Solution = clampString(strings.TrimSpace(solution.Solution), maxResponseSolutionChars)
+	solution.RawLatex = clampString(strings.TrimSpace(solution.RawLatex), maxResponseRawLatexChars)
+	solution.DifficultyLevel = strings.TrimSpace(solution.DifficultyLevel)
+
+	if solution.Steps == nil {
+		solution.Steps = []string{}
+	}
+	trimmedSteps := make([]string, 0, len(solution.Steps))
+	for _, step := range solution.Steps {
+		s := clampString(strings.TrimSpace(step), maxResponseStepChars)
+		s = normalizeStepEntry(s)
+		if s == "" {
+			continue
+		}
+		trimmedSteps = append(trimmedSteps, s)
+		if len(trimmedSteps) >= maxResponseSteps {
+			break
+		}
+	}
+	solution.Steps = trimmedSteps
+
+	if solution.Solution == "" {
+		solution.Solution = "I could not read the math expression clearly. Please retake the photo."
+	}
+	if solution.Problem == "" {
+		solution.Problem = "Problem text could not be read clearly from image."
+	}
+	if solution.DifficultyLevel == "" {
+		solution.DifficultyLevel = "unknown"
+	}
+
+	solution.DetectedLanguage = normalizeSupportedLanguage(solution.DetectedLanguage)
+	if solution.ShouldSaveToHistory == nil {
+		solution.ShouldSaveToHistory = boolPtr(defaultShouldSaveToHistory(solution))
+	}
+	if !defaultShouldSaveToHistory(solution) {
+		solution.ShouldSaveToHistory = boolPtr(false)
+	}
+}
+
+func normalizeStepEntry(raw string) string {
+	step := strings.TrimSpace(raw)
+	if step == "" {
+		return ""
+	}
+
+	parts := strings.SplitN(step, "||", 2)
+	formula := normalizeStepFormula(parts[0])
+	if len(parts) == 1 {
+		return formula
+	}
+
+	explanation := normalizeStepExplanation(parts[1])
+	if explanation == "" {
+		return formula
+	}
+	return formula + " || " + explanation
+}
+
+func normalizeStepFormula(raw string) string {
+	formula := stripMathDelimiters(raw)
+	formula = strings.TrimSpace(formula)
+	formula = strings.ReplaceAll(formula, "π", "\\pi")
+	formula = strings.ReplaceAll(formula, "−", "-")
+	formula = strings.ReplaceAll(formula, "×", "\\times")
+	formula = strings.ReplaceAll(formula, "÷", "\\div")
+	formula = strings.ReplaceAll(formula, "...", "")
+	formula = strings.ReplaceAll(formula, "$", "")
+
+	// Remove common prose tokens that should never appear inside step boxes.
+	reBadWords := regexp.MustCompile(`(?i)\b(therefore|thus|substituting|substitute|equivalent|transformation|apply|property|sostituzione|semplificazione|propriet[àa]|risultato|passaggio)\b`)
+	formula = reBadWords.ReplaceAllString(formula, " ")
+	reCamelOrOps := regexp.MustCompile(`(?i)\b(usegaussianelimination|backsubstitute|back-substitute|applyrowoperations|rowoperations|gaussianelimination)\b`)
+	formula = reCamelOrOps.ReplaceAllString(formula, " ")
+	formula = stripNonMathWords(formula)
+
+	// Convert linear fractions/powers to proper LaTeX.
+	reFrac := regexp.MustCompile(`(?i)(\\pi|[A-Za-z0-9]+)\s*/\s*(\\pi|[A-Za-z0-9]+)`)
+	for i := 0; i < 3; i++ {
+		updated := reFrac.ReplaceAllString(formula, `\\frac{$1}{$2}`)
+		if updated == formula {
+			break
+		}
+		formula = updated
+	}
+
+	rePowNum := regexp.MustCompile(`\b([A-Za-z])\s*\^\s*([0-9]+)\b`)
+	formula = rePowNum.ReplaceAllString(formula, `$1^{$2}`)
+
+	rePowVar := regexp.MustCompile(`\b([A-Za-z])\s*\^\s*([A-Za-z]+)\b`)
+	formula = rePowVar.ReplaceAllString(formula, `$1^{$2}`)
+
+	reMultiSpace := regexp.MustCompile(`\s+`)
+	formula = strings.TrimSpace(reMultiSpace.ReplaceAllString(formula, " "))
+
+	if formula == "" {
+		formula = `0=0`
+	}
+
+	if !strings.Contains(formula, `\displaystyle`) {
+		formula = `\displaystyle \large ` + formula
+	} else if !strings.Contains(formula, `\large`) {
+		formula = strings.Replace(formula, `\displaystyle`, `\displaystyle \large`, 1)
+	}
+
+	return `$$` + strings.TrimSpace(formula) + `$$`
+}
+
+func normalizeStepExplanation(raw string) string {
+	explanation := strings.TrimSpace(raw)
+	if explanation == "" {
+		return ""
+	}
+
+	explanation = strings.ReplaceAll(explanation, "...", ".")
+
+	// Replace frequent English fragments with Italian.
+	replacer := strings.NewReplacer(
+		"Therefore", "Quindi",
+		"therefore", "quindi",
+		"Then", "Quindi",
+		"then", "quindi",
+		"Substituting", "Sostituendo",
+		"substituting", "sostituendo",
+		"Using", "Usando",
+		"using", "usando",
+		"Apply", "Applichiamo",
+		"apply", "applichiamo",
+		"We can", "Possiamo",
+		"we can", "possiamo",
+		"Simplification", "Semplificazione",
+		"simplification", "semplificazione",
+		"Property", "Proprietà",
+		"property", "proprietà",
+		"Result", "Risultato",
+		"result", "risultato",
+		"Equivalent transformation", "Trasformazione equivalente",
+		"equivalent transformation", "trasformazione equivalente",
+		"Gaussian elimination", "eliminazione di Gauss",
+		"gaussian elimination", "eliminazione di Gauss",
+		"back-substitute", "sostituzione all'indietro",
+		"back substitute", "sostituzione all'indietro",
+		"Apply row operations", "Applichiamo operazioni elementari di riga",
+		"apply row operations", "applichiamo operazioni elementari di riga",
+		"Ratio", "Logica",
+		"ratio", "logica",
+		"Action", "Azione",
+		"action", "azione",
+	)
+	explanation = replacer.Replace(explanation)
+
+	// Keep explanation as literal prose only: strip formulas and symbolic math snippets.
+	reDisplayMathDollar := regexp.MustCompile(`(?s)\$\$.*?\$\$`)
+	explanation = reDisplayMathDollar.ReplaceAllString(explanation, "espressione matematica")
+	reInlineMathDollar := regexp.MustCompile(`(?s)\$[^$]+\$`)
+	explanation = reInlineMathDollar.ReplaceAllString(explanation, "espressione matematica")
+	reDisplayMathBrackets := regexp.MustCompile(`(?s)\\\[.*?\\\]`)
+	explanation = reDisplayMathBrackets.ReplaceAllString(explanation, "espressione matematica")
+	reInlineMathBrackets := regexp.MustCompile(`(?s)\\\(.*?\\\)`)
+	explanation = reInlineMathBrackets.ReplaceAllString(explanation, "espressione matematica")
+
+	reLatexCommands := regexp.MustCompile(`\\[A-Za-z]+(\{[^{}]*\})*`)
+	explanation = reLatexCommands.ReplaceAllString(explanation, "espressione matematica")
+	explanation = strings.NewReplacer("{", " ", "}", " ").Replace(explanation)
+	reSymbolicNoise := regexp.MustCompile(`[=+\-*/^_{}[\]<>|]+`)
+	explanation = reSymbolicNoise.ReplaceAllString(explanation, " ")
+	reCamelOrOps := regexp.MustCompile(`(?i)\b(usegaussianelimination|backsubstitute|back-substitute|applyrowoperations|rowoperations|gaussianelimination)\b`)
+	explanation = reCamelOrOps.ReplaceAllString(explanation, " ")
+
+	// Remove accidental list prefixes to keep compact prose structure.
+	reListPrefix := regexp.MustCompile(`(?m)^\s*[-*]\s+`)
+	explanation = reListPrefix.ReplaceAllString(explanation, "")
+
+	// Ensure explicit logical structure: Titolo Step / Logica / Proprietà.
+	lower := strings.ToLower(explanation)
+	if !strings.Contains(lower, "**titolo step") || !strings.Contains(lower, "**logica") || !strings.Contains(lower, "**propriet") {
+		explanation = strings.TrimSpace(explanation)
+		explanation = "**Titolo Step:** passaggio di trasformazione equivalente\n\n" +
+			"**Logica:** " + explanation + "\n\n" +
+			"**Proprietà:** applichiamo regole algebriche equivalenti (sostituzione, semplificazione o proprietà dei determinanti, quando richiesto)."
+	}
+
+	// Ensure each paragraph has bold operation label and no residual English filler.
+	paragraphs := strings.Split(explanation, "\n\n")
+	reEnglishResidual := regexp.MustCompile(`(?i)\b(the|and|or|we|can|using|use|apply|property|result|substituting|therefore|method|calculate|compute|gaussian|elimination|back|substitute|row|operations?)\b`)
+	reDigitsOnly := regexp.MustCompile(`^\s*\d+\s*$`)
+	rePunctOnly := regexp.MustCompile(`^[\s\p{P}]+$`)
+	for i := range paragraphs {
+		p := strings.TrimSpace(paragraphs[i])
+		if p == "" {
+			continue
+		}
+		p = reEnglishResidual.ReplaceAllString(p, "")
+		p = strings.TrimSpace(p)
+		if !strings.Contains(p, "**") {
+			paragraphs[i] = "**Semplificazione.** " + p
+		} else {
+			paragraphs[i] = p
+		}
+		if reDigitsOnly.MatchString(paragraphs[i]) || rePunctOnly.MatchString(paragraphs[i]) {
+			paragraphs[i] = ""
+		}
+	}
+	explanation = strings.TrimSpace(strings.Join(paragraphs, "\n\n"))
+	reSpaces := regexp.MustCompile(`[ \t]{2,}`)
+	explanation = reSpaces.ReplaceAllString(explanation, " ")
+	explanation = strings.TrimSpace(explanation)
+
+	return explanation
+}
+
+func stripNonMathWords(input string) string {
+	tokens := strings.Fields(input)
+	if len(tokens) == 0 {
+		return ""
+	}
+	reDigit := regexp.MustCompile(`\d`)
+	reMathSymbol := regexp.MustCompile(`[=+\-*/^(){}\[\]|<>]`)
+	reHyphenProse := regexp.MustCompile(`(?i)[a-z]{3,}-[a-z]{3,}`)
+	reSingleLetter := regexp.MustCompile(`(?i)[a-z]`)
+
+	isAllowedWord := func(word string) bool {
+		allowed := map[string]struct{}{
+			"x": {}, "y": {}, "z": {}, "t": {}, "u": {}, "v": {}, "w": {},
+			"a": {}, "b": {}, "c": {}, "d": {}, "e": {}, "f": {}, "g": {}, "h": {},
+			"m": {}, "n": {}, "p": {}, "q": {}, "r": {}, "s": {}, "k": {},
+			"sin": {}, "cos": {}, "tan": {}, "cot": {}, "sec": {}, "csc": {},
+			"log": {}, "ln": {}, "exp": {}, "det": {}, "pi": {},
+			"alpha": {}, "beta": {}, "gamma": {}, "delta": {}, "theta": {}, "lambda": {}, "sigma": {}, "omega": {},
+		}
+		_, ok := allowed[word]
+		return ok
+	}
+
+	var kept []string
+	for _, token := range tokens {
+		trimmed := strings.Trim(token, ".,;:!?")
+		if trimmed == "" {
+			continue
+		}
+		lower := strings.ToLower(trimmed)
+
+		if strings.Contains(trimmed, `\`) {
+			kept = append(kept, token)
+			continue
+		}
+		if reDigit.MatchString(trimmed) {
+			kept = append(kept, token)
+			continue
+		}
+		if reMathSymbol.MatchString(trimmed) {
+			// Drop long hyphenated prose tokens like "back-substitute".
+			if strings.Contains(trimmed, "-") && reHyphenProse.MatchString(trimmed) {
+				continue
+			}
+			kept = append(kept, token)
+			continue
+		}
+		if len(trimmed) == 1 && reSingleLetter.MatchString(trimmed) {
+			kept = append(kept, token)
+			continue
+		}
+		if isAllowedWord(lower) {
+			kept = append(kept, token)
+			continue
+		}
+	}
+
+	return strings.Join(kept, " ")
+}
+
+func stripMathDelimiters(raw string) string {
+	value := strings.TrimSpace(raw)
+	if value == "" {
+		return ""
+	}
+
+	if strings.HasPrefix(value, "$$") && strings.HasSuffix(value, "$$") && len(value) >= 4 {
+		value = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, "$$"), "$$"))
+	}
+	if strings.HasPrefix(value, `\[`) && strings.HasSuffix(value, `\]`) && len(value) >= 4 {
+		value = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, `\[`), `\]`))
+	}
+	if strings.HasPrefix(value, `\(`) && strings.HasSuffix(value, `\)`) && len(value) >= 4 {
+		value = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, `\(`), `\)`))
+	}
+	if strings.HasPrefix(value, "$") && strings.HasSuffix(value, "$") && len(value) >= 2 {
+		value = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(value, "$"), "$"))
+	}
+	return value
+}
+
+func unreadableRetakeSolution() *MathSolution {
+	return &MathSolution{
+		Problem:             "Il testo del problema non è stato letto chiaramente dall'immagine.",
+		Solution:            "Non riesco a leggere chiaramente l'espressione matematica. Scatta di nuovo la foto.",
+		Steps:               []string{},
+		RawLatex:            "",
+		DifficultyLevel:     "unknown",
+		DetectedLanguage:    "unknown",
+		ShouldSaveToHistory: boolPtr(false),
+	}
+}
+
+func clampString(value string, maxLen int) string {
+	if maxLen <= 0 {
+		return ""
+	}
+	if len(value) <= maxLen {
+		return value
+	}
+	return strings.TrimSpace(value[:maxLen])
+}
+
+func compactErrorSnippet(value string, maxLen int) string {
+	if maxLen <= 0 {
+		return ""
+	}
+	snippet := strings.Join(strings.Fields(value), " ")
+	if len(snippet) <= maxLen {
+		return snippet
+	}
+	return snippet[:maxLen]
 }
 
 func normalizeSupportedLanguage(raw string) string {
@@ -509,6 +785,10 @@ func defaultShouldSaveToHistory(solution *MathSolution) bool {
 		"problem is unclear",
 		"problem is incomplete",
 		"unreadable",
+		"errore di capacità",
+		"scatta di nuovo la foto",
+		"non riesco a leggere chiaramente",
+		"non è stato letto chiaramente",
 	}
 	for _, phrase := range blockedPhrases {
 		if strings.Contains(combined, phrase) {

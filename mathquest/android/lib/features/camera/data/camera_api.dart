@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import '../../../core/network/dio_client.dart';
+import '../../../core/subscription/subscription_access.dart';
 import 'camera_models.dart';
 
 class CameraApi {
@@ -13,15 +14,17 @@ class CameraApi {
   /// Bearer per Firebase (Apple/Google), X-Username per login con username/password.
   Future<Options> _cameraOptions() async {
     final headers = <String, dynamic>{};
-    if (FirebaseAuth.instance.currentUser != null) {
-      headers['Authorization'] = 'Bearer mock-dev-token';
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null && currentUser.uid.isNotEmpty) {
+      headers['Authorization'] = 'Bearer ${currentUser.uid}';
     }
     final prefs = await SharedPreferences.getInstance();
     final username = prefs.getString('profile_username') ?? '';
     final sessionLoggedIn = prefs.getBool(_sessionLoggedInKey) ?? false;
-    if (sessionLoggedIn && username.isNotEmpty) {
+    if (currentUser == null && sessionLoggedIn && username.isNotEmpty) {
       headers['X-Username'] = username;
     }
+    headers['X-Subscription-Tier'] = await SubscriptionAccess.currentTierRaw();
     return Options(headers: headers);
   }
 

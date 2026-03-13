@@ -16,6 +16,10 @@ type UsernameRecord struct {
 
 func (UsernameRecord) TableName() string { return "usernames" }
 
+var reservedUsernames = map[string]struct{}{
+	"cldnpl": {},
+}
+
 // CheckUsername returns whether a username is available.
 func CheckUsername(db *gorm.DB) fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -29,6 +33,9 @@ func CheckUsername(db *gorm.DB) fiber.Handler {
 		if username == "" {
 			fmt.Println("[CheckUsername] empty username — returning 400")
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username_required"})
+		}
+		if _, reserved := reservedUsernames[username]; reserved {
+			return c.JSON(fiber.Map{"available": false})
 		}
 		var existing UsernameRecord
 		err := db.Where("username = ?", username).First(&existing).Error
@@ -62,6 +69,11 @@ func RegisterUsername(db *gorm.DB) fiber.Handler {
 		username := strings.TrimSpace(strings.ToLower(body.Username))
 		if username == "" {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "username_required"})
+		}
+		if _, reserved := reservedUsernames[username]; reserved {
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"error": "username_already_exists",
+			})
 		}
 		var existing UsernameRecord
 		err := db.Where("username = ?", username).First(&existing).Error

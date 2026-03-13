@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseAuth
 
 actor APIClient {
     private let baseURL: URL
@@ -92,6 +93,7 @@ actor APIClient {
                 request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
             }
             if path.contains("camera"),
+               Auth.auth().currentUser == nil,
                UserDefaults.standard.bool(forKey: "session_logged_in"),
                let username = UserDefaults.standard.string(forKey: "profile_username"),
                !username.isEmpty {

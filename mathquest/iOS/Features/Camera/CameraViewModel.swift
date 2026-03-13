@@ -84,14 +84,14 @@ final class CameraViewModel: ObservableObject {
     }
 
     private static func resolvedToken() -> String {
+        if let user = Auth.auth().currentUser {
+            return user.uid
+        }
+
         if UserDefaults.standard.bool(forKey: "session_logged_in"),
            let username = UserDefaults.standard.string(forKey: "profile_username"),
            !username.isEmpty {
             return "username:\(username.lowercased())"
-        }
-
-        if let user = Auth.auth().currentUser {
-            return user.uid
         }
         // Guest: use a stable device identifier so the backend can track daily usage
         return "guest:\(guestDeviceID())"
@@ -158,10 +158,6 @@ final class CameraViewModel: ObservableObject {
         }
 
         await cameraService.setupCamera()
-    }
-
-    func dismissCameraPermissionSheet() {
-        showCameraPermissionSheet = false
     }
 
     func fetchStatus() async {

@@ -202,16 +202,6 @@ struct HistoryDetailView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    // Problem
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(L10n.problem)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        Text(detail.problem)
-                            .font(.title3)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-
                     // Answer
                     AnswerCardView(answer: detail.solution, isVisible: true)
 

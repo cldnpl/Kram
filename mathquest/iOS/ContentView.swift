@@ -16,7 +16,6 @@ struct ContentView: View {
     @AppStorage("profile_name") private var profileName = ""
     @AppStorage("profile_level") private var profileLevel = ""
     @State private var showCarousel = false
-    @State private var showProfileSetup = false
     @State private var isHydratingProfile = false
     @State private var isLoadingSharedSolution = false
     @State private var sharedSolutionSheet: SharedSolutionSheet?
@@ -94,18 +93,10 @@ struct ContentView: View {
                 showCarousel = false
             }
         }
-        .fullScreenCover(isPresented: $showProfileSetup) {
-            ProfileSetupView {
-                showProfileSetup = false
-            }
-        }
         .onChange(of: hasSeenCarousel) { _, seen in
             if seen {
                 Task {
                     await hydrateProfileFromBackendIfNeeded()
-                    if !isProfileComplete {
-                        showProfileSetup = true
-                    }
                 }
             }
         }
@@ -113,9 +104,6 @@ struct ContentView: View {
             if hasSeenCarousel {
                 Task {
                     await hydrateProfileFromBackendIfNeeded()
-                    if !isProfileComplete {
-                        showProfileSetup = true
-                    }
                 }
             }
         }
@@ -125,9 +113,6 @@ struct ContentView: View {
             } else {
                 Task {
                     await hydrateProfileFromBackendIfNeeded()
-                    if !isProfileComplete {
-                        showProfileSetup = true
-                    }
                 }
             }
         }
@@ -198,7 +183,7 @@ struct ContentView: View {
                 profileLevel = remoteLevel
             }
         } catch {
-            // Keep local values only; profile setup fallback will handle missing data.
+            // Keep local values only.
         }
     }
 }
