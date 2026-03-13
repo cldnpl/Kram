@@ -2,6 +2,8 @@ package router
 
 import (
 	"io/fs"
+	"mime"
+	"path"
 	"strings"
 
 	"mathquest/backend/config"
@@ -31,6 +33,7 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 
 	// Diagrammi SVG pubblici (senza auth, fuori da /api così non passano dal middleware)
 	app.Get("/diagrams/:id", serveDiagram)
+	app.Get("/lesson-images/:name", serveLessonImage)
 
 	api := app.Group("/api")
 	api.Get("/health", func(c *fiber.Ctx) error {
@@ -149,6 +152,45 @@ func serveDiagram(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).SendString("not found")
 	}
 	c.Set("Content-Type", "image/svg+xml; charset=utf-8")
+	c.Set("Cache-Control", "public, max-age=86400")
+	return c.Send(data)
+}
+
+func serveLessonImage(c *fiber.Ctx) error {
+	name := strings.TrimSpace(c.Params("name"))
+	if name == "" {
+		return c.Status(fiber.StatusBadRequest).SendString("missing name")
+	}
+	for _, r := range name {
+		if r != '-' && r != '_' && r != '.' &&
+			(r < 'a' || r > 'z') &&
+			(r < 'A' || r > 'Z') &&
+			(r < '0' || r > '9') {
+			return c.Status(fiber.StatusBadRequest).SendString("invalid name")
+		}
+	}
+
+	data, err := fs.ReadFile(static.LessonImages, "imagesLessons/"+name)
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).SendString("not found")
+	}
+
+	contentType := mime.TypeByExtension(strings.ToLower(path.Ext(name)))
+	if contentType == "" {
+		switch strings.ToLower(path.Ext(name)) {
+		case ".avif":
+			contentType = "image/avif"
+		case ".webp":
+			contentType = "image/webp"
+		case ".gif":
+			contentType = "image/gif"
+		case ".jpeg", ".jpg":
+			contentType = "image/jpeg"
+		default:
+			contentType = "application/octet-stream"
+		}
+	}
+	c.Set("Content-Type", contentType)
 	c.Set("Cache-Control", "public, max-age=86400")
 	return c.Send(data)
 }

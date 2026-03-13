@@ -93,7 +93,12 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                               padding: const EdgeInsets.only(bottom: 16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: _buildIntroBlocks((_detail!['content_json'] as Map)['intro'] as String? ?? ''),
+                                children: _buildIntroBlocks(
+                                  _normalizeLegacyDiagramReplacements(
+                                    widget.lessonId,
+                                    (_detail!['content_json'] as Map)['intro'] as String? ?? '',
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -119,20 +124,102 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
   static const _formulaBoxColor = Color(0xFF6650A4);
   // Light purple for example boxes.
   static const _exampleBoxColor = Color(0xFF9980F0);
+  static const Map<String, List<String>> _legacyLessonImages = {
+    '1': ['naturalNumbers.png'],
+    '1-0': ['naturalNumbers.png'],
+    '1-1': ['integersNumbers.png'],
+    '1-2': ['rationalNumbers.jpg'],
+    '2': ['powerProperties.png'],
+    '2-0': ['pedmas.png'],
+    '2-1': ['powerProperties.png'],
+    '2-2': ['sqrtProperties.png'],
+    '3': ['bodmas.jpg'],
+    '3-0': ['pedmas.png', 'bodmas.jpg'],
+    '4': ['divisors.svg'],
+    '4-0': ['multiples.jpg'],
+    '4-1': ['divisors.svg'],
+    '4-2': ['gcd.png'],
+    '4-3': ['multiples.jpg'],
+    '5': ['equivalentFractions.png'],
+    '5-0': ['equivalentFractions.png'],
+    '5-1': ['fractionOperations.jpg'],
+    '5-2': ['fractionToPercent.png'],
+    '5-3': ['proportions.png'],
+    '6': ['operationsPolynomials.png'],
+    '6-0': ['operationsPolynomials.png'],
+    '6-1': ['degreeOfAPolynomial.jpg'],
+    '6-2': ['specialProductsPolynomials.jpg'],
+    '7': ['greatestCommonFactoring.jpg'],
+    '7-0': ['greatestCommonFactoring.jpg'],
+    '7-1': ['ruffiniRule.jpg'],
+    '7-2': ['specialProductsPolynomials.jpg'],
+    '8': ['firstDegreeEquations.gif'],
+    '8-0': ['firstDegreeEquations.gif'],
+    '8-1': ['firstDegreeEquations.gif'],
+    '9': ['completeAndIncompleteQuadratics.webp'],
+    '9-0': ['completeAndIncompleteQuadratics.webp'],
+    '9-1': ['discriminant.png'],
+    '9-2': ['completeAndIncompleteQuadratics.webp'],
+    '10': ['substitutionSystems.jpg'],
+    '10-0': ['substitutionSystems.jpg'],
+    '10-1': ['comparisonSystems.jpg'],
+    '10-2': ['cramerSystems.jpg'],
+    '11': ['triangles.png'],
+    '11-0': ['segment.png'],
+    '11-1': ['angles.png'],
+    '11-2': ['triangles.png'],
+    '11-3': ['quadrilaters.png'],
+    '11-4': ['polygons.png'],
+    '12': ['criteriaForTriangles.png'],
+    '12-0': ['criteriaForTriangles.png'],
+    '12-1': ['pythagoraTheorems.png', 'euclidTheorem.gif'],
+    '13': ['circumference.png'],
+    '13-0': ['circumference.png'],
+    '13-1': ['area.png'],
+    '13-2': ['tangents.png'],
+    '13-3': ['secants.png'],
+    '14': ['prisms.jpg'],
+    '14-0': ['prisms.jpg'],
+    '14-1': ['pyramids.jpg'],
+    '14-2': ['cylinders.png'],
+    '14-3': ['cones.png'],
+    '14-4': ['spheres.jpg'],
+    '15': ['unitCircle.webp'],
+    '15-0': ['unitCircle.webp'],
+    '15-1': ['sineCosineTangent.avif'],
+    '15-2': ['lawOfSinesCosines.jpeg'],
+  };
 
   List<Widget> _buildIntroBlocks(String intro) {
     const boxStart = '[BOX]';
     const boxEnd = '[/BOX]';
     const diagramPrefix = '[DIAGRAM:';
+    const imagePrefix = '[IMAGE:';
     final blocks = <Widget>[];
-    var remaining = intro;
+    var remaining = _normalizeIntroImagePlacement(intro);
     int boxIndex = 0; // 0-based counter across ALL boxes in this lesson
 
     while (true) {
       final diagramIdx = remaining.indexOf(diagramPrefix);
+      final imageIdx = remaining.indexOf(imagePrefix);
       final boxStartIdx = remaining.indexOf(boxStart);
+      final markerCandidates = <int>[diagramIdx, imageIdx, boxStartIdx].where((idx) => idx != -1).toList();
+      if (markerCandidates.isEmpty) {
+        final text = remaining.trim();
+        if (text.isNotEmpty) {
+          for (final paragraph in _paragraphsFromText(text)) {
+            blocks.add(Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+            ));
+          }
+        }
+        break;
+      }
 
-      if (diagramIdx != -1 && (boxStartIdx == -1 || diagramIdx < boxStartIdx)) {
+      final nextMarkerIdx = markerCandidates.reduce((a, b) => a < b ? a : b);
+
+      if (diagramIdx != -1 && diagramIdx == nextMarkerIdx) {
         final textBefore = remaining.substring(0, diagramIdx).trim();
         if (textBefore.isNotEmpty) {
           for (final paragraph in _paragraphsFromText(textBefore)) {
@@ -157,17 +244,29 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
         }
       }
 
-      if (boxStartIdx == -1) {
-        final text = remaining.trim();
-        if (text.isNotEmpty) {
-          for (final paragraph in _paragraphsFromText(text)) {
+      if (imageIdx != -1 && imageIdx == nextMarkerIdx) {
+        final textBefore = remaining.substring(0, imageIdx).trim();
+        if (textBefore.isNotEmpty) {
+          for (final paragraph in _paragraphsFromText(textBefore)) {
             blocks.add(Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
             ));
           }
         }
-        break;
+        final afterPrefix = remaining.substring(imageIdx + imagePrefix.length);
+        final bracketIdx = afterPrefix.indexOf(']');
+        if (bracketIdx != -1) {
+          final imageName = afterPrefix.substring(0, bracketIdx).trim();
+          if (imageName.isNotEmpty) {
+            blocks.add(Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _LessonImageWidget(imageName: imageName),
+            ));
+          }
+          remaining = afterPrefix.substring(bracketIdx + 1);
+          continue;
+        }
       }
 
       final textBefore = remaining.substring(0, boxStartIdx).trim();
@@ -256,6 +355,70 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     }
 
     return blocks;
+  }
+
+  String _normalizeLegacyDiagramReplacements(String lessonId, String intro) {
+    if (!intro.contains('[DIAGRAM:')) return intro;
+    final imageNames = _legacyLessonImages[lessonId];
+    if (imageNames == null || imageNames.isEmpty) return intro;
+
+    final replacement = imageNames.map((name) => '[IMAGE:$name]').join('\n\n');
+    return intro.replaceAll(RegExp(r'\[DIAGRAM:[^\]]+\]'), replacement);
+  }
+
+  String _normalizeIntroImagePlacement(String intro) {
+    final normalized = intro.replaceAll('\r\n', '\n');
+    final lines = normalized.split('\n');
+    final images = <String>[];
+    final remaining = <String>[];
+
+    for (final line in lines) {
+      final trimmed = line.trim();
+      if (trimmed.startsWith('[IMAGE:') && trimmed.endsWith(']')) {
+        images.add(trimmed);
+      } else {
+        remaining.add(line);
+      }
+    }
+
+    if (images.isEmpty) return intro;
+
+    final boxIndex = remaining.indexWhere((line) => line.trim() == '[BOX]');
+    if (boxIndex == -1) return intro;
+
+    final before = List<String>.from(remaining.take(boxIndex));
+    final after = List<String>.from(remaining.skip(boxIndex));
+
+    while (before.isNotEmpty && before.last.trim().isEmpty) {
+      before.removeLast();
+    }
+
+    final rebuilt = <String>[
+      ...before,
+      if (before.isNotEmpty) '',
+      for (var i = 0; i < images.length; i++) ...[
+        images[i],
+        if (i < images.length - 1) '',
+      ],
+      if (after.isNotEmpty) '',
+      ...after,
+    ];
+
+    return _collapseBlankLines(rebuilt).trim();
+  }
+
+  String _collapseBlankLines(List<String> lines) {
+    final result = <String>[];
+    var previousWasBlank = false;
+
+    for (final line in lines) {
+      final isBlank = line.trim().isEmpty;
+      if (isBlank && previousWasBlank) continue;
+      result.add(line);
+      previousWasBlank = isBlank;
+    }
+
+    return result.join('\n');
   }
 
   bool? _forceFormulaStyleForBox(String boxContent) {
@@ -459,6 +622,102 @@ class _LessonDiagramWidgetState extends State<_LessonDiagramWidget> {
               : _controller == null
                   ? const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
                   : WebViewWidget(controller: _controller!),
+        ),
+      ),
+    );
+  }
+}
+
+class _LessonImageWidget extends StatefulWidget {
+  const _LessonImageWidget({required this.imageName});
+
+  final String imageName;
+
+  @override
+  State<_LessonImageWidget> createState() => _LessonImageWidgetState();
+}
+
+class _LessonImageWidgetState extends State<_LessonImageWidget> {
+  WebViewController? _controller;
+  bool _failed = false;
+
+  bool get _isSvg => widget.imageName.toLowerCase().endsWith('.svg');
+  bool get _usesWebView {
+    final lower = widget.imageName.toLowerCase();
+    return lower.endsWith('.svg') || lower.endsWith('.gif') || lower.endsWith('.webp') || lower.endsWith('.avif');
+  }
+
+  String get _base =>
+      kServerBaseUrl.endsWith('/') ? kServerBaseUrl.substring(0, kServerBaseUrl.length - 1) : kServerBaseUrl;
+
+  String get _imageUrl => '$_base/lesson-images/${Uri.encodeComponent(widget.imageName)}';
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isSvg) {
+      _fetchAndLoadSvg();
+    } else if (_usesWebView) {
+      _controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.disabled)
+        ..loadRequest(Uri.parse(_imageUrl));
+    }
+  }
+
+  Future<void> _fetchAndLoadSvg() async {
+    try {
+      final dio = Dio(BaseOptions(baseUrl: _base, connectTimeout: const Duration(seconds: 10)));
+      final res = await dio.get<List<int>>(
+        'lesson-images/${Uri.encodeComponent(widget.imageName)}',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      if (res.statusCode == 200 && res.data != null) {
+        final bytes = res.data!;
+        final base64 = base64Encode(bytes);
+        final dataUrl = 'data:image/svg+xml;charset=utf-8;base64,$base64';
+        if (!mounted) return;
+        setState(() {
+          _controller = WebViewController()
+            ..setJavaScriptMode(JavaScriptMode.disabled)
+            ..loadRequest(Uri.parse(dataUrl));
+          _failed = false;
+        });
+      } else {
+        if (mounted) setState(() => _failed = true);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _failed = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 120, maxHeight: 280),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+          ),
+          child: _usesWebView
+              ? _failed
+                  ? Center(child: Text(AppLocale.tr('diagram_not_available'), style: const TextStyle(fontSize: 12, color: Colors.grey)))
+                  : _controller == null
+                      ? const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+                      : WebViewWidget(controller: _controller!)
+              : Image.network(
+                  _imageUrl,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, progress) {
+                    if (progress == null) return child;
+                    return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Center(child: Text(AppLocale.tr('diagram_not_available'), style: const TextStyle(fontSize: 12, color: Colors.grey)));
+                  },
+                ),
         ),
       ),
     );

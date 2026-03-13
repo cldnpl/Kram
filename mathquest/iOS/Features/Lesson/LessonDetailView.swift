@@ -26,7 +26,11 @@ struct LessonDetailView: View {
                         Text(L10n.lesson)
                             .font(.headline)
 
-                        let blocks = parseContentBlocks(detail.intro)
+                        let normalizedIntro = normalizeLegacyDiagramReplacements(
+                            intro: detail.intro,
+                            lessonId: lesson.id
+                        )
+                        let blocks = parseContentBlocks(normalizedIntro)
                         let boxIndices = computeBoxIndices(blocks)
 
                         ForEach(Array(blocks.enumerated()), id: \.offset) { idx, block in
@@ -65,6 +69,9 @@ struct LessonDetailView: View {
                                 .padding(.vertical, 4)
                             case .diagram(let diagramID):
                                 LessonDiagramView(diagramID: diagramID)
+                                    .padding(.vertical, 8)
+                            case .image(let imageName):
+                                LessonImageView(imageName: imageName)
                                     .padding(.vertical, 8)
                             }
                         }
@@ -249,41 +256,132 @@ private enum ContentBlock {
     case text(String)
     case box(String)
     case diagram(String)
+    case image(String)
+}
+
+private let legacyLessonImages: [String: [String]] = [
+    "1": ["naturalNumbers.png"],
+    "1-0": ["naturalNumbers.png"],
+    "1-1": ["integersNumbers.png"],
+    "1-2": ["rationalNumbers.jpg"],
+    "2": ["powerProperties.png"],
+    "2-0": ["pedmas.png"],
+    "2-1": ["powerProperties.png"],
+    "2-2": ["sqrtProperties.png"],
+    "3": ["bodmas.jpg"],
+    "3-0": ["pedmas.png", "bodmas.jpg"],
+    "4": ["divisors.svg"],
+    "4-0": ["multiples.jpg"],
+    "4-1": ["divisors.svg"],
+    "4-2": ["gcd.png"],
+    "4-3": ["multiples.jpg"],
+    "5": ["equivalentFractions.png"],
+    "5-0": ["equivalentFractions.png"],
+    "5-1": ["fractionOperations.jpg"],
+    "5-2": ["fractionToPercent.png"],
+    "5-3": ["proportions.png"],
+    "6": ["operationsPolynomials.png"],
+    "6-0": ["operationsPolynomials.png"],
+    "6-1": ["degreeOfAPolynomial.jpg"],
+    "6-2": ["specialProductsPolynomials.jpg"],
+    "7": ["greatestCommonFactoring.jpg"],
+    "7-0": ["greatestCommonFactoring.jpg"],
+    "7-1": ["ruffiniRule.jpg"],
+    "7-2": ["specialProductsPolynomials.jpg"],
+    "8": ["firstDegreeEquations.gif"],
+    "8-0": ["firstDegreeEquations.gif"],
+    "8-1": ["firstDegreeEquations.gif"],
+    "9": ["completeAndIncompleteQuadratics.webp"],
+    "9-0": ["completeAndIncompleteQuadratics.webp"],
+    "9-1": ["discriminant.png"],
+    "9-2": ["completeAndIncompleteQuadratics.webp"],
+    "10": ["substitutionSystems.jpg"],
+    "10-0": ["substitutionSystems.jpg"],
+    "10-1": ["comparisonSystems.jpg"],
+    "10-2": ["cramerSystems.jpg"],
+    "11": ["triangles.png"],
+    "11-0": ["segment.png"],
+    "11-1": ["angles.png"],
+    "11-2": ["triangles.png"],
+    "11-3": ["quadrilaters.png"],
+    "11-4": ["polygons.png"],
+    "12": ["criteriaForTriangles.png"],
+    "12-0": ["criteriaForTriangles.png"],
+    "12-1": ["pythagoraTheorems.png", "euclidTheorem.gif"],
+    "13": ["circumference.png"],
+    "13-0": ["circumference.png"],
+    "13-1": ["area.png"],
+    "13-2": ["tangents.png"],
+    "13-3": ["secants.png"],
+    "14": ["prisms.jpg"],
+    "14-0": ["prisms.jpg"],
+    "14-1": ["pyramids.jpg"],
+    "14-2": ["cylinders.png"],
+    "14-3": ["cones.png"],
+    "14-4": ["spheres.jpg"],
+    "15": ["unitCircle.webp"],
+    "15-0": ["unitCircle.webp"],
+    "15-1": ["sineCosineTangent.avif"],
+    "15-2": ["lawOfSinesCosines.jpeg"],
+]
+
+private func normalizeLegacyDiagramReplacements(intro: String, lessonId: String) -> String {
+    guard intro.contains("[DIAGRAM:"),
+          let imageNames = legacyLessonImages[lessonId],
+          !imageNames.isEmpty else {
+        return intro
+    }
+
+    let replacement = imageNames
+        .map { "[IMAGE:\($0)]" }
+        .joined(separator: "\n\n")
+
+    let pattern = #"\[DIAGRAM:[^\]]+\]"#
+    guard let regex = try? NSRegularExpression(pattern: pattern) else {
+        return intro
+    }
+
+    let range = NSRange(intro.startIndex..<intro.endIndex, in: intro)
+    return regex.stringByReplacingMatches(in: intro, options: [], range: range, withTemplate: replacement)
 }
 
 private func parseContentBlocks(_ intro: String) -> [ContentBlock] {
     var result: [ContentBlock] = []
-    var remaining = intro
+    var remaining = normalizeIntroImagePlacement(intro)
 
     while true {
         let diagramRange = remaining.range(of: "[DIAGRAM:")
+        let imageRange = remaining.range(of: "[IMAGE:")
         let boxRange = remaining.range(of: "[BOX]")
 
-        if diagramRange == nil && boxRange == nil {
+        if diagramRange == nil && imageRange == nil && boxRange == nil {
             let trimmed = remaining.trimmingCharacters(in: .whitespacesAndNewlines)
             if !trimmed.isEmpty { result.append(.text(trimmed)) }
             break
         }
 
-        let nextIsDiagram: Bool
-        switch (diagramRange, boxRange) {
-        case let (d?, b?):
-            nextIsDiagram = d.lowerBound < b.lowerBound
-        case (_?, nil):
-            nextIsDiagram = true
-        case (nil, _?):
-            nextIsDiagram = false
-        default:
-            nextIsDiagram = false
+        var nextToken: String?
+        var nextRange: Range<String.Index>?
+        for (token, range) in [("diagram", diagramRange), ("image", imageRange), ("box", boxRange)] {
+            guard let range else { continue }
+            if let current = nextRange {
+                if range.lowerBound < current.lowerBound {
+                    nextRange = range
+                    nextToken = token
+                }
+            } else {
+                nextRange = range
+                nextToken = token
+            }
         }
 
-        if nextIsDiagram, let d = diagramRange {
-            let textBefore = String(remaining[..<d.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        if let token = nextToken, let markerRange = nextRange, token == "diagram" || token == "image" {
+            let textBefore = String(remaining[..<markerRange.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
             if !textBefore.isEmpty {
                 result.append(.text(textBefore))
             }
 
-            let afterPrefix = remaining[d.upperBound...]
+            let afterPrefix = remaining[markerRange.upperBound...]
             guard let bracket = afterPrefix.firstIndex(of: "]") else {
                 let trailing = String(remaining).trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trailing.isEmpty { result.append(.text(trailing)) }
@@ -291,7 +389,13 @@ private func parseContentBlocks(_ intro: String) -> [ContentBlock] {
             }
 
             let id = String(afterPrefix[..<bracket]).trimmingCharacters(in: .whitespaces)
-            if !id.isEmpty { result.append(.diagram(id)) }
+            if !id.isEmpty {
+                if token == "diagram" {
+                    result.append(.diagram(id))
+                } else {
+                    result.append(.image(id))
+                }
+            }
 
             let nextStart = afterPrefix.index(after: bracket)
             remaining = String(afterPrefix[nextStart...])
@@ -317,6 +421,70 @@ private func parseContentBlocks(_ intro: String) -> [ContentBlock] {
     }
 
     return result
+}
+
+private func normalizeIntroImagePlacement(_ intro: String) -> String {
+    let normalized = intro.replacingOccurrences(of: "\r\n", with: "\n")
+    let lines = normalized.components(separatedBy: "\n")
+
+    var images: [String] = []
+    var remaining: [String] = []
+
+    for line in lines {
+        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.hasPrefix("[IMAGE:") && trimmed.hasSuffix("]") {
+            images.append(trimmed)
+        } else {
+            remaining.append(line)
+        }
+    }
+
+    guard !images.isEmpty,
+          let boxIndex = remaining.firstIndex(where: { $0.trimmingCharacters(in: .whitespacesAndNewlines) == "[BOX]" }) else {
+        return intro
+    }
+
+    var before = Array(remaining[..<boxIndex])
+    let after = Array(remaining[boxIndex...])
+
+    while let last = before.last, last.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+        before.removeLast()
+    }
+
+    var rebuilt = before
+    if !rebuilt.isEmpty {
+        rebuilt.append("")
+    }
+
+    for (index, image) in images.enumerated() {
+        rebuilt.append(image)
+        if index < images.count - 1 {
+            rebuilt.append("")
+        }
+    }
+
+    if !after.isEmpty {
+        rebuilt.append("")
+        rebuilt.append(contentsOf: after)
+    }
+
+    return collapseBlankLines(rebuilt)
+}
+
+private func collapseBlankLines(_ lines: [String]) -> String {
+    var result: [String] = []
+    var previousWasBlank = false
+
+    for line in lines {
+        let isBlank = line.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if isBlank && previousWasBlank {
+            continue
+        }
+        result.append(line)
+        previousWasBlank = isBlank
+    }
+
+    return result.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
 }
 
 /// Maps each block's position to a zero-based box counter (only for .box entries).
@@ -537,6 +705,126 @@ struct LessonDiagramView: View {
                 loadFailed = true
             }
         }
+    }
+}
+
+struct LessonImageView: View {
+    let imageName: String
+    @State private var svgData: Data?
+    @State private var loadFailed = false
+
+    private var imageURL: URL? {
+        let base = APIConfig.serverBaseURLString
+        let encodedName = imageName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? imageName
+        let path = base.hasSuffix("/") ? base + "lesson-images/" + encodedName : base + "/lesson-images/" + encodedName
+        return URL(string: path)
+    }
+
+    private var isSVG: Bool {
+        imageName.lowercased().hasSuffix(".svg")
+    }
+
+    private var usesWebView: Bool {
+        let lower = imageName.lowercased()
+        return lower.hasSuffix(".svg") || lower.hasSuffix(".gif") || lower.hasSuffix(".webp") || lower.hasSuffix(".avif")
+    }
+
+    var body: some View {
+        Group {
+            if isSVG {
+                if loadFailed {
+                    mediaFailureView
+                } else if let data = svgData {
+                    DiagramWebView(svgData: data)
+                        .frame(minHeight: 120, maxHeight: 280)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
+                        )
+                } else {
+                    mediaLoadingView
+                }
+            } else if usesWebView, let url = imageURL {
+                RemoteImageWebView(url: url)
+                    .frame(minHeight: 120, maxHeight: 280)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
+                    )
+            } else if let url = imageURL {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .empty:
+                        mediaLoadingView
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: .infinity)
+                            .padding(12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
+                            )
+                    case .failure:
+                        mediaFailureView
+                    @unknown default:
+                        mediaFailureView
+                    }
+                }
+            } else {
+                mediaFailureView
+            }
+        }
+        .task(id: imageName) {
+            guard isSVG, let url = imageURL else { return }
+            do {
+                let (data, resp) = try await URLSession.shared.data(from: url)
+                if (resp as? HTTPURLResponse)?.statusCode == 200 {
+                    svgData = data
+                    loadFailed = false
+                } else {
+                    loadFailed = true
+                }
+            } catch {
+                loadFailed = true
+            }
+        }
+    }
+
+    private var mediaLoadingView: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
+            .frame(minHeight: 120, maxHeight: 280)
+            .overlay(ProgressView())
+    }
+
+    private var mediaFailureView: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .stroke(Color.red.opacity(0.5), lineWidth: 1)
+            .frame(minHeight: 80, maxHeight: 120)
+            .overlay(Text(L10n.diagramNotAvailable).font(.caption).foregroundColor(.secondary))
+    }
+}
+
+private struct RemoteImageWebView: UIViewRepresentable {
+    let url: URL
+
+    func makeUIView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        config.dataDetectorTypes = []
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.isScrollEnabled = false
+        webView.load(URLRequest(url: url))
+        return webView
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {
+        uiView.load(URLRequest(url: url))
     }
 }
 

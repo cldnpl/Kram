@@ -163,6 +163,9 @@ func shouldKeepLineAsIs(line string) bool {
 	if strings.HasPrefix(trimmed, "[DIAGRAM:") && strings.HasSuffix(trimmed, "]") {
 		return true
 	}
+	if strings.HasPrefix(trimmed, "[IMAGE:") && strings.HasSuffix(trimmed, "]") {
+		return true
+	}
 	return false
 }
 

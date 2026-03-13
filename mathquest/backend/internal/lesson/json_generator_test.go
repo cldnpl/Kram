@@ -199,7 +199,7 @@ func firstSentence(intro string) string {
 		if line == "[BOX]" || line == "[/BOX]" {
 			continue
 		}
-		if strings.HasPrefix(line, "[DIAGRAM:") && strings.HasSuffix(line, "]") {
+		if (strings.HasPrefix(line, "[DIAGRAM:") || strings.HasPrefix(line, "[IMAGE:")) && strings.HasSuffix(line, "]") {
 			continue
 		}
 		filtered = append(filtered, line)

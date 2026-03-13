@@ -1,17 +1,35 @@
 import Foundation
 
-// Deployed server.
 enum APIConfig {
+    private static let productionBaseURLString = "https://kram.islamov.online/api"
+    private static let localSimulatorBaseURLString = "http://127.0.0.1:8080/api"
+
     /// Usato da tutte le richieste API (lessons, coins, ecc.).
     static var baseURLString: String {
-        "https://kram.islamov.online/api"
+#if DEBUG
+        if let override = Bundle.main.object(forInfoDictionaryKey: "KRAM_API_BASE_URL") as? String,
+           !override.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return override
+        }
+        if let override = ProcessInfo.processInfo.environment["KRAM_API_BASE_URL"],
+           !override.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return override
+        }
+#if targetEnvironment(simulator)
+        return localSimulatorBaseURLString
+#else
+        return productionBaseURLString
+#endif
+#else
+        return productionBaseURLString
+#endif
     }
     
     static var baseURL: URL {
         URL(string: baseURLString)!
     }
 
-    /// Base URL del server senza /api (per risorse pubbliche come i diagrammi SVG, che non richiedono auth).
+    /// Base URL del server senza /api (per risorse pubbliche come immagini/diagrammi, che non richiedono auth).
     static var serverBaseURLString: String {
         let api = baseURLString
         if api.hasSuffix("/api") {

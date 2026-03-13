@@ -100,7 +100,7 @@ Key idea: we enlarge the set when an operation would “leave” the previous on
 **Summary:** ℕ ⊆ ℤ ⊆ ℚ. In ℕ, 3 − 5 is not in ℕ so we need ℤ; in ℤ, 7 ÷ 2 is not in ℤ so we need ℚ.
 [/BOX]
 
-[DIAGRAM:euler-venn-sets]`,
+[IMAGE:naturalNumbers.png]`,
 	},
 	"1-0": {
 		Title:    "Natural numbers ℕ",
@@ -109,7 +109,7 @@ Key idea: we enlarge the set when an operation would “leave” the previous on
 
 **Definition.** The set of natural numbers is ℕ = {0, 1, 2, 3, 4, 5, …}. In some textbooks the symbol **ℕ** excludes zero and only positive integers are considered; in that case the set is often written **ℕ*** = {1, 2, 3, …}. In this course we include zero in ℕ.
 
-[DIAGRAM:number-line]
+[IMAGE:naturalNumbers.png]
 
 **Why zero?** Including zero allows us to say “how many elements are in the empty set?” — the answer is 0. It also makes the link with integers and algebra cleaner (zero is the **neutral element** for addition).
 
@@ -150,7 +150,7 @@ Key idea: we enlarge the set when an operation would “leave” the previous on
 • **Sign rules for multiplication:** (−)·(−) = (+), (−)·(+) = (−), (+)·(+) = (+). Same rules apply to division when the result is an integer.
 • **Absolute value:** |a| is the distance of a from 0 on the number line. So |−7| = 7 and |5| = 5. We have |a·b| = |a|·|b| and |a + b| ≤ |a| + |b| (triangle inequality).
 
-[DIAGRAM:number-line]
+[IMAGE:integersNumbers.png]
 
 [BOX]
 **Formulas**
@@ -176,7 +176,7 @@ Key idea: we enlarge the set when an operation would “leave” the previous on
 
 **Definition.** ℚ = { p/q : p, q ∈ ℤ, q ≠ 0 }. Two fractions p/q and r/s represent the **same** rational number when p·s = q·r (cross-multiplication).
 
-[DIAGRAM:number-line]
+[IMAGE:rationalNumbers.jpg]
 
 **Key facts:**
 • **Decimals:** Every rational number has a decimal expansion that either **terminates** (e.g. 1/4 = 0.25) or **repeats** (e.g. 1/3 = 0.333… = 0.3̅). Conversely, every terminating or repeating decimal is rational.
@@ -220,7 +220,7 @@ Reduction: divide numerator and denominator by GCD(p, q)
 4) Addition and subtraction (left to right)
 [/BOX]
 
-[DIAGRAM:number-line]`,
+[IMAGE:powerProperties.png]`,
 	},
 	"2-0": {
 		Title:    "The four operations",
@@ -251,7 +251,7 @@ a·(b + c) = a·b + a·c  (distributive)
 3·(2 + 4) = 3·2 + 3·4 = 6 + 12 = 18
 [/BOX]
 
-[DIAGRAM:number-line]`,
+[IMAGE:pedmas.png]`,
 	},
 	"2-1": {
 		Title:    "Powers and their properties",
@@ -265,7 +265,7 @@ a·(b + c) = a·b + a·c  (distributive)
 • **Quotient:** aⁿ/aᵐ = aⁿ⁻ᵐ  (subtract exponents when dividing), with a ≠ 0.
 • **Power of a power:** (aⁿ)ᵐ = aⁿᵐ  (multiply exponents).
 
-[DIAGRAM:powers-properties-table]
+[IMAGE:powerProperties.png]
 
 **Properties (product and quotient inside the power):**
 • (a·b)ⁿ = aⁿ·bⁿ
@@ -324,7 +324,7 @@ a⁰ = 1  (a ≠ 0)   and   a⁻ⁿ = 1/aⁿ
 
 **Common mistakes:** Do not write √(a²) = a for negative a: we have √(a²) = |a|. Do not split the root over a sum: √(a + b) ≠ √a + √b.
 
-[DIAGRAM:number-line]`,
+[IMAGE:sqrtProperties.png]`,
 	},
 	"3": {
 		Title:    "Expressions & Order of Operations",
@@ -341,7 +341,7 @@ a⁰ = 1  (a ≠ 0)   and   a⁻ⁿ = 1/aⁿ
 4) Addition and Subtraction (left to right)
 [/BOX]
 
-[DIAGRAM:number-line]`,
+[IMAGE:bodmas.jpg]`,
 	},
 	"3-0": {
 		Title:    "Use of parentheses and PEMDAS/BODMAS",
@@ -370,7 +370,9 @@ At same level, go **left to right**.
 (1/2 + 1/3)·6 = (5/6)·6 = 5
 [/BOX]
 
-[DIAGRAM:number-line]`,
+[IMAGE:pedmas.png]
+
+[IMAGE:bodmas.jpg]`,
 	},
 	"4": {
 		Title:    "Divisibility & Prime Numbers",
@@ -391,7 +393,7 @@ GCD(12,18) = 6
 LCM(12,18) = 36
 [/BOX]
 
-[DIAGRAM:prime-factorization-tree]`,
+[IMAGE:divisors.svg]`,
 	},
 	"4-0": {
 		Title:    "Multiples",
@@ -414,7 +416,7 @@ b | a  ⇔  there exists integer k such that  a = b·k
 7 ∤ 20 because no integer k gives 7k = 20
 [/BOX]
 
-[DIAGRAM:prime-factorization-tree]`,
+[IMAGE:multiples.jpg]`,
 	},
 	"4-1": {
 		Title:    "Divisors",
@@ -438,7 +440,7 @@ Positive divisors: 1, 2, 3, 6, 9, 18
 (Exponents 0,1 for 2 and 0,1,2 for 3 → (1+1)(2+1) = 6 divisors.)
 [/BOX]
 
-[DIAGRAM:prime-factorization-tree]`,
+[IMAGE:divisors.svg]`,
 	},
 	"4-2": {
 		Title:    "GCD (Greatest Common Divisor)",
@@ -450,6 +452,8 @@ Positive divisors: 1, 2, 3, 6, 9, 18
 **Method 2 — Euclidean algorithm.** This is faster for large numbers. Key fact: **gcd(a, b) = gcd(b, a mod b)**. So replace (a, b) by (b, a mod b) until the second number is 0; then the first number is the GCD. Example: gcd(48, 18) → gcd(18, 12) → gcd(12, 6) → gcd(6, 0) ⇒ **gcd = 6**.
 
 **Properties:** gcd(a, b) = gcd(|a|, |b|); gcd(a, 0) = |a|; gcd(a, b) divides any integer linear combination a·m + b·n (in particular **Bézout’s identity**: there exist integers m, n such that a·m + b·n = gcd(a, b)).
+
+[IMAGE:gcd.png]
 
 [BOX]
 **Formulas**
@@ -490,7 +494,7 @@ LCM(24, 36) = 2³·3² = 72
 Check: GCD·LCM = 12·72 = 864 = 24·36
 [/BOX]
 
-[DIAGRAM:prime-factorization-tree]`,
+[IMAGE:multiples.jpg]`,
 	},
 	"5": {
 		Title:    "Fractions & Ratios",
@@ -513,7 +517,7 @@ percentage = (part/whole)·100
 25% of 80 = 20
 [/BOX]
 
-[DIAGRAM:fraction]`,
+[IMAGE:proportions.png]`,
 	},
 	"5-0": {
 		Title:    "Equivalent fractions",
@@ -537,7 +541,7 @@ Simplify: divide numerator and denominator by gcd(a, b)
 Check: 6·4 = 24 = 8·3; 10·3 = 30 = 15·2
 [/BOX]
 
-[DIAGRAM:fraction]`,
+[IMAGE:equivalentFractions.png]`,
 	},
 	"5-1": {
 		Title:    "Operations with fractions",
@@ -565,7 +569,7 @@ a/b − c/d = (ad − bc)/bd
 (2/3) ÷ (4/5) = (2/3)·(5/4) = 10/12 = 5/6
 [/BOX]
 
-[DIAGRAM:fraction]`,
+[IMAGE:fractionOperations.jpg]`,
 	},
 	"5-2": {
 		Title:    "Percentages",
@@ -591,7 +595,7 @@ Increase 50 by 10%: 50·1.10 = 55
 Decrease 200 by 15%: 200·0.85 = 170
 [/BOX]
 
-[DIAGRAM:fraction]`,
+[IMAGE:fractionToPercent.png]`,
 	},
 	"5-3": {
 		Title:    "Proportions",
@@ -616,7 +620,7 @@ Cross-multiply: 3·12 = 4·x  ⇒  36 = 4x  ⇒  x = 9
 Check: 3/4 = 9/12  ✓
 [/BOX]
 
-[DIAGRAM:fraction]`,
+[IMAGE:proportions.png]`,
 	},
 
 	// -------
@@ -640,7 +644,7 @@ Check: 3/4 = 9/12  ✓
 (2x−1)(2x+1) = 4x²−1
 [/BOX]
 
-[DIAGRAM:square-binomial]`,
+[IMAGE:operationsPolynomials.png]`,
 	},
 	"6-0": {
 		Title:    "Operations",
@@ -665,7 +669,7 @@ a^m · a^n = a^(m+n)
 (x + 2)(x − 3) = x² − 3x + 2x − 6 = x² − x − 6
 [/BOX]
 
-[DIAGRAM:square-binomial]`,
+[IMAGE:operationsPolynomials.png]`,
 	},
 	"6-1": {
 		Title:    "Degree of a polynomial",
@@ -682,7 +686,7 @@ P(x) = 2x³ − x + 5 has degree 3
 Q(x, y) = 3x²y + 7y⁴ has degree 4 (because of y⁴)
 [/BOX]
 
-[DIAGRAM:square-binomial]`,
+[IMAGE:degreeOfAPolynomial.jpg]`,
 	},
 	"6-2": {
 		Title:    "Special products (e.g. square of a binomial)",
@@ -695,7 +699,7 @@ Q(x, y) = 3x²y + 7y⁴ has degree 4 (because of y⁴)
 
 **Difference of two squares:** (a + b)(a − b) = **a² − b²**. The cross terms cancel, so you get only the difference of the squares. This is extremely useful for factoring expressions like x² − 9 or 4a² − 25b².
 
-[DIAGRAM:square-binomial]
+[IMAGE:specialProductsPolynomials.jpg]
 
 **Other useful ones:** (a + b)³ = a³ + 3a²b + 3ab² + b³; (a − b)³ = a³ − 3a²b + 3ab² − b³; (a + b + c)² = a² + b² + c² + 2ab + 2ac + 2bc.
 
@@ -730,7 +734,7 @@ Difference of squares: a²−b² = (a+b)(a−b)
 x²−9 = (x+3)(x−3)
 [/BOX]
 
-[DIAGRAM:ruffini-flow]`,
+[IMAGE:greatestCommonFactoring.jpg]`,
 	},
 	"7-0": {
 		Title:    "Common factoring",
@@ -753,14 +757,14 @@ Polynomial = GCF · (remaining sum)
 4a³ − 8a² + 2a = 2a(2a² − 4a + 1)
 [/BOX]
 
-[DIAGRAM:ruffini-flow]`,
+[IMAGE:greatestCommonFactoring.jpg]`,
 	},
 	"7-1": {
 		Title:    "Ruffini's Rule",
 		Category: "Algebra",
 		Intro: `Ruffini’s rule (synthetic division) divides P(x) by **(x − c)**. If **remainder = 0**, then (x − c) is a **factor** and c is a **root**. Choose c using the **rational root theorem** (candidates: ± divisors of constant / divisors of leading coefficient). Then P(x) = (x − c)·Q(x).
 
-[DIAGRAM:ruffini-flow]
+[IMAGE:ruffiniRule.jpg]
 
 **How to choose candidates:**
 - Rational root theorem: candidates are ±(divisors of constant term)/(divisors of leading coefficient)
@@ -793,7 +797,7 @@ x² − 9 = (x − 3)(x + 3)
 x⁴ − 16 = (x²)² − 4² = (x² − 4)(x² + 4) = (x−2)(x+2)(x²+4)
 [/BOX]
 
-[DIAGRAM:square-binomial]`,
+[IMAGE:specialProductsPolynomials.jpg]`,
 	},
 	"8": {
 		Title:    "Linear Equations & Inequalities",
@@ -811,7 +815,7 @@ ax + b = 0 ⇒ x = −b/a (a≠0)
 3x−1>5 ⇒ x>2
 [/BOX]
 
-[DIAGRAM:linear-line]`,
+[IMAGE:firstDegreeEquations.gif]`,
 	},
 	"8-0": {
 		Title:    "First-degree equations",
@@ -835,7 +839,7 @@ x = 6
 Check: 3·6 − 5 = 13, 2·6 + 1 = 13  ✓
 [/BOX]
 
-[DIAGRAM:linear-line]`,
+[IMAGE:firstDegreeEquations.gif]`,
 	},
 	"8-1": {
 		Title:    "Literal equations",
@@ -857,7 +861,7 @@ x = (4 − a)/2
 (No restriction: solution valid for all a.)
 [/BOX]
 
-[DIAGRAM:linear-line]`,
+[IMAGE:firstDegreeEquations.gif]`,
 	},
 	"9": {
 		Title:    "Quadratic Equations",
@@ -876,7 +880,7 @@ x=(−b±√Δ)/(2a)
 x²−5x+6=0 ⇒ Δ=1, x=2 or x=3
 [/BOX]
 
-[DIAGRAM:parabola]`,
+[IMAGE:completeAndIncompleteQuadratics.webp]`,
 	},
 	"9-0": {
 		Title:    "Complete and incomplete quadratics",
@@ -899,7 +903,7 @@ ax² + bx = 0  ⇒  x(ax + b) = 0  ⇒  x = 0  or  x = −b/a
 3x² + 6x = 0  ⇒  3x(x+2) = 0  ⇒  x = 0 or x = −2
 [/BOX]
 
-[DIAGRAM:parabola]`,
+[IMAGE:completeAndIncompleteQuadratics.webp]`,
 	},
 	"9-1": {
 		Title:    "The Discriminant (Δ)",
@@ -908,7 +912,7 @@ ax² + bx = 0  ⇒  x(ax + b) = 0  ⇒  x = 0  or  x = −b/a
 
 **Interpretation.** **Δ > 0:** two **distinct** real roots (the parabola crosses the x-axis twice). **Δ = 0:** one real root (a **double** root; the parabola is tangent to the x-axis). **Δ < 0:** **no** real roots (the parabola does not cross the x-axis; the two complex roots are conjugate). So before solving, compute Δ to know what to expect. The roots are **rational** only when Δ is a perfect square (and a, b, c are rational).
 
-[DIAGRAM:discriminant-table]
+[IMAGE:discriminant.png]
 
 **Quadratic formula.** Always works for any quadratic: **x = (−b ± √(b² − 4ac))/(2a)**. Write the equation in the form ax² + bx + c = 0, identify a, b, c, then substitute. Simplify √Δ when possible.
 
@@ -946,7 +950,7 @@ x² + 5x + 6 = 0. Need α+β = 5, αβ = 6 → α=2, β=3.
 (x + 2)(x + 3) = 0  ⇒  x = −2 or x = −3
 [/BOX]
 
-[DIAGRAM:parabola]`,
+[IMAGE:completeAndIncompleteQuadratics.webp]`,
 	},
 	"10": {
 		Title:    "Systems of Equations",
@@ -964,7 +968,7 @@ Cramer: x=Dx/D, y=Dy/D
 {x+y=5, x−y=1} ⇒ x=3, y=2
 [/BOX]
 
-[DIAGRAM:two-lines]`,
+[IMAGE:substitutionSystems.jpg]`,
 	},
 	"10-0": {
 		Title:    "Substitution",
@@ -988,7 +992,7 @@ Cramer: x=Dx/D, y=Dy/D
 From second: x = 1 + y. Substitute: 2(1 + y) + y = 8 ⇒ 2 + 3y = 8 ⇒ y = 2. Then x = 1 + 2 = 3. Solution: (3, 2).
 [/BOX]
 
-[DIAGRAM:two-lines]`,
+[IMAGE:substitutionSystems.jpg]`,
 	},
 	"10-1": {
 		Title:    "Comparison",
@@ -1006,7 +1010,7 @@ From second: x = 1 + y. Substitute: 2(1 + y) + y = 8 ⇒ 2 + 3y = 8 ⇒ y = 2. T
 3) Solve for the remaining variable; then find the other.
 [/BOX]
 
-[DIAGRAM:two-lines]
+[IMAGE:comparisonSystems.jpg]
 
 [BOX]
 **Example**
@@ -1032,7 +1036,7 @@ y = (a₁c₂ − a₂c₁) / Det   (Det ≠ 0)
 x = (8·(−1)−1·1)/(−3) = 3,  y = (2·1−1·8)/(−3) = 2
 [/BOX]
 
-[DIAGRAM:two-lines]`,
+[IMAGE:cramerSystems.jpg]`,
 	},
 
 	// -------------------------
@@ -1056,14 +1060,14 @@ Triangle b=6 h=4 ⇒ A=12
 Hexagon interior angle = 120°
 [/BOX]
 
-[DIAGRAM:geometry-formulary]`,
+[IMAGE:triangles.png]`,
 	},
 	"11-0": {
 		Title:    "Segments",
 		Category: "Geometry & Trigonometry",
 		Intro: `A **segment** is the set of points on a line **between** two given points **A** and **B**, including A and B. We write **AB** (or **BA**) for the segment; **AB** also often denotes its **length** (the distance from A to B). In coordinate geometry, if A = (x₁,y₁) and B = (x₂,y₂), then **AB = √[(x₂−x₁)² + (y₂−y₁)²]**.
 
-[DIAGRAM:segment]
+[IMAGE:segment.png]
 
 **Midpoint.** The **midpoint M** of segment AB is the point that is **equidistant** from A and B: **AM = MB**. So M lies halfway between A and B. In coordinates: **M = ((x₁+x₂)/2, (y₁+y₂)/2)**.
 
@@ -1086,7 +1090,7 @@ If AB = 10 and M is the midpoint, then AM = MB = 5.
 		Category: "Geometry & Trigonometry",
 		Intro: `An **angle** is formed by two **rays** (half-lines) that share the same **vertex** (origin). Angles are measured in **degrees** (°) or **radians**. **Complementary** angles add up to **90°**; **supplementary** angles add up to **180°**. So the complement of 35° is 55°; the supplement of 100° is 80°.
 
-[DIAGRAM:angle]
+[IMAGE:angles.png]
 
 **Vertical angles.** When two lines intersect, the pairs of **opposite** (vertical) angles are **equal**. So if one angle is 40°, the angle opposite to it is also 40°; the other two (supplementary to 40°) are 140° each.
 
@@ -1109,7 +1113,7 @@ Angle 35° → complement 55° (35° + 55° = 90°). Supplement of 35° is 145°
 		Category: "Geometry & Trigonometry",
 		Intro: `A **triangle** is a polygon with **three sides** and **three angles**. The **sum of the interior angles** of any triangle is **180°**. So if two angles are known, the third is 180° minus their sum. The **triangle inequality** says: each side is **less than** the sum of the other two (e.g. a < b + c). So three positive numbers are sides of a triangle if and only if the sum of any two is greater than the third.
 
-[DIAGRAM:triangle]
+[IMAGE:triangles.png]
 
 **Area.** The area of a triangle is **A = (1/2)·base·height**, where the **height** is the perpendicular distance from the vertex opposite the base to the line containing the base. So if base = 10 and height = 6, then A = 30. **Heron’s formula** gives the area from the three sides: A = √[s(s−a)(s−b)(s−c)] where s = (a+b+c)/2 is the semiperimeter.
 
@@ -1132,7 +1136,7 @@ Base = 10, height = 6  ⇒  A = (10·6)/2 = 30
 		Category: "Geometry & Trigonometry",
 		Intro: `A **quadrilateral** is a polygon with **four sides**. The **sum of the interior angles** of any quadrilateral is **360°**. Special types (each with extra properties): **Trapezoid** — at least one pair of parallel sides; **parallelogram** — both pairs of opposite sides parallel (and then opposite sides are equal, opposite angles equal, consecutive angles supplementary, diagonals bisect each other); **rectangle** — parallelogram with all angles 90° (diagonals equal); **rhombus** — parallelogram with all four sides equal (diagonals perpendicular); **square** — rectangle and rhombus (all sides equal, all angles 90°).
 
-[DIAGRAM:quadrilateral]
+[IMAGE:quadrilaters.png]
 
 **Hierarchy.** Every rectangle is a parallelogram; every rhombus is a parallelogram; every square is both a rectangle and a rhombus. **Area:** parallelogram = base·height; rectangle = length·width; trapezoid = (1/2)·(sum of parallel sides)·height.
 
@@ -1153,7 +1157,7 @@ In a parallelogram, consecutive angles are supplementary (sum 180°).
 		Category: "Geometry & Trigonometry",
 		Intro: `A **polygon** is a closed figure formed by a finite chain of **line segments** (sides); the segments meet at **vertices**. A polygon is **convex** if no line through a side enters the interior. For a convex **n-gon** (n sides), the **sum of the interior angles** is **(n − 2)·180°**. So triangle: 180°; quadrilateral: 360°; pentagon: 540°; hexagon: 720°.
 
-[DIAGRAM:polygon]
+[IMAGE:polygons.png]
 
 **Regular polygon.** All sides and all angles are equal. Each interior angle of a regular n-gon is **((n − 2)·180°)/n**. So regular hexagon: each angle = 720°/6 = **120°**. The **exterior angle** (one at each vertex, if you extend one side) of a regular n-gon is **360°/n**; interior + exterior = 180° at each vertex.
 
@@ -1181,13 +1185,13 @@ Similar triangles: corresponding sides proportional
 Right triangle legs 3,4 ⇒ hypotenuse=5
 [/BOX]
 
-[DIAGRAM:triangle-criteria]` },
+[IMAGE:criteriaForTriangles.png]` },
 	"12-0": {
 		Title:    "Criteria for triangles",
 		Category: "Geometry & Trigonometry",
 		Intro: `**Congruence** of triangles: two triangles are **congruent** if there is a one-to-one correspondence between their vertices such that all three sides and all three angles match. You do **not** need to check all six: **SSS** (three sides equal), **SAS** (two sides and the **included** angle equal), or **ASA/AAS** (two angles and a side equal) guarantee congruence. **Warning:** SSA (two sides and a non-included angle) does **not** always determine a unique triangle.
 
-[DIAGRAM:triangle-criteria]
+[IMAGE:criteriaForTriangles.png]
 
 **Similarity** of triangles: two triangles are **similar** if corresponding angles are equal (and then corresponding sides are automatically in proportion), or if the three sides are in proportion (**SSS proportional**), or two sides are in proportion and the **included** angle is equal (**SAS proportional**). The **AA** criterion (two angles equal) is enough because the third angle is then determined. So if two triangles have angles (30°, 60°, 90°) they are similar.
 
@@ -1205,7 +1209,9 @@ Triangles with angles (30°, 60°, 90°) are similar by AA (and thus sides propo
 		Category: "Geometry & Trigonometry",
 		Intro: `For right triangles, Pythagoras connects the side lengths.
 
-[DIAGRAM:pythagoras-euclid]
+[IMAGE:pythagoraTheorems.png]
+
+[IMAGE:euclidTheorem.gif]
 
 [BOX]
 Pythagoras
@@ -1237,7 +1243,7 @@ A=πr²
 r=5 ⇒ C=10π≈31.4, A=25π≈78.5
 [/BOX]
 
-[DIAGRAM:circle]`,
+[IMAGE:circumference.png]`,
 	},
 	"13-0": {
 		Title:    "Circumference",
@@ -1254,7 +1260,7 @@ Example
 r = 5 ⇒ C = 10π ≈ 31.42
 [/BOX]
 
-[DIAGRAM:circle]`,
+[IMAGE:circumference.png]`,
 	},
 	"13-1": {
 		Title:    "Area",
@@ -1274,14 +1280,14 @@ Sector area (θ in radians): A = (1/2)r²θ = (θ/(2π))·πr²
 r = 5  ⇒  A = 25π ≈ 78.54
 [/BOX]
 
-[DIAGRAM:circle]`,
+[IMAGE:area.png]`,
 	},
 	"13-2": {
 		Title:    "Tangents",
 		Category: "Geometry & Trigonometry",
 		Intro: `A **tangent** to a circle is a line that touches the circle at **exactly one point** (the **point of tangency**). The **radius** drawn to the point of tangency is **perpendicular** to the tangent. So if you know the radius to the point of contact, the tangent line is the line through that point that is perpendicular to the radius.
 
-[DIAGRAM:tangent-secant]
+[IMAGE:tangents.png]
 
 **Tangent segments from an external point.** If **P** is outside the circle and **PT** and **PS** are the two segments from P to the points of tangency on the circle, then **PT = PS** (the two tangent segments from an external point are **equal**). This is useful for solving problems where a point is connected to a circle by two tangents.
 
@@ -1313,7 +1319,7 @@ PA · PB = constant for any secant through P. For tangent PT: PA·PB = PT²
 Secant through P: PA = 3, PB = 12  ⇒  PA·PB = 36. Any other secant through P gives the same product.
 [/BOX]
 
-[DIAGRAM:tangent-secant]`,
+[IMAGE:secants.png]`,
 	},
 	"14": {
 		Title:    "Solid Geometry",
@@ -1334,14 +1340,14 @@ Sphere V=(4/3)πr³
 Cylinder r=3 h=10 ⇒ V=90π≈283
 [/BOX]
 
-[DIAGRAM:geometry-formulary]`,
+[IMAGE:prisms.jpg]`,
 	},
 	"14-0": {
 		Title:    "Prisms",
 		Category: "Geometry & Trigonometry",
 		Intro: `A **prism** is a solid with **two parallel**, **congruent** faces (the **bases**) and **lateral faces** that are parallelograms. If the lateral edges are perpendicular to the bases, the prism is **right**; then the lateral faces are rectangles. The **volume** is **V = (base area)·h**, where **h** is the height (perpendicular distance between the bases). So the volume is the same as for a cylinder with the same base area and height.
 
-[DIAGRAM:geometry-formulary]
+[IMAGE:prisms.jpg]
 
 **Lateral surface area** (right prism): the sum of the areas of the lateral faces equals **(perimeter of base)·h**. **Total surface area** = 2·(base area) + lateral area. So for a rectangular prism (box) with dimensions ℓ, w, h: V = ℓwh and surface area = 2(ℓw + ℓh + wh).
 
@@ -1373,7 +1379,7 @@ V = (1/3)·(base area)·h
 Base area = 30, height = 9  ⇒  V = (1/3)·30·9 = 90
 [/BOX]
 
-[DIAGRAM:geometry-formulary]`,
+[IMAGE:pyramids.jpg]`,
 	},
 	"14-2": {
 		Title:    "Cylinders",
@@ -1393,14 +1399,14 @@ Lateral area = 2πrh. Total surface area = 2πr² + 2πrh
 r = 2, h = 5  ⇒  V = π·4·5 = 20π
 [/BOX]
 
-[DIAGRAM:geometry-formulary]`,
+[IMAGE:cylinders.png]`,
 	},
 	"14-3": {
 		Title:    "Cones",
 		Category: "Geometry & Trigonometry",
 		Intro: `A **right circular cone** has a **circular base** of radius **r** and a **vertex** (apex) on the line through the center of the base, perpendicular to the base. The **height** **h** is the distance from the vertex to the base. The **slant height** **a** (or ℓ) is the distance from the vertex to a point on the base circle; by Pythagoras, **a² = r² + h²**. The **volume** is **V = (1/3)πr²h** — one third of the volume of the cylinder with the same base and height.
 
-[DIAGRAM:geometry-formulary]
+[IMAGE:cones.png]
 
 **Lateral surface area** (the curved part) = **πr·a** (if you “unroll” the cone you get a sector of a circle of radius a and arc length 2πr). **Total surface area** = πr² + πra = πr(r + a).
 
@@ -1433,7 +1439,7 @@ Volume: V = (4/3)πr³
 r = 3  ⇒  S = 4π·9 = 36π,  V = (4/3)π·27 = 36π
 [/BOX]
 
-[DIAGRAM:solid-sphere]`,
+[IMAGE:spheres.jpg]`,
 	},
 	"15": {
 		Title:    "Goniometry & Trigonometry",
@@ -1453,14 +1459,14 @@ sin(30°)=1/2
 cos(60°)=1/2
 [/BOX]
 
-[DIAGRAM:unit-circle]`,
+[IMAGE:unitCircle.webp]`,
 	},
 	"15-0": {
 		Title:    "The Unit Circle",
 		Category: "Geometry & Trigonometry",
 		Intro: `The **unit circle** is the circle of **radius 1** with center at the **origin** (0, 0). Each **angle** θ (measured from the positive x-axis, counterclockwise) corresponds to a **unique point** on the circle: the point at distance 1 from the origin in that direction. The **coordinates** of that point are **(cos θ, sin θ)**. So **cos θ** is the x-coordinate and **sin θ** is the y-coordinate. This defines sine and cosine for **any** angle (not only acute).
 
-[DIAGRAM:unit-circle]
+[IMAGE:unitCircle.webp]
 
 **Radians.** Angles can be measured in **radians**: the angle (in rad) is the **arc length** on the unit circle. So **360° = 2π rad**, **180° = π rad**, **90° = π/2 rad**. To convert: **degrees → radians** multiply by π/180; **radians → degrees** multiply by 180/π.
 
@@ -1477,7 +1483,7 @@ Point on unit circle: (cos θ, sin θ)
 
 **Fundamental identity:** **sin²θ + cos²θ = 1** (from x² + y² = 1 on the unit circle). So sin θ = ±√(1 − cos²θ) and cos θ = ±√(1 − sin²θ); the sign depends on the quadrant. **Special angles** (memorize): 0, π/6 (30°), π/4 (45°), π/3 (60°), π/2 (90°) — use the unit circle or the 30-60-90 and 45-45-90 triangles to get exact values.
 
-[DIAGRAM:trig-graphs]
+[IMAGE:sineCosineTangent.avif]
 
 [BOX]
 **Identity**
@@ -1508,7 +1514,7 @@ sin(π/4)=cos(π/4)=√2/2; sin(π/2)=1, cos(π/2)=0
 b=5, c=7, A=60°: a² = 25+49−2·5·7·(1/2) = 74−35 = 39  ⇒  a = √39
 [/BOX]
 
-[DIAGRAM:triangle]`,
+[IMAGE:lawOfSinesCosines.jpeg]`,
 	},
 
 	// -------------------------
