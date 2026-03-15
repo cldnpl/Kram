@@ -5,6 +5,7 @@ import WebKit
 private let formulaBoxColor = Color(red: 102/255, green: 80/255, blue: 164/255)  // #6650A4
 // Light purple for example boxes (2nd, 4th, …)
 private let exampleBoxColor = Color(red: 153/255, green: 128/255, blue: 240/255) // #9980F0
+private let lessonAccentColor = Color(red: 102/255, green: 80/255, blue: 164/255)
 
 struct LessonDetailView: View {
     let lesson: LessonItem
@@ -23,9 +24,6 @@ struct LessonDetailView: View {
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
-                        Text(L10n.lesson)
-                            .font(.headline)
-
                         let normalizedIntro = normalizeLegacyDiagramReplacements(
                             intro: detail.intro,
                             lessonId: lesson.id
@@ -37,8 +35,7 @@ struct LessonDetailView: View {
                             switch block {
                             case .text(let text):
                                 ForEach(paragraphs(from: text), id: \.self) { paragraph in
-                                    renderInlineBold(paragraph)
-                                        .font(.body)
+                                    LessonParagraphView(text: paragraph)
                                         .padding(.bottom, 8)
                                 }
                             case .box(let content):
@@ -49,12 +46,9 @@ struct LessonDetailView: View {
                                 VStack(alignment: .leading, spacing: 8) {
                                     ForEach(boxLines(from: content), id: \.self) { line in
                                         if isFormulaLine(line) {
-                                            Text(line)
-                                                .font(.system(size: 18, weight: .semibold, design: .monospaced))
-                                                .foregroundColor(accentColor)
+                                            LessonFormulaLineView(text: line, accentColor: accentColor)
                                         } else {
-                                            renderInlineBold(line)
-                                                .font(.body)
+                                            LessonParagraphView(text: line)
                                         }
                                     }
                                 }
@@ -259,6 +253,89 @@ private enum ContentBlock {
     case image(String)
 }
 
+private struct LessonParagraphView: View {
+    let text: String
+
+    var body: some View {
+        renderLessonParagraphText(text)
+            .font(.body)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+private struct LessonFormulaLineView: View {
+    let text: String
+    let accentColor: Color
+
+    private var split: (label: String?, formula: String?, note: String?) {
+        splitLessonFormulaLine(text)
+    }
+
+    var body: some View {
+        VStack(alignment: .center, spacing: 6) {
+            if let label = split.label, let attributed = attributedLessonText(from: label) {
+                Text(attributed)
+                    .font(.body)
+                    .foregroundStyle(lessonAccentColor)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            }
+
+            if let formula = split.formula {
+                LessonMathView(latex: normalizeLessonLatex(formula), displayMode: true)
+                    .frame(minHeight: 64, maxHeight: 132)
+            }
+
+            if let note = split.note, let attributed = attributedLessonText(from: note) {
+                Text(attributed)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .foregroundStyle(accentColor)
+    }
+}
+
+private struct LessonMathView: UIViewRepresentable {
+    let latex: String
+    let displayMode: Bool
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.isScrollEnabled = displayMode
+        webView.scrollView.bounces = displayMode
+        webView.scrollView.alwaysBounceHorizontal = displayMode
+        webView.scrollView.alwaysBounceVertical = false
+        webView.scrollView.showsVerticalScrollIndicator = false
+        webView.scrollView.showsHorizontalScrollIndicator = displayMode
+        webView.isUserInteractionEnabled = displayMode
+        return webView
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {
+        let html = lessonMathHTML(latex: latex, displayMode: displayMode)
+        if context.coordinator.lastHTML != html {
+            uiView.loadHTMLString(html, baseURL: nil)
+            context.coordinator.lastHTML = html
+        }
+    }
+
+    final class Coordinator {
+        var lastHTML: String?
+    }
+}
+
 private let legacyLessonImages: [String: [String]] = [
     "1": ["naturalNumbers.png"],
     "1-0": ["naturalNumbers.png"],
@@ -335,43 +412,69 @@ private let legacyLessonImages: [String: [String]] = [
     "19-2": ["theParabola.jpg"],
     "19-3": ["theEllipse.png"],
     "19-4": ["theHyperbola.png"],
+    "20-0": ["finiteAndInfiniteLimits.png"],
+    "20-1": ["indeterminateForms.png"],
+    "20-2": ["asymptotes.png"],
+    "21-0": ["differenceQuotient.jpg"],
+    "21-1": ["geometricMeaning.png"],
+    "22-0": ["powerRule.png"],
+    "22-1": ["productRule.png"],
+    "22-2": ["quotientRule.webp"],
+    "22-3": ["chainRule.png"],
+    "23-0": ["maximaAndMinima.png"],
+    "23-1": ["pointsOfInflections.png"],
+    "24-0": ["primitiveFunctions.svg"],
+    "24-1": ["integrationRules.png"],
+    "25-0": ["integrationSubstitution.jpg"],
+    "25-1": ["integrationParts.png"],
+    "26-0": ["areaUnderACurve.jpg"],
+    "26-1": ["fundamentalTheoremsofCalculus.png"],
+    "27-0": ["calculationOfVolumes.jpg"],
+    "27-1": ["areasOfPlaneFigures.jpg"],
+]
+
+private let lessonsWithoutReplacementImages: Set<String> = [
+    "16-1", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27",
 ]
 
 private func normalizeLegacyDiagramReplacements(intro: String, lessonId: String) -> String {
-    guard let imageNames = legacyLessonImages[lessonId],
-          !imageNames.isEmpty else {
+    let desiredImages = legacyLessonImages[lessonId]
+    let shouldStripOnly = lessonsWithoutReplacementImages.contains(lessonId)
+
+    guard shouldStripOnly || (desiredImages?.isEmpty == false) else {
         return intro
     }
 
-    if intro.contains("[IMAGE:") {
-        return intro
+    let stripped = stripLessonMediaMarkers(intro)
+    if shouldStripOnly {
+        return stripped
     }
 
-    let replacement = imageNames
+    let replacement = desiredImages!
         .map { "[IMAGE:\($0)]" }
         .joined(separator: "\n\n")
 
-    if intro.contains("[DIAGRAM:") {
-        let pattern = #"\[DIAGRAM:[^\]]+\]"#
-        guard let regex = try? NSRegularExpression(pattern: pattern) else {
-            return intro
-        }
-
-        let range = NSRange(intro.startIndex..<intro.endIndex, in: intro)
-        return regex.stringByReplacingMatches(in: intro, options: [], range: range, withTemplate: replacement)
-    }
-
-    if let boxRange = intro.range(of: "[BOX]") {
-        let beforeBox = intro[..<boxRange.lowerBound].trimmingCharacters(in: .whitespacesAndNewlines)
-        let afterBox = intro[boxRange.lowerBound...]
+    if let boxRange = stripped.range(of: "[BOX]") {
+        let beforeBox = stripped[..<boxRange.lowerBound].trimmingCharacters(in: .whitespacesAndNewlines)
+        let afterBox = stripped[boxRange.lowerBound...]
         if beforeBox.isEmpty {
             return "\(replacement)\n\n\(afterBox)"
         }
         return "\(beforeBox)\n\n\(replacement)\n\n\(afterBox)"
     }
 
-    let trimmed = intro.trimmingCharacters(in: .whitespacesAndNewlines)
+    let trimmed = stripped.trimmingCharacters(in: .whitespacesAndNewlines)
     return trimmed.isEmpty ? replacement : "\(trimmed)\n\n\(replacement)"
+}
+
+private func stripLessonMediaMarkers(_ intro: String) -> String {
+    let pattern = #"\n?\n?\[(?:IMAGE|DIAGRAM):[^\]]+\]"#
+    guard let regex = try? NSRegularExpression(pattern: pattern) else {
+        return intro
+    }
+    let range = NSRange(intro.startIndex..<intro.endIndex, in: intro)
+    let stripped = regex.stringByReplacingMatches(in: intro, options: [], range: range, withTemplate: "")
+    return stripped.replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
 }
 
 private func parseContentBlocks(_ intro: String) -> [ContentBlock] {
@@ -531,37 +634,363 @@ private func computeBoxIndices(_ blocks: [ContentBlock]) -> [Int: Int] {
 }
 
 private func boxLines(from content: String) -> [String] {
-    content.components(separatedBy: .newlines)
+    normalizeLessonDisplayText(content)
+        .components(separatedBy: .newlines)
         .map { $0.trimmingCharacters(in: .whitespaces) }
         .filter { !$0.isEmpty }
 }
 
 private func paragraphs(from text: String) -> [String] {
-    let normalized = text.replacingOccurrences(of: "\r\n", with: "\n")
+    let blocks = normalizeLessonDisplayText(text)
+        .components(separatedBy: "\n\n")
+        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        .filter { !$0.isEmpty }
     var out: [String] = []
 
-    for rawLine in normalized.components(separatedBy: "\n") {
-        let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
-        if line.isEmpty { continue }
+    for block in blocks {
+        let lines = block
+            .components(separatedBy: "\n")
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
 
-        if isBulletLikeLine(line) || isStandaloneHeading(line) {
-            out.append(line)
-            continue
-        }
+        guard !lines.isEmpty else { continue }
 
-        let split = splitLeadingBoldHeading(line)
-        if let heading = split.heading {
-            out.append(heading)
-            if let rest = split.rest, !rest.isEmpty {
-                out.append(contentsOf: splitBySentence(rest))
+        var current: [String] = []
+        func flushCurrent() {
+            let joined = current.joined(separator: " ").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !joined.isEmpty {
+                out.append(joined)
             }
-            continue
+            current.removeAll(keepingCapacity: true)
         }
 
-        out.append(contentsOf: splitBySentence(line))
+        for line in lines {
+            if isBulletLikeLine(line) || isStandaloneHeading(line) {
+                flushCurrent()
+                out.append(line)
+                continue
+            }
+
+            if let heading = splitLeadingBoldHeading(line).heading {
+                flushCurrent()
+                let rest = splitLeadingBoldHeading(line).rest?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                out.append(rest.isEmpty ? heading : "\(heading) \(rest)")
+                continue
+            }
+
+            current.append(line)
+        }
+
+        flushCurrent()
     }
 
     return out
+}
+
+private func normalizeLessonDisplayText(_ text: String) -> String {
+    var normalized = text
+        .replacingOccurrences(of: "\r\n", with: "\n")
+        .replacingOccurrences(of: "(BOX)", with: "")
+        .replacingOccurrences(of: "(/BOX)", with: "")
+    normalized = normalized.replacingOccurrences(
+        of: #"(^|[ \t])(\\n|/n)(?=[ \t]*$)"#,
+        with: "$1\n",
+        options: .regularExpression
+    )
+    return normalized.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
+}
+
+private func attributedLessonText(from text: String) -> AttributedString? {
+    let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !normalized.isEmpty else { return nil }
+
+    if let attributed = try? AttributedString(
+        markdown: normalized,
+        options: AttributedString.MarkdownParsingOptions(interpretedSyntax: .inlineOnlyPreservingWhitespace)
+    ) {
+        return attributed
+    }
+
+    return AttributedString(normalized.replacingOccurrences(of: "**", with: ""))
+}
+
+private func renderLessonParagraphText(_ text: String) -> Text {
+    let normalized = normalizeLessonDisplayText(text)
+    let parts = normalized.components(separatedBy: "**")
+    var out = Text("")
+
+    for (index, part) in parts.enumerated() {
+        let trimmed = part.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !part.isEmpty else { continue }
+
+        let piece: Text
+        if !trimmed.isEmpty, looksLikeInlineMath(trimmed) {
+            piece = Text(part.replacingOccurrences(of: trimmed, with: prettifyLessonInlineMath(trimmed)))
+        } else {
+            piece = Text(prettifyLessonTextContent(part))
+        }
+
+        out = out + (index % 2 == 1 ? piece.bold().foregroundColor(lessonAccentColor) : piece)
+    }
+
+    return out
+}
+
+private func prettifyLessonInlineMath(_ text: String) -> String {
+    prettifyLessonTextContent(text)
+        .replacingOccurrences(of: "*", with: "×")
+}
+
+private func prettifyLessonTextContent(_ text: String) -> String {
+    var value = text
+        .replacingOccurrences(of: "pi", with: "π")
+        .replacingOccurrences(of: "\\pi", with: "π")
+        .replacingOccurrences(of: "∫_", with: "∫")
+
+    value = replacingLessonBounds(pattern: #"∫([A-Za-z0-9+\-]+)\^([A-Za-z0-9+\-]+)"#, in: value, prefix: "∫")
+    value = replacingLessonBounds(pattern: #"\]_([A-Za-z0-9+\-]+)\^([A-Za-z0-9+\-]+)"#, in: value, prefix: "]")
+
+    value = value.replacingOccurrences(of: " e^x", with: " eˣ")
+    return value
+}
+
+private func replacingLessonBounds(pattern: String, in text: String, prefix: String) -> String {
+    guard let regex = try? NSRegularExpression(pattern: pattern) else {
+        return text
+    }
+    let nsRange = NSRange(text.startIndex..<text.endIndex, in: text)
+    let matches = regex.matches(in: text, range: nsRange).reversed()
+    var value = text
+
+    for match in matches {
+        guard match.numberOfRanges >= 3,
+              let fullRange = Range(match.range(at: 0), in: value),
+              let lowerRange = Range(match.range(at: 1), in: value),
+              let upperRange = Range(match.range(at: 2), in: value) else {
+            continue
+        }
+        let lower = String(value[lowerRange])
+        let upper = String(value[upperRange])
+        let replacement = prefix + lessonSubscript(lower) + lessonSuperscript(upper)
+        value.replaceSubrange(fullRange, with: replacement)
+    }
+
+    return value
+}
+
+private func lessonSubscript(_ text: String) -> String {
+    let map: [Character: Character] = [
+        "0":"₀","1":"₁","2":"₂","3":"₃","4":"₄","5":"₅","6":"₆","7":"₇","8":"₈","9":"₉",
+        "a":"ₐ","e":"ₑ","h":"ₕ","i":"ᵢ","j":"ⱼ","k":"ₖ","l":"ₗ","m":"ₘ","n":"ₙ","o":"ₒ","p":"ₚ",
+        "r":"ᵣ","s":"ₛ","t":"ₜ","u":"ᵤ","v":"ᵥ","x":"ₓ","+":"₊","-":"₋","=":"₌"
+    ]
+    return String(text.compactMap { map[$0] ?? $0 })
+}
+
+private func lessonSuperscript(_ text: String) -> String {
+    let map: [Character: Character] = [
+        "0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹",
+        "a":"ᵃ","b":"ᵇ","c":"ᶜ","d":"ᵈ","e":"ᵉ","f":"ᶠ","g":"ᵍ","h":"ʰ","i":"ⁱ","j":"ʲ","k":"ᵏ",
+        "l":"ˡ","m":"ᵐ","n":"ⁿ","o":"ᵒ","p":"ᵖ","r":"ʳ","s":"ˢ","t":"ᵗ","u":"ᵘ","v":"ᵛ","w":"ʷ","x":"ˣ",
+        "+":"⁺","-":"⁻","=":"⁼","(":"⁽",")":"⁾"
+    ]
+    return String(text.compactMap { map[$0] ?? $0 })
+}
+
+private func looksLikeInlineMath(_ text: String) -> Bool {
+    let candidate = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    if candidate.isEmpty { return false }
+    if candidate.range(of: #"[=+\-*/^(){}\[\]≤≥≠±√∫π∞]"#, options: .regularExpression) != nil {
+        return true
+    }
+    let lower = candidate.lowercased()
+    return lower.contains("lim") || lower.contains("sin") || lower.contains("cos")
+        || lower.contains("tan") || lower.contains("ln") || lower.contains("log")
+}
+
+private func splitLessonFormulaLine(_ line: String) -> (label: String?, formula: String?, note: String?) {
+    let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+    let splitSource = sanitizeLessonFormulaContent(trimmed)
+
+    guard let range = splitSource.formula.range(of: ":") else {
+        if containsProseWords(splitSource.formula) {
+            return (nil, nil, splitSource.note.map { splitSource.formula + " " + $0 } ?? splitSource.formula)
+        }
+        return (nil, splitSource.formula, splitSource.note)
+    }
+
+    let left = String(splitSource.formula[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+    let right = String(splitSource.formula[range.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !left.isEmpty, !right.isEmpty, looksLikeInlineMath(right) else {
+        if containsProseWords(splitSource.formula) {
+            return (nil, nil, splitSource.note.map { splitSource.formula + " " + $0 } ?? splitSource.formula)
+        }
+        return (nil, splitSource.formula, splitSource.note)
+    }
+
+    if containsProseWords(right) {
+        return (left + ":", nil, splitSource.note.map { right + " " + $0 } ?? right)
+    }
+
+    return (left + ":", right, splitSource.note)
+}
+
+private func sanitizeLessonFormulaContent(_ text: String) -> (formula: String, note: String?) {
+    var formula = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    var notes: [String] = []
+
+    if let range = formula.range(of: #"\s*(?:→|⇒|->)\s*([A-Za-z][A-Za-z \-]+\.?)$"#, options: .regularExpression) {
+        let note = String(formula[range.lowerBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        if !note.isEmpty {
+            notes.append(note)
+        }
+        formula = String(formula[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    if let range = formula.range(of: #"\(([A-Za-z][A-Za-z \-]+)\)\s*$"#, options: .regularExpression) {
+        let note = String(formula[range.lowerBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        if !note.isEmpty {
+            notes.append(note)
+        }
+        formula = String(formula[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    let note = notes.isEmpty ? nil : notes.joined(separator: " ")
+    return (formula.isEmpty ? text : formula, note)
+}
+
+private func containsProseWords(_ text: String) -> Bool {
+    let lower = text.lowercased()
+    guard let regex = try? NSRegularExpression(pattern: #"\b[a-z]{3,}\b"#) else {
+        return false
+    }
+    let range = NSRange(lower.startIndex..<lower.endIndex, in: lower)
+    let matches = regex.matches(in: lower, range: range).compactMap { match -> String? in
+        guard let matchRange = Range(match.range, in: lower) else { return nil }
+        return String(lower[matchRange])
+    }
+    let allowed: Set<String> = [
+        "sin", "cos", "tan", "log", "lim", "mod", "gcd", "lcm"
+    ]
+    return matches.contains { !allowed.contains($0) }
+}
+
+private func normalizeLessonLatex(_ raw: String) -> String {
+    var value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    if value.isEmpty { return "" }
+
+    value = value.replacingOccurrences(of: "−", with: "-")
+    value = value.replacingOccurrences(of: "×", with: " \\times ")
+    value = value.replacingOccurrences(of: "÷", with: " \\div ")
+    value = value.replacingOccurrences(of: "π", with: "\\pi")
+    value = value.replacingOccurrences(of: "²", with: "^2")
+    value = value.replacingOccurrences(of: "³", with: "^3")
+    value = value.replacingOccurrences(of: "≤", with: "\\le")
+    value = value.replacingOccurrences(of: "≥", with: "\\ge")
+    value = value.replacingOccurrences(of: "≠", with: "\\ne")
+    value = value.replacingOccurrences(of: "±", with: "\\pm")
+    value = value.replacingOccurrences(of: "∞", with: "\\infty")
+    value = value.replacingOccurrences(of: "ℝ", with: "\\mathbb{R}")
+    value = value.replacingOccurrences(of: "ℤ", with: "\\mathbb{Z}")
+    value = value.replacingOccurrences(of: "ℚ", with: "\\mathbb{Q}")
+    value = value.replacingOccurrences(of: "ℕ", with: "\\mathbb{N}")
+    value = value.replacingOccurrences(of: "⇔", with: "\\Leftrightarrow")
+    value = value.replacingOccurrences(of: "⇒", with: "\\Rightarrow")
+    value = value.replacingOccurrences(of: "→", with: "\\to")
+    value = value.replacingOccurrences(of: "∈", with: "\\in")
+    value = value.replacingOccurrences(of: "∉", with: "\\notin")
+
+    value = value.replacingOccurrences(of: #"\bpi\b"#, with: "\\pi", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"√\s*([A-Za-z0-9\(\)\+\-]+)"#, with: "\\sqrt{$1}", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(?<!\\)\b([A-Za-z0-9]+)\s*/\s*([A-Za-z0-9]+)\b"#, with: "\\frac{$1}{$2}", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(?<!\\)\b([A-Za-z])\s*\^\s*([0-9A-Za-z\+\-]+)\b"#, with: "$1^{$2}", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"\s{2,}"#, with: " ", options: .regularExpression)
+    value = value.trimmingCharacters(in: .whitespacesAndNewlines)
+
+    if !value.contains("\\displaystyle") {
+        value = "\\displaystyle \\large " + value
+    }
+
+    return value
+}
+
+private func lessonMathHTML(latex: String, displayMode: Bool) -> String {
+    let escaped = escapeLessonHTML(latex)
+    let math = displayMode ? "\\[\(escaped)\\]" : "\\(\(escaped)\\)"
+    let horizontalOverflow = displayMode ? "auto" : "visible"
+    let whiteSpace = "normal"
+    let displayContainer = "block"
+    let containerWidth = "100%"
+
+    return """
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+      <script>
+        window.MathJax = {
+          tex: { inlineMath: [['\\\\(', '\\\\)']], displayMath: [['\\\\[', '\\\\]']] },
+          svg: { fontCache: 'none', linebreaks: { automatic: true, width: 'container' } }
+        };
+      </script>
+      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+      <style>
+        html, body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          background: transparent;
+          overflow: visible;
+        }
+        body {
+          text-align: center;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .math-wrap {
+          display: block;
+          width: 100%;
+          text-align: center;
+          padding: 6px 0;
+          font-size: \(displayMode ? "1.26rem" : "1.02rem");
+          line-height: 1.35;
+          overflow-x: \(horizontalOverflow);
+          overflow-y: hidden;
+          box-sizing: border-box;
+          white-space: \(whiteSpace);
+        }
+        mjx-container {
+          margin: 0 !important;
+          overflow: visible !important;
+        }
+        mjx-container[display="true"] {
+          display: \(displayContainer) !important;
+          width: \(containerWidth) !important;
+          min-width: \(containerWidth) !important;
+          text-align: center !important;
+        }
+        svg {
+          max-width: none !important;
+          height: auto !important;
+          overflow: visible !important;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="math-wrap">\(math)</div>
+    </body>
+    </html>
+    """
+}
+
+private func escapeLessonHTML(_ string: String) -> String {
+    string
+        .replacingOccurrences(of: "&", with: "&amp;")
+        .replacingOccurrences(of: "<", with: "&lt;")
+        .replacingOccurrences(of: ">", with: "&gt;")
+        .replacingOccurrences(of: "\"", with: "&quot;")
+        .replacingOccurrences(of: "'", with: "&#39;")
 }
 
 private func renderInlineBold(_ text: String) -> Text {

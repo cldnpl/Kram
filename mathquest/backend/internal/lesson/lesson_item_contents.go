@@ -1834,7 +1834,7 @@ x²/4 − y²/9 = 1  ⇒  a=2, b=3.  Asymptotes: y = ±(3/2)x.
 		Category: "Differential Calculus",
 		Intro: `**Limits** describe the value a function **approaches** as the variable approaches a point (or ±∞). **Finite** limits (lim_{x→a} f(x) = L) and **infinite** limits (vertical asymptotes), **indeterminate forms** (0/0, ∞/∞, etc.) and how to resolve them, and **asymptotes** (vertical, horizontal, oblique) are the main topics.
 
-[DIAGRAM:limits-graph]`,
+`,
 	},
 	"20-0": {
 		Title:    "Finite and infinite limits",
@@ -1854,7 +1854,7 @@ At infinity: lim_{x→±∞} f(x) = L (horizontal asymptote y = L).
 lim_{x→+∞} 1/x = 0.  lim_{x→0⁺} 1/x = +∞,  lim_{x→0⁻} 1/x = −∞.
 [/BOX]
 
-[DIAGRAM:limits-graph]`,
+[IMAGE:finiteAndInfiniteLimits.png]`,
 	},
 	"20-1": {
 		Title:    "Indeterminate forms",
@@ -1872,7 +1872,7 @@ lim_{x→+∞} 1/x = 0.  lim_{x→0⁺} 1/x = +∞,  lim_{x→0⁻} 1/x = −∞
 lim_{x→0} (sin x)/x = 1
 [/BOX]
 
-[DIAGRAM:limits-graph]`,
+[IMAGE:indeterminateForms.png]`,
 	},
 	"20-2": {
 		Title:    "Asymptotes",
@@ -1893,14 +1893,14 @@ Oblique: y = mx + q with m = lim f(x)/x, q = lim (f(x)−mx)
 f(x) = (2x+1)/x = 2 + 1/x.  Horizontal: y = 2.  Vertical: x = 0.
 [/BOX]
 
-[DIAGRAM:limits-graph]`,
+[IMAGE:asymptotes.png]`,
 	},
 	"21": {
 		Title:    "The Derivative Concept",
 		Category: "Differential Calculus",
 		Intro: `The **derivative** of f at x is the **instantaneous rate of change** of f and the **slope of the tangent line** to the graph at (x, f(x)). It is defined as the limit of the **difference quotient** [f(x+h)−f(x)]/h as h→0. You will see the **difference quotient** and the **geometric meaning** (tangent slope).
 
-[DIAGRAM:derivative-tangent]`,
+`,
 	},
 	"21-0": {
 		Title:    "Difference quotient",
@@ -1920,14 +1920,14 @@ Derivative: f'(x) = lim_{h→0} [f(x+h) − f(x)]/h
 f(x)=x²: [(x+h)²−x²]/h = 2x+h  →  f'(x)=2x
 [/BOX]
 
-[DIAGRAM:derivative-tangent]`,
+[IMAGE:differenceQuotient.jpg]`,
 	},
 	"21-1": {
 		Title:    "Geometric meaning",
 		Category: "Differential Calculus",
 		Intro: `**Geometrically**, **f'(x₀)** is the **slope of the tangent line** to the graph of y = f(x) at the point **(x₀, f(x₀))**. The tangent line is the limit of secant lines through (x₀, f(x₀)) and (x₀+h, f(x₀+h)) as h→0; its slope is exactly f'(x₀). So the **equation of the tangent line** at x₀ is **y − f(x₀) = f'(x₀)(x − x₀)**, or **y = f(x₀) + f'(x₀)(x − x₀)**.
 
-[DIAGRAM:derivative-tangent]
+[IMAGE:geometricMeaning.png]
 
 **Interpretation:** f'(x) > 0 means the function is **increasing** (locally); f'(x) < 0 means **decreasing**; f'(x) = 0 often indicates a **critical point** (max, min, or saddle). The derivative also gives **instantaneous velocity** when f is position.
 
@@ -1946,7 +1946,7 @@ f(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y 
 		Category: "Differential Calculus",
 		Intro: `**Differentiation rules** let you compute derivatives without using the limit definition every time: **power rule** (xⁿ)' = n·xⁿ⁻¹, **product rule** (fg)' = f'g + fg', **quotient rule** (f/g)' = (f'g − fg')/g², and **chain rule** for compositions: (f(g(x)))' = f'(g(x))·g'(x).
 
-[DIAGRAM:derivatives-table]`,
+`,
 	},
 	"22-0": {
 		Title:    "Power rule",
@@ -1960,7 +1960,7 @@ f(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y 
 (xⁿ)' = n·xⁿ⁻¹   (n real, x > 0 if n not integer)
 [/BOX]
 
-[DIAGRAM:derivatives-table]
+[IMAGE:powerRule.png]
 
 [BOX]
 **Examples**
@@ -1984,7 +1984,7 @@ f(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y 
 (x²eˣ)' = 2x·eˣ + x²·eˣ = eˣ(2x + x²)
 [/BOX]
 
-[DIAGRAM:derivatives-table]`,
+[IMAGE:productRule.png]`,
 	},
 	"22-2": {
 		Title:    "Quotient rule",
@@ -2003,7 +2003,7 @@ f(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y 
 (1/x)' = −1/x².  Or (x/(x²+1))' = (1·(x²+1) − x·2x)/(x²+1)² = (1−x²)/(x²+1)².
 [/BOX]
 
-[DIAGRAM:derivatives-table]`,
+[IMAGE:quotientRule.webp]`,
 	},
 	"22-3": {
 		Title:    "Chain rule",
@@ -2022,21 +2022,21 @@ f(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y 
 (e^(x²))' = e^(x²)·2x.  (sin(2x))' = cos(2x)·2.
 [/BOX]
 
-[DIAGRAM:derivatives-table]`,
+[IMAGE:chainRule.png]`,
 	},
 	"23": {
 		Title:    "Function Study",
 		Category: "Differential Calculus",
 		Intro: `Using the **first derivative** you find **critical points** (f'(x)=0 or f' undefined) and **intervals of increase/decrease**. **Local maxima and minima** occur at critical points (first derivative test: sign change of f'). Using the **second derivative** you study **concavity** and **points of inflection** (where concavity changes).
 
-[DIAGRAM:critical-points]`,
+`,
 	},
 	"23-0": {
 		Title:    "Maxima and Minima",
 		Category: "Differential Calculus",
 		Intro: `**Critical points** are where **f'(x) = 0** or **f'** is **undefined** (but f is defined). **Local maxima** and **minima** can only occur at critical points or at endpoints of the domain. **First derivative test:** On an interval, if **f'** changes from **positive to negative** at a critical point, that point is a **local maximum**; if **f'** changes from **negative to positive**, it is a **local minimum**. If f' does not change sign, the critical point is a **saddle** (neither max nor min).
 
-[DIAGRAM:critical-points]
+[IMAGE:maximaAndMinima.png]
 
 **Second derivative test:** If f'(c)=0 and **f''(c) < 0**, then c is a local **maximum**; if **f''(c) > 0**, c is a local **minimum**. If f''(c)=0 the test is inconclusive.
 
@@ -2067,7 +2067,7 @@ Inflection: concavity changes  ⇔  f'' changes sign (typically f''(c)=0).
 f(x)=x³: f''(x)=6x.  At x=0, f'' changes from − to + ⇒ inflection at (0,0).
 [/BOX]
 
-[DIAGRAM:critical-points]`,
+[IMAGE:pointsOfInflections.png]`,
 	},
 
 	// ----------------
@@ -2078,7 +2078,7 @@ f(x)=x³: f''(x)=6x.  At x=0, f'' changes from − to + ⇒ inflection at (0,0).
 		Category: "Integral Calculus",
 		Intro: `**Indefinite integrals** represent **antiderivatives** (primitive functions): **∫ f(x) dx = F(x) + C** where **F'(x) = f(x)** and **C** is an arbitrary constant. You will see **primitive functions** (F such that F' = f) and **immediate** integration rules (power rule, 1/x, eˣ, sin/cos).
 
-[DIAGRAM:primitive]`,
+`,
 	},
 	"24-0": {
 		Title:    "Primitive functions",
@@ -2097,7 +2097,7 @@ F is a primitive of f if F'(x) = f(x).  ∫ f(x) dx = F(x) + C.
 f(x)=2x  ⇒  F(x)=x² (since (x²)'=2x).  So ∫ 2x dx = x² + C.
 [/BOX]
 
-[DIAGRAM:primitive]`,
+[IMAGE:primitiveFunctions.svg]`,
 	},
 	"24-1": {
 		Title:    "Immediate integration rules",
@@ -2117,14 +2117,14 @@ f(x)=2x  ⇒  F(x)=x² (since (x²)'=2x).  So ∫ 2x dx = x² + C.
 ∫ (3x² + 2x + 1) dx = x³ + x² + x + C
 [/BOX]
 
-[DIAGRAM:primitive]`,
+[IMAGE:integrationRules.png]`,
 	},
 	"25": {
 		Title:    "Integration Methods",
 		Category: "Integral Calculus",
 		Intro: `When the integrand is not a simple combination of immediate rules, use **integration by substitution** (reverse of the chain rule: set u = g(x), du = g'(x)dx) or **integration by parts** (from (uv)' = u'v + uv': ∫ u dv = uv − ∫ v du). These are the two main techniques for non-immediate integrals.
 
-[DIAGRAM:integral-area]`,
+`,
 	},
 	"25-0": {
 		Title:    "Integration by substitution",
@@ -2143,7 +2143,7 @@ u = g(x),  du = g'(x) dx  ⇒  ∫ f(g(x))·g'(x) dx = ∫ f(u) du
 ∫ 2x·e^(x²) dx.  u = x², du = 2x dx  ⇒  ∫ e^u du = e^u + C = e^(x²) + C
 [/BOX]
 
-[DIAGRAM:substitution]`,
+[IMAGE:integrationSubstitution.jpg]`,
 	},
 	"25-1": {
 		Title:    "Integration by parts",
@@ -2162,21 +2162,21 @@ u = g(x),  du = g'(x) dx  ⇒  ∫ f(g(x))·g'(x) dx = ∫ f(u) du
 ∫ x eˣ dx: u=x, dv=eˣ dx  ⇒  x eˣ − ∫ eˣ dx = eˣ(x−1) + C
 [/BOX]
 
-[DIAGRAM:parts]`,
+[IMAGE:integrationParts.png]`,
 	},
 	"26": {
 		Title:    "Definite Integrals",
 		Category: "Integral Calculus",
 		Intro: `**Definite integrals** **∫_a^b f(x) dx** represent the **signed area** between the graph of f and the x-axis from x = a to x = b (positive where f ≥ 0, negative where f ≤ 0). The **Fundamental Theorem of Calculus** says: if F is any antiderivative of f (F' = f), then **∫_a^b f(x) dx = F(b) − F(a)**. So you find a primitive F and evaluate at the endpoints.
 
-[DIAGRAM:integral-area]`,
+`,
 	},
 	"26-0": {
 		Title:    "Calculating the area under a curve",
 		Category: "Integral Calculus",
 		Intro: `The **definite integral** **∫_a^b f(x) dx** is the **signed** (net) area between the graph of **y = f(x)** and the **x-axis** over the interval [a, b]: area above the axis counts **positive**, below counts **negative**. If **f(x) ≥ 0** on [a, b], then ∫_a^b f(x) dx equals the **geometric** area of the region under the curve. If f takes both signs, the integral is the **difference** (area above minus area below).
 
-[DIAGRAM:integral-area]
+[IMAGE:areaUnderACurve.jpg]
 
 **Computation:** By the **FTC**, ∫_a^b f(x) dx = **F(b) − F(a)** where F is any antiderivative of f. So find F (indefinite integral), then plug in b and a and subtract. **Example:** ∫_0^1 x² dx = [x³/3]_0^1 = 1/3 − 0 = 1/3 (area under y = x² from 0 to 1).
 
@@ -2200,7 +2200,8 @@ So to compute a definite integral: (1) find **any** primitive F of f (indefinite
 
 [BOX]
 **FTC (Part 2)**
-∫_a^b f(x) dx = F(b) − F(a)   where F' = f
+∫_a^b f(x) dx = F(b) − F(a)
+F'(x) = f(x)
 [/BOX]
 
 [BOX]
@@ -2208,21 +2209,21 @@ So to compute a definite integral: (1) find **any** primitive F of f (indefinite
 ∫_0^1 x² dx = [x³/3]_0^1 = 1/3 − 0 = 1/3
 [/BOX]
 
-[DIAGRAM:integral-area]`,
+[IMAGE:fundamentalTheoremsofCalculus.png]`,
 	},
 	"27": {
 		Title:    "Applications",
 		Category: "Integral Calculus",
 		Intro: `**Applications** of integrals include **area** between curves, **volume** of solids of revolution (disk/washer method), arc length, work, and many physics/geometry problems. You will see **volumes** (e.g. rotation about the x-axis: V = π∫ (f(x))² dx) and **areas of plane figures** (area between y = f(x) and y = g(x) is ∫ (f − g) dx).
 
-[DIAGRAM:solids-of-revolution]`,
+`,
 	},
 	"27-0": {
 		Title:    "Calculation of volumes",
 		Category: "Integral Calculus",
 		Intro: `**Disk method** (solid of revolution): Rotate the region under **y = f(x)** (with f(x) ≥ 0) from x = a to x = b about the **x-axis**. Each vertical slice becomes a **disk** of radius f(x) and thickness dx; the volume is **V = π ∫_a^b (f(x))² dx**. **Washer method:** If the region is between **y = f(x)** and **y = g(x)** (with f ≥ g ≥ 0), rotation about the x-axis gives **V = π ∫_a^b [(f(x))² − (g(x))²] dx** (outer radius f, inner g).
 
-[DIAGRAM:solids-of-revolution]
+[IMAGE:calculationOfVolumes.jpg]
 
 **Cone:** Rotating the line y = (r/h)x from 0 to h about the x-axis gives a cone of radius r and height h: V = π ∫_0^h (r²/h²)x² dx = (1/3)πr²h.
 
@@ -2243,7 +2244,7 @@ y = (r/h)x on [0,h]: V = π ∫ (r²/h²)x² dx = (1/3)πr²h
 
 **Procedure:** (1) Find intersection points (solve f(x) = g(x)). (2) Determine which curve is on top on each interval. (3) Integrate (top − bottom) over each interval. (4) Add. **Example:** Between y = x and y = x² on [0,1]: x ≥ x², so A = ∫_0^1 (x − x²) dx = 1/2 − 1/3 = 1/6.
 
-[DIAGRAM:area-between-curves]
+[IMAGE:areasOfPlaneFigures.jpg]
 
 [BOX]
 **Formula (f ≥ g on [a,b])**

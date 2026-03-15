@@ -12,7 +12,7 @@ func getLessonDetail(id, lang string) (title, category string, content fiber.Map
 	if lesson, ok := lessonFromJSON(id, lang); ok {
 		title = lesson.Title
 		category = lesson.Category
-		content = fiber.Map{"intro": lesson.Intro}
+		content = fiber.Map{"intro": normalizeLessonIntro(lesson.Intro)}
 		exercises = make([]fiber.Map, 0, len(lesson.Exercises))
 		for _, ex := range lesson.Exercises {
 			exercises = append(exercises, fiber.Map{
@@ -32,7 +32,7 @@ func getLessonDetail(id, lang string) (title, category string, content fiber.Map
 
 	if c, ok := getContentByID(id, lang); ok {
 		title, category = c.Title, c.Category
-		content = fiber.Map{"intro": c.Intro}
+		content = fiber.Map{"intro": normalizeLessonIntro(c.Intro)}
 	} else {
 		title, category = "Lesson", "Math"
 		content = fiber.Map{"intro": "Content not available."}

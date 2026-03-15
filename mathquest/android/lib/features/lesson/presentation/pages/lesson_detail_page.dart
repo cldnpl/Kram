@@ -19,6 +19,7 @@ class LessonDetailPage extends StatefulWidget {
 }
 
 class _LessonDetailPageState extends State<LessonDetailPage> {
+  static const _lessonAccentColor = Color(0xFF6650A4);
   final DioClient _dio = DioClient();
   Map<String, dynamic>? _detail;
   bool _loading = true;
@@ -87,8 +88,6 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                           if (_detail!['content_json'] != null &&
                               _detail!['content_json'] is Map &&
                               (_detail!['content_json'] as Map).containsKey('intro')) ...[
-                            Text(AppLocale.tr('lesson'), style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 8),
                             Padding(
                               padding: const EdgeInsets.only(bottom: 16),
                               child: Column(
@@ -200,6 +199,28 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     '19-2': ['theParabola.jpg'],
     '19-3': ['theEllipse.png'],
     '19-4': ['theHyperbola.png'],
+    '20-0': ['finiteAndInfiniteLimits.png'],
+    '20-1': ['indeterminateForms.png'],
+    '20-2': ['asymptotes.png'],
+    '21-0': ['differenceQuotient.jpg'],
+    '21-1': ['geometricMeaning.png'],
+    '22-0': ['powerRule.png'],
+    '22-1': ['productRule.png'],
+    '22-2': ['quotientRule.webp'],
+    '22-3': ['chainRule.png'],
+    '23-0': ['maximaAndMinima.png'],
+    '23-1': ['pointsOfInflections.png'],
+    '24-0': ['primitiveFunctions.svg'],
+    '24-1': ['integrationRules.png'],
+    '25-0': ['integrationSubstitution.jpg'],
+    '25-1': ['integrationParts.png'],
+    '26-0': ['areaUnderACurve.jpg'],
+    '26-1': ['fundamentalTheoremsofCalculus.png'],
+    '27-0': ['calculationOfVolumes.jpg'],
+    '27-1': ['areasOfPlaneFigures.jpg'],
+  };
+  static const Set<String> _lessonsWithoutReplacementImages = {
+    '16-1', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27',
   };
 
   List<Widget> _buildIntroBlocks(String intro) {
@@ -222,7 +243,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
           for (final paragraph in _paragraphsFromText(text)) {
             blocks.add(Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+              child: _LessonParagraph(text: paragraph),
             ));
           }
         }
@@ -237,7 +258,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
           for (final paragraph in _paragraphsFromText(textBefore)) {
             blocks.add(Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+              child: _LessonParagraph(text: paragraph),
             ));
           }
         }
@@ -262,7 +283,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
           for (final paragraph in _paragraphsFromText(textBefore)) {
             blocks.add(Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+              child: _LessonParagraph(text: paragraph),
             ));
           }
         }
@@ -286,7 +307,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
         for (final paragraph in _paragraphsFromText(textBefore)) {
           blocks.add(Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _buildTextWithBold(context, paragraph, Theme.of(context).textTheme.bodyLarge!),
+            child: _LessonParagraph(text: paragraph),
           ));
         }
       }
@@ -297,7 +318,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
         if (remaining.trim().isNotEmpty) {
           blocks.add(Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: _buildTextWithBold(context, remaining.trim(), Theme.of(context).textTheme.bodyLarge!),
+            child: _LessonParagraph(text: remaining.trim()),
           ));
         }
         break;
@@ -343,16 +364,11 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 4),
                         child: isFormula
-                            ? Text(
-                                line,
-                                style: baseStyle.copyWith(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'monospace',
-                                  color: textColor,
-                                ),
+                            ? _LessonFormulaLine(
+                                text: line,
+                                accentColor: textColor,
                               )
-                            : _buildTextWithBold(context, line, baseStyle),
+                            : _LessonParagraph(text: line, baseStyle: baseStyle),
                       );
                     })
                     .toList(),
@@ -371,26 +387,30 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
 
   String _normalizeLegacyDiagramReplacements(String lessonId, String intro) {
     final imageNames = _legacyLessonImages[lessonId];
-    if (imageNames == null || imageNames.isEmpty) return intro;
-    if (intro.contains('[IMAGE:')) return intro;
+    final shouldStripOnly = _lessonsWithoutReplacementImages.contains(lessonId);
+    if ((imageNames == null || imageNames.isEmpty) && !shouldStripOnly) return intro;
 
-    final replacement = imageNames.map((name) => '[IMAGE:$name]').join('\n\n');
-    if (intro.contains('[DIAGRAM:')) {
-      return intro.replaceAll(RegExp(r'\[DIAGRAM:[^\]]+\]'), replacement);
-    }
+    final stripped = _stripLessonMediaMarkers(intro);
+    if (shouldStripOnly) return stripped;
 
-    final boxIndex = intro.indexOf('[BOX]');
+    final replacement = imageNames!.map((name) => '[IMAGE:$name]').join('\n\n');
+    final boxIndex = stripped.indexOf('[BOX]');
     if (boxIndex != -1) {
-      final before = intro.substring(0, boxIndex).trimRight();
-      final after = intro.substring(boxIndex);
+      final before = stripped.substring(0, boxIndex).trimRight();
+      final after = stripped.substring(boxIndex);
       if (before.isEmpty) {
         return '$replacement\n\n$after';
       }
       return '$before\n\n$replacement\n\n$after';
     }
 
-    final trimmed = intro.trim();
+    final trimmed = stripped.trim();
     return trimmed.isEmpty ? replacement : '$trimmed\n\n$replacement';
+  }
+
+  String _stripLessonMediaMarkers(String intro) {
+    final stripped = intro.replaceAll(RegExp(r'\n?\n?\[(?:IMAGE|DIAGRAM):[^\]]+\]'), '');
+    return stripped.replaceAll(RegExp(r'\n{3,}'), '\n\n');
   }
 
   String _normalizeIntroImagePlacement(String intro) {
@@ -487,31 +507,62 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
   }
 
   List<String> _paragraphsFromText(String text) {
-    final normalized = text.replaceAll('\r\n', '\n');
+    final blocks = _normalizeLessonDisplayText(text)
+        .split('\n\n')
+        .map((block) => block.trim())
+        .where((block) => block.isNotEmpty);
     final out = <String>[];
 
-    for (final rawLine in normalized.split('\n')) {
-      final line = rawLine.trim();
-      if (line.isEmpty) continue;
+    for (final block in blocks) {
+      final lines = block
+          .split('\n')
+          .map((line) => line.trim())
+          .where((line) => line.isNotEmpty)
+          .toList();
+      if (lines.isEmpty) continue;
 
-      if (_isBulletLikeLine(line) || _isStandaloneHeading(line)) {
-        out.add(line);
-        continue;
-      }
-
-      final headingSplit = _splitLeadingBoldHeading(line);
-      if (headingSplit != null) {
-        out.add(headingSplit[0]);
-        if (headingSplit[1].isNotEmpty) {
-          out.addAll(_splitBySentence(headingSplit[1]));
+      final current = <String>[];
+      void flushCurrent() {
+        final joined = current.join(' ').trim();
+        if (joined.isNotEmpty) {
+          out.add(joined);
         }
-        continue;
+        current.clear();
       }
 
-      out.addAll(_splitBySentence(line));
+      for (final line in lines) {
+        if (_isBulletLikeLine(line) || _isStandaloneHeading(line)) {
+          flushCurrent();
+          out.add(line);
+          continue;
+        }
+
+        final headingSplit = _splitLeadingBoldHeading(line);
+        if (headingSplit != null) {
+          flushCurrent();
+          out.add(headingSplit[1].isEmpty ? headingSplit[0] : '${headingSplit[0]} ${headingSplit[1]}');
+          continue;
+        }
+
+        current.add(line);
+      }
+
+      flushCurrent();
     }
 
     return out;
+  }
+
+  String _normalizeLessonDisplayText(String text) {
+    var normalized = text
+        .replaceAll('\r\n', '\n')
+        .replaceAll('(BOX)', '')
+        .replaceAll('(/BOX)', '');
+    normalized = normalized.replaceAllMapped(
+      RegExp(r'(^|[ \t])(\\n|/n)(?=[ \t]*$)', multiLine: true),
+      (match) => '${match.group(1) ?? ''}\n',
+    );
+    return normalized.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
   }
 
   bool _isBulletLikeLine(String line) {
@@ -584,6 +635,406 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       text: TextSpan(style: baseStyle.copyWith(color: color), children: spans),
     );
   }
+}
+
+class _LessonParagraph extends StatelessWidget {
+  const _LessonParagraph({required this.text, this.baseStyle});
+
+  final String text;
+  final TextStyle? baseStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = (baseStyle ?? Theme.of(context).textTheme.bodyLarge!).copyWith(height: 1.45);
+    return Center(
+      child: RichText(
+        textAlign: TextAlign.center,
+        text: _buildLessonParagraphSpan(
+          text,
+          style.copyWith(
+            color: Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _LessonFormulaLine extends StatelessWidget {
+  const _LessonFormulaLine({required this.text, required this.accentColor});
+
+  final String text;
+  final Color accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final split = _splitLessonFormulaLine(text);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (split.label != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: _BoldText(
+              text: split.label!,
+              baseStyle: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                    color: _LessonDetailPageState._lessonAccentColor,
+                  ),
+            ),
+          ),
+        if (split.formula != null)
+          _LessonMathBlock(
+            latex: _normalizeLessonLatex(split.formula!),
+            displayMode: true,
+            minHeight: 64,
+          ),
+        if (split.note != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              split.note!,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _BoldText extends StatelessWidget {
+  const _BoldText({required this.text, required this.baseStyle});
+
+  final String text;
+  final TextStyle baseStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final spans = <TextSpan>[];
+    final parts = text.split('**');
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].isEmpty) continue;
+      spans.add(TextSpan(
+        text: parts[i],
+        style: i.isOdd ? baseStyle.copyWith(fontWeight: FontWeight.bold) : baseStyle,
+      ));
+    }
+
+    return RichText(
+      text: TextSpan(
+        style: baseStyle.copyWith(
+          color: Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+        ),
+        children: spans,
+      ),
+    );
+  }
+}
+
+class _LessonMathBlock extends StatefulWidget {
+  const _LessonMathBlock({
+    required this.latex,
+    required this.displayMode,
+    required this.minHeight,
+  });
+
+  final String latex;
+  final bool displayMode;
+  final double minHeight;
+
+  @override
+  State<_LessonMathBlock> createState() => _LessonMathBlockState();
+}
+
+class _LessonMathBlockState extends State<_LessonMathBlock> {
+  late final WebViewController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadHtmlString(_lessonMathHtml(widget.latex, widget.displayMode));
+  }
+
+  @override
+  void didUpdateWidget(covariant _LessonMathBlock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.latex != widget.latex || oldWidget.displayMode != widget.displayMode) {
+      _controller.loadHtmlString(_lessonMathHtml(widget.latex, widget.displayMode));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(minHeight: widget.minHeight, maxHeight: widget.displayMode ? 132 : 56),
+      child: WebViewWidget(controller: _controller),
+    );
+  }
+}
+
+class _LessonFormulaSplit {
+  const _LessonFormulaSplit({this.label, required this.formula, this.note});
+
+  final String? label;
+  final String? formula;
+  final String? note;
+}
+
+bool _looksLikeInlineMath(String text) {
+  final candidate = text.trim();
+  if (candidate.isEmpty) return false;
+  if (RegExp(r'[=+\-*/^(){}\[\]≤≥≠±√∫π∞]').hasMatch(candidate)) {
+    return true;
+  }
+  final lower = candidate.toLowerCase();
+  return lower.contains('lim') ||
+      lower.contains('sin') ||
+      lower.contains('cos') ||
+      lower.contains('tan') ||
+      lower.contains('ln') ||
+      lower.contains('log');
+}
+
+_LessonFormulaSplit _splitLessonFormulaLine(String text) {
+  final trimmed = text.trim();
+  final sanitized = _sanitizeLessonFormulaContent(trimmed);
+  final formulaSource = sanitized.formula ?? trimmed;
+  final index = formulaSource.indexOf(':');
+  if (index == -1) {
+    if (_containsProseWords(formulaSource)) {
+      return _LessonFormulaSplit(
+        formula: null,
+        note: sanitized.note == null ? formulaSource : '$formulaSource ${sanitized.note!}',
+      );
+    }
+    return _LessonFormulaSplit(formula: formulaSource, note: sanitized.note);
+  }
+
+  final left = formulaSource.substring(0, index).trim();
+  final right = formulaSource.substring(index + 1).trim();
+  if (left.isEmpty || right.isEmpty || !_looksLikeInlineMath(right)) {
+    if (_containsProseWords(formulaSource)) {
+      return _LessonFormulaSplit(
+        formula: null,
+        note: sanitized.note == null ? formulaSource : '$formulaSource ${sanitized.note!}',
+      );
+    }
+    return _LessonFormulaSplit(formula: formulaSource, note: sanitized.note);
+  }
+
+  if (_containsProseWords(right)) {
+    return _LessonFormulaSplit(
+      label: '$left:',
+      formula: null,
+      note: sanitized.note == null ? right : '$right ${sanitized.note!}',
+    );
+  }
+
+  return _LessonFormulaSplit(label: '$left:', formula: right, note: sanitized.note);
+}
+
+_LessonFormulaSplit _sanitizeLessonFormulaContent(String text) {
+  var formula = text.trim();
+  final notes = <String>[];
+
+  final arrowMatch = RegExp(r'\s*(?:→|⇒|->)\s*([A-Za-z][A-Za-z \-]+\.?)$').firstMatch(formula);
+  if (arrowMatch != null) {
+    notes.add(formula.substring(arrowMatch.start).trim());
+    formula = formula.substring(0, arrowMatch.start).trim();
+  }
+
+  final parenMatch = RegExp(r'\(([A-Za-z][A-Za-z \-]+)\)\s*$').firstMatch(formula);
+  if (parenMatch != null) {
+    notes.add(formula.substring(parenMatch.start).trim());
+    formula = formula.substring(0, parenMatch.start).trim();
+  }
+
+  return _LessonFormulaSplit(
+    formula: formula.isEmpty ? text.trim() : formula,
+    note: notes.isEmpty ? null : notes.join(' '),
+  );
+}
+
+bool _containsProseWords(String text) {
+  final matches = RegExp(r'\b[a-z]{3,}\b', caseSensitive: false)
+      .allMatches(text)
+      .map((match) => match.group(0)!.toLowerCase());
+  const allowed = {'sin', 'cos', 'tan', 'log', 'lim', 'mod', 'gcd', 'lcm'};
+  return matches.any((word) => !allowed.contains(word));
+}
+
+TextSpan _buildLessonParagraphSpan(String text, TextStyle baseStyle) {
+  final parts = text.split('**');
+  final children = <InlineSpan>[];
+
+  for (var i = 0; i < parts.length; i++) {
+    final trimmed = parts[i].trim();
+    if (parts[i].isEmpty) continue;
+    final rendered = trimmed.isNotEmpty && _looksLikeInlineMath(trimmed)
+        ? parts[i].replaceFirst(trimmed, _prettifyLessonInlineMath(trimmed))
+        : _prettifyLessonTextContent(parts[i]);
+    children.add(
+      TextSpan(
+        text: rendered,
+        style: i.isOdd
+            ? baseStyle.copyWith(
+                fontWeight: FontWeight.bold,
+                color: _LessonDetailPageState._lessonAccentColor,
+              )
+            : baseStyle,
+      ),
+    );
+  }
+
+  if (children.isEmpty) {
+    return TextSpan(text: text, style: baseStyle);
+  }
+
+  return TextSpan(style: baseStyle, children: children);
+}
+
+String _prettifyLessonInlineMath(String text) {
+  return _prettifyLessonTextContent(text).replaceAll('*', '×');
+}
+
+String _prettifyLessonTextContent(String text) {
+  var value = text
+      .replaceAll(r'\pi', 'π')
+      .replaceAll('pi', 'π')
+      .replaceAll('∫_', '∫');
+
+  value = value.replaceAllMapped(
+    RegExp(r'∫([A-Za-z0-9+\-]+)\^([A-Za-z0-9+\-]+)'),
+    (match) => '∫${_lessonSubscript(match.group(1)!)}${_lessonSuperscript(match.group(2)!)}',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'\]_([A-Za-z0-9+\-]+)\^([A-Za-z0-9+\-]+)'),
+    (match) => ']${_lessonSubscript(match.group(1)!)}${_lessonSuperscript(match.group(2)!)}',
+  );
+  value = value.replaceAll(' e^x', ' eˣ');
+  return value;
+}
+
+String _lessonSubscript(String text) {
+  const map = {
+    '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
+    'a': 'ₐ', 'e': 'ₑ', 'h': 'ₕ', 'i': 'ᵢ', 'j': 'ⱼ', 'k': 'ₖ', 'l': 'ₗ', 'm': 'ₘ', 'n': 'ₙ',
+    'o': 'ₒ', 'p': 'ₚ', 'r': 'ᵣ', 's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ', 'v': 'ᵥ', 'x': 'ₓ', '+': '₊', '-': '₋', '=': '₌',
+  };
+  return text.split('').map((char) => map[char] ?? char).join();
+}
+
+String _lessonSuperscript(String text) {
+  const map = {
+    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
+    'a': 'ᵃ', 'b': 'ᵇ', 'c': 'ᶜ', 'd': 'ᵈ', 'e': 'ᵉ', 'f': 'ᶠ', 'g': 'ᵍ', 'h': 'ʰ', 'i': 'ⁱ', 'j': 'ʲ',
+    'k': 'ᵏ', 'l': 'ˡ', 'm': 'ᵐ', 'n': 'ⁿ', 'o': 'ᵒ', 'p': 'ᵖ', 'r': 'ʳ', 's': 'ˢ', 't': 'ᵗ',
+    'u': 'ᵘ', 'v': 'ᵛ', 'w': 'ʷ', 'x': 'ˣ', '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾',
+  };
+  return text.split('').map((char) => map[char] ?? char).join();
+}
+
+String _normalizeLessonLatex(String raw) {
+  var value = raw.trim();
+  if (value.isEmpty) return '';
+
+  value = value
+      .replaceAll('−', '-')
+      .replaceAll('×', r' \times ')
+      .replaceAll('÷', r' \div ')
+      .replaceAll('π', r'\pi')
+      .replaceAll('²', '^2')
+      .replaceAll('³', '^3')
+      .replaceAll('≤', r'\le')
+      .replaceAll('≥', r'\ge')
+      .replaceAll('≠', r'\ne')
+      .replaceAll('±', r'\pm')
+      .replaceAll('∞', r'\infty')
+      .replaceAll('ℝ', r'\mathbb{R}')
+      .replaceAll('ℤ', r'\mathbb{Z}')
+      .replaceAll('ℚ', r'\mathbb{Q}')
+      .replaceAll('ℕ', r'\mathbb{N}')
+      .replaceAll('⇔', r'\Leftrightarrow')
+      .replaceAll('⇒', r'\Rightarrow')
+      .replaceAll('→', r'\to')
+      .replaceAll('∈', r'\in')
+      .replaceAll('∉', r'\notin');
+
+  value = value.replaceAllMapped(RegExp(r'\bpi\b'), (_) => r'\pi');
+  value = value.replaceAllMapped(RegExp(r'√\s*([A-Za-z0-9\(\)\+\-]+)'), (match) => r'\sqrt{${match.group(1)!}}');
+  value = value.replaceAllMapped(
+    RegExp(r'(?<!\\)\b([A-Za-z0-9]+)\s*/\s*([A-Za-z0-9]+)\b'),
+    (match) => r'\frac{${match.group(1)!}}{${match.group(2)!}}',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'(?<!\\)\b([A-Za-z])\s*\^\s*([0-9A-Za-z\+\-]+)\b'),
+    (match) => '${match.group(1)!}^{${match.group(2)!}}',
+  );
+  value = value.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
+
+  if (!value.contains(r'\displaystyle')) {
+    value = r'\displaystyle \large ' + value;
+  }
+
+  return value;
+}
+
+String _lessonMathHtml(String latex, bool displayMode) {
+  final escaped = const HtmlEscape(HtmlEscapeMode.element).convert(latex);
+  final math = displayMode ? r'\[' + escaped + r'\]' : r'\(' + escaped + r'\)';
+  final fontSize = displayMode ? '1.12rem' : '1.00rem';
+  final maxHeight = displayMode ? '132px' : '56px';
+
+  return '''
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <script>
+      window.MathJax = {
+        tex: { inlineMath: [['\\\\(', '\\\\)']], displayMath: [['\\\\[', '\\\\]']] },
+        svg: { fontCache: 'none', linebreaks: { automatic: true, width: 'container' } }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        overflow: hidden;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .math-wrap {
+        width: 100%;
+        text-align: center;
+        font-size: $fontSize;
+        line-height: 1.35;
+        overflow-x: ${displayMode ? 'auto' : 'hidden'};
+        overflow-y: hidden;
+        max-height: $maxHeight;
+      }
+      mjx-container {
+        margin: 0 !important;
+      }
+      svg {
+        max-width: none !important;
+        height: auto !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="math-wrap">$math</div>
+  </body>
+</html>
+''';
 }
 
 /// Fetches SVG from public URL then displays it in WebView as data to avoid encoding/load errors (red box).

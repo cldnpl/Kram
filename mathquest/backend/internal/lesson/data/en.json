@@ -4824,7 +4824,7 @@
       "id": "20",
       "title": "Limits & Continuity",
       "category": "Differential Calculus",
-      "intro": "**Limits** describe the value a function **approaches** as the variable approaches a point (or ±∞). **Finite** limits (lim_{x→a} f(x) = L) and **infinite** limits (vertical asymptotes), **indeterminate forms** (0/0, ∞/∞, etc.) and how to resolve them, and **asymptotes** (vertical, horizontal, oblique) are the main topics.\n\n[DIAGRAM:limits-graph]",
+      "intro": "**Limits** describe the value a function **approaches** as the variable approaches a point (or ±∞). **Finite** limits (lim_{x→a} f(x) = L) and **infinite** limits (vertical asymptotes), **indeterminate forms** (0/0, ∞/∞, etc.) and how to resolve them, and **asymptotes** (vertical, horizontal, oblique) are the main topics.",
       "exercises": [
         {
           "id": "20-e1",
@@ -4885,7 +4885,7 @@
       "id": "20-0",
       "title": "Finite and infinite limits",
       "category": "Differential Calculus",
-      "intro": "**lim_{x→a} f(x) = L** (finite) means: as x gets close to a (from either side), f(x) gets arbitrarily close to **L**. The limit does **not** depend on f(a); it only depends on the behavior **near** a. **One-sided limits:** **lim_{x→a⁺}** (right) and **lim_{x→a⁻}** (left); the (two-sided) limit exists and equals L if and only if both one-sided limits exist and equal L.\n\n**Infinite limits:** **lim_{x→a} f(x) = +∞** means f(x) grows without bound as x → a (e.g. lim_{x→0⁺} 1/x = +∞). So the line **x = a** is a **vertical asymptote**. **Limits at infinity:** **lim_{x→+∞} f(x) = L** means f(x) approaches L as x gets larger and larger (e.g. lim_{x→+∞} 1/x = 0). Then **y = L** is a **horizontal asymptote** (at +∞).\n\n[BOX]\n**Definitions**\nFinite: lim_{x→a} f(x) = L.  Infinite: f(x) → ±∞ (vertical asymptote x = a).\nAt infinity: lim_{x→±∞} f(x) = L (horizontal asymptote y = L).\n[/BOX]\n\n[BOX]\n**Examples**\nlim_{x→+∞} 1/x = 0.  lim_{x→0⁺} 1/x = +∞,  lim_{x→0⁻} 1/x = −∞.\n[/BOX]\n\n[DIAGRAM:limits-graph]",
+      "intro": "**lim_{x→a} f(x) = L** (finite) means: as x gets close to a (from either side), f(x) gets arbitrarily close to **L**. The limit does **not** depend on f(a); it only depends on the behavior **near** a. **One-sided limits:** **lim_{x→a⁺}** (right) and **lim_{x→a⁻}** (left); the (two-sided) limit exists and equals L if and only if both one-sided limits exist and equal L.\n\n**Infinite limits:** **lim_{x→a} f(x) = +∞** means f(x) grows without bound as x → a (e.g. lim_{x→0⁺} 1/x = +∞). So the line **x = a** is a **vertical asymptote**. **Limits at infinity:** **lim_{x→+∞} f(x) = L** means f(x) approaches L as x gets larger and larger (e.g. lim_{x→+∞} 1/x = 0). Then **y = L** is a **horizontal asymptote** (at +∞).\n\n[BOX]\n**Definitions**\nFinite: lim_{x→a} f(x) = L.  Infinite: f(x) → ±∞ (vertical asymptote x = a).\nAt infinity: lim_{x→±∞} f(x) = L (horizontal asymptote y = L).\n[/BOX]\n\n[BOX]\n**Examples**\nlim_{x→+∞} 1/x = 0.  lim_{x→0⁺} 1/x = +∞,  lim_{x→0⁻} 1/x = −∞.\n[/BOX]\n\n[IMAGE:finiteAndInfiniteLimits.png]",
       "exercises": [
         {
           "id": "20-0-e1",
@@ -4946,7 +4946,7 @@
       "id": "20-1",
       "title": "Indeterminate forms",
       "category": "Differential Calculus",
-      "intro": "Indeterminate forms require algebraic work because the “naive” substitution is ambiguous.\n\n**Forms:** 0/0, ∞/∞, 0·∞, ∞−∞, 1^∞. **Techniques:** factor and cancel, rationalize, known limits (e.g. lim (sin x)/x = 1), or L’Hôpital (limit f/g = limit f'/g' for 0/0 or ∞/∞).\n\n[BOX]\n**Known limit:** lim_{x→0} (sin x)/x = 1\n[/BOX]\n\n[BOX]\n**Example**\nlim_{x→0} (sin x)/x = 1\n[/BOX]\n\n[DIAGRAM:limits-graph]",
+      "intro": "Indeterminate forms require algebraic work because the “naive” substitution is ambiguous.\n\n**Forms:** 0/0, ∞/∞, 0·∞, ∞−∞, 1^∞. **Techniques:** factor and cancel, rationalize, known limits (e.g. lim (sin x)/x = 1), or L’Hôpital (limit f/g = limit f'/g' for 0/0 or ∞/∞).\n\n[BOX]\n**Known limit:** lim_{x→0} (sin x)/x = 1\n[/BOX]\n\n[BOX]\n**Example**\nlim_{x→0} (sin x)/x = 1\n[/BOX]\n\n[IMAGE:indeterminateForms.png]",
       "exercises": [
         {
           "id": "20-1-e1",
@@ -5007,7 +5007,7 @@
       "id": "20-2",
       "title": "Asymptotes",
       "category": "Differential Calculus",
-      "intro": "**Vertical asymptote** **x = a:** **lim_{x→a} f(x) = ±∞** (one or both one-sided limits are infinite). So the graph “blows up” near x = a. Typically a is where the **denominator** is zero (and numerator nonzero). **Horizontal asymptote** **y = L:** **lim_{x→+∞} f(x) = L** or **lim_{x→−∞} f(x) = L**. So the graph approaches the line y = L as x → ±∞. For rational functions, compare degrees of numerator and denominator: if degree(num) < degree(den), limit 0; if equal, limit = ratio of leading coefficients.\n\n**Oblique (slant) asymptote:** When lim_{x→±∞} f(x) = ±∞ but f(x)/x tends to a finite **m**, the line **y = mx + q** is an oblique asymptote if **q = lim (f(x) − mx)** (finite). So **m = lim f(x)/x** and **q = lim (f(x) − mx)** as x → ±∞.\n\n[BOX]\n**Rules**\nVertical: x = a if lim_{x→a} f(x) = ±∞\nHorizontal: y = L if lim_{x→±∞} f(x) = L\nOblique: y = mx + q with m = lim f(x)/x, q = lim (f(x)−mx)\n[/BOX]\n\n[BOX]\n**Example**\nf(x) = (2x+1)/x = 2 + 1/x.  Horizontal: y = 2.  Vertical: x = 0.\n[/BOX]\n\n[DIAGRAM:limits-graph]",
+      "intro": "**Vertical asymptote** **x = a:** **lim_{x→a} f(x) = ±∞** (one or both one-sided limits are infinite). So the graph “blows up” near x = a. Typically a is where the **denominator** is zero (and numerator nonzero). **Horizontal asymptote** **y = L:** **lim_{x→+∞} f(x) = L** or **lim_{x→−∞} f(x) = L**. So the graph approaches the line y = L as x → ±∞. For rational functions, compare degrees of numerator and denominator: if degree(num) < degree(den), limit 0; if equal, limit = ratio of leading coefficients.\n\n**Oblique (slant) asymptote:** When lim_{x→±∞} f(x) = ±∞ but f(x)/x tends to a finite **m**, the line **y = mx + q** is an oblique asymptote if **q = lim (f(x) − mx)** (finite). So **m = lim f(x)/x** and **q = lim (f(x) − mx)** as x → ±∞.\n\n[BOX]\n**Rules**\nVertical: x = a if lim_{x→a} f(x) = ±∞\nHorizontal: y = L if lim_{x→±∞} f(x) = L\nOblique: y = mx + q with m = lim f(x)/x, q = lim (f(x)−mx)\n[/BOX]\n\n[BOX]\n**Example**\nf(x) = (2x+1)/x = 2 + 1/x.  Horizontal: y = 2.  Vertical: x = 0.\n[/BOX]\n\n[IMAGE:asymptotes.png]",
       "exercises": [
         {
           "id": "20-2-e1",
@@ -5068,7 +5068,7 @@
       "id": "21",
       "title": "The Derivative Concept",
       "category": "Differential Calculus",
-      "intro": "The **derivative** of f at x is the **instantaneous rate of change** of f and the **slope of the tangent line** to the graph at (x, f(x)). It is defined as the limit of the **difference quotient** [f(x+h)−f(x)]/h as h→0. You will see the **difference quotient** and the **geometric meaning** (tangent slope).\n\n[DIAGRAM:derivative-tangent]",
+      "intro": "The **derivative** of f at x is the **instantaneous rate of change** of f and the **slope of the tangent line** to the graph at (x, f(x)). It is defined as the limit of the **difference quotient** [f(x+h)−f(x)]/h as h→0. You will see the **difference quotient** and the **geometric meaning** (tangent slope).",
       "exercises": [
         {
           "id": "21-e1",
@@ -5129,7 +5129,7 @@
       "id": "21-0",
       "title": "Difference quotient",
       "category": "Differential Calculus",
-      "intro": "The **difference quotient** is **[f(x+h) − f(x)] / h** (with **h ≠ 0**). It represents the **average rate of change** of f over the interval from x to x+h (slope of the **secant** line through (x, f(x)) and (x+h, f(x+h))). As **h → 0**, this average rate tends to the **instantaneous** rate of change at x — which is the **derivative** **f'(x)**. So **f'(x) = lim_{h→0} [f(x+h) − f(x)]/h**, provided the limit exists.\n\n**Example:** For f(x)=x², [f(x+h)−f(x)]/h = [(x+h)²−x²]/h = (2xh+h²)/h = 2x+h → **2x** as h→0. So (x²)' = 2x.\n\n[BOX]\n**Definition**\nDifference quotient: [f(x+h) − f(x)] / h\nDerivative: f'(x) = lim_{h→0} [f(x+h) − f(x)]/h\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x²: [(x+h)²−x²]/h = 2x+h  →  f'(x)=2x\n[/BOX]\n\n[DIAGRAM:derivative-tangent]",
+      "intro": "The **difference quotient** is **[f(x+h) − f(x)] / h** (with **h ≠ 0**). It represents the **average rate of change** of f over the interval from x to x+h (slope of the **secant** line through (x, f(x)) and (x+h, f(x+h))). As **h → 0**, this average rate tends to the **instantaneous** rate of change at x — which is the **derivative** **f'(x)**. So **f'(x) = lim_{h→0} [f(x+h) − f(x)]/h**, provided the limit exists.\n\n**Example:** For f(x)=x², [f(x+h)−f(x)]/h = [(x+h)²−x²]/h = (2xh+h²)/h = 2x+h → **2x** as h→0. So (x²)' = 2x.\n\n[BOX]\n**Definition**\nDifference quotient: [f(x+h) − f(x)] / h\nDerivative: f'(x) = lim_{h→0} [f(x+h) − f(x)]/h\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x²: [(x+h)²−x²]/h = 2x+h  →  f'(x)=2x\n[/BOX]\n\n[IMAGE:differenceQuotient.jpg]",
       "exercises": [
         {
           "id": "21-0-e1",
@@ -5190,7 +5190,7 @@
       "id": "21-1",
       "title": "Geometric meaning",
       "category": "Differential Calculus",
-      "intro": "**Geometrically**, **f'(x₀)** is the **slope of the tangent line** to the graph of y = f(x) at the point **(x₀, f(x₀))**. The tangent line is the limit of secant lines through (x₀, f(x₀)) and (x₀+h, f(x₀+h)) as h→0; its slope is exactly f'(x₀). So the **equation of the tangent line** at x₀ is **y − f(x₀) = f'(x₀)(x − x₀)**, or **y = f(x₀) + f'(x₀)(x − x₀)**.\n\n[DIAGRAM:derivative-tangent]\n\n**Interpretation:** f'(x) > 0 means the function is **increasing** (locally); f'(x) < 0 means **decreasing**; f'(x) = 0 often indicates a **critical point** (max, min, or saddle). The derivative also gives **instantaneous velocity** when f is position.\n\n[BOX]\n**Tangent line at x₀**\nSlope = f'(x₀).  Equation: y − f(x₀) = f'(x₀)(x − x₀)\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y = 2x − 1.\n[/BOX]",
+      "intro": "**Geometrically**, **f'(x₀)** is the **slope of the tangent line** to the graph of y = f(x) at the point **(x₀, f(x₀))**. The tangent line is the limit of secant lines through (x₀, f(x₀)) and (x₀+h, f(x₀+h)) as h→0; its slope is exactly f'(x₀). So the **equation of the tangent line** at x₀ is **y − f(x₀) = f'(x₀)(x − x₀)**, or **y = f(x₀) + f'(x₀)(x − x₀)**.\n\n[IMAGE:geometricMeaning.png]\n\n**Interpretation:** f'(x) > 0 means the function is **increasing** (locally); f'(x) < 0 means **decreasing**; f'(x) = 0 often indicates a **critical point** (max, min, or saddle). The derivative also gives **instantaneous velocity** when f is position.\n\n[BOX]\n**Tangent line at x₀**\nSlope = f'(x₀).  Equation: y − f(x₀) = f'(x₀)(x − x₀)\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x² ⇒ f'(x)=2x.  At x₀=1: slope = 2, tangent: y − 1 = 2(x−1) ⇒ y = 2x − 1.\n[/BOX]",
       "exercises": [
         {
           "id": "21-1-e1",
@@ -5251,7 +5251,7 @@
       "id": "22",
       "title": "Differentiation Rules",
       "category": "Differential Calculus",
-      "intro": "**Differentiation rules** let you compute derivatives without using the limit definition every time: **power rule** (xⁿ)' = n·xⁿ⁻¹, **product rule** (fg)' = f'g + fg', **quotient rule** (f/g)' = (f'g − fg')/g², and **chain rule** for compositions: (f(g(x)))' = f'(g(x))·g'(x).\n\n[DIAGRAM:derivatives-table]",
+      "intro": "**Differentiation rules** let you compute derivatives without using the limit definition every time: **power rule** (xⁿ)' = n·xⁿ⁻¹, **product rule** (fg)' = f'g + fg', **quotient rule** (f/g)' = (f'g − fg')/g², and **chain rule** for compositions: (f(g(x)))' = f'(g(x))·g'(x).",
       "exercises": [
         {
           "id": "22-e1",
@@ -5312,7 +5312,7 @@
       "id": "22-0",
       "title": "Power rule",
       "category": "Differential Calculus",
-      "intro": "The **power rule** says: for any real **n**, **(xⁿ)' = n·xⁿ⁻¹**. So the derivative of xⁿ is n times x raised to (n−1). This holds for **negative** n (e.g. x⁻¹, x⁻²), **fractional** n (e.g. x^(1/2), x^(3/2)), and of course positive integers. **Constants:** (c·xⁿ)' = c·n·xⁿ⁻¹. **Sum:** (f + g)' = f' + g', so you differentiate term by term.\n\n**Examples:** (x⁵)' = 5x⁴. For **√x = x^(1/2)**: (x^(1/2))' = (1/2)x^(−1/2) = 1/(2√x). For **1/x = x⁻¹**: (x⁻¹)' = −x⁻² = −1/x².\n\n[BOX]\n**Power rule**\n(xⁿ)' = n·xⁿ⁻¹   (n real, x > 0 if n not integer)\n[/BOX]\n\n[DIAGRAM:derivatives-table]\n\n[BOX]\n**Examples**\n(x⁵)' = 5x⁴.  (√x)' = (1/2)x^(−1/2) = 1/(2√x).\n[/BOX]",
+      "intro": "The **power rule** says: for any real **n**, **(xⁿ)' = n·xⁿ⁻¹**. So the derivative of xⁿ is n times x raised to (n−1). This holds for **negative** n (e.g. x⁻¹, x⁻²), **fractional** n (e.g. x^(1/2), x^(3/2)), and of course positive integers. **Constants:** (c·xⁿ)' = c·n·xⁿ⁻¹. **Sum:** (f + g)' = f' + g', so you differentiate term by term.\n\n**Examples:** (x⁵)' = 5x⁴. For **√x = x^(1/2)**: (x^(1/2))' = (1/2)x^(−1/2) = 1/(2√x). For **1/x = x⁻¹**: (x⁻¹)' = −x⁻² = −1/x².\n\n[BOX]\n**Power rule**\n(xⁿ)' = n·xⁿ⁻¹   (n real, x > 0 if n not integer)\n[/BOX]\n\n[IMAGE:powerRule.png]\n\n[BOX]\n**Examples**\n(x⁵)' = 5x⁴.  (√x)' = (1/2)x^(−1/2) = 1/(2√x).\n[/BOX]",
       "exercises": [
         {
           "id": "22-0-e1",
@@ -5373,7 +5373,7 @@
       "id": "22-1",
       "title": "Product rule",
       "category": "Differential Calculus",
-      "intro": "The **product rule**: **(fg)' = f'·g + f·g'**. So the derivative of a product is **not** the product of the derivatives; you get two terms: derivative of the first times the second, plus the first times the derivative of the second. For three factors: (fgh)' = f'gh + fg'h + fgh'. **Remember:** (f·g)' ≠ f'·g' in general.\n\n**Use:** Whenever you have a product of two (or more) functions of x, apply the product rule. Sometimes it helps to factor the result (e.g. take common factor eˣ out) to simplify.\n\n[BOX]\n**Product rule**\n(fg)' = f'g + fg'\n[/BOX]\n\n[BOX]\n**Example**\n(x²eˣ)' = 2x·eˣ + x²·eˣ = eˣ(2x + x²)\n[/BOX]\n\n[DIAGRAM:derivatives-table]",
+      "intro": "The **product rule**: **(fg)' = f'·g + f·g'**. So the derivative of a product is **not** the product of the derivatives; you get two terms: derivative of the first times the second, plus the first times the derivative of the second. For three factors: (fgh)' = f'gh + fg'h + fgh'. **Remember:** (f·g)' ≠ f'·g' in general.\n\n**Use:** Whenever you have a product of two (or more) functions of x, apply the product rule. Sometimes it helps to factor the result (e.g. take common factor eˣ out) to simplify.\n\n[BOX]\n**Product rule**\n(fg)' = f'g + fg'\n[/BOX]\n\n[BOX]\n**Example**\n(x²eˣ)' = 2x·eˣ + x²·eˣ = eˣ(2x + x²)\n[/BOX]\n\n[IMAGE:productRule.png]",
       "exercises": [
         {
           "id": "22-1-e1",
@@ -5434,7 +5434,7 @@
       "id": "22-2",
       "title": "Quotient rule",
       "category": "Differential Calculus",
-      "intro": "The **quotient rule** (for **g ≠ 0**): **(f/g)' = (f'·g − f·g') / g²**. So the derivative of a quotient is: (derivative of numerator × denominator − numerator × derivative of denominator) **divided by the square of the denominator**. **Do not** forget the **g²** in the denominator and the **minus** in the numerator.\n\n**Alternative:** You can sometimes write f/g = f·g⁻¹ and use the product rule and chain rule: (f·g⁻¹)' = f'·g⁻¹ + f·(−g⁻²·g') = (f'g − fg')/g². **Example:** (1/x)' = (0·x − 1·1)/x² = −1/x², or (x⁻¹)' = −x⁻².\n\n[BOX]\n**Quotient rule**\n(f/g)' = (f'g − fg') / g²   (g ≠ 0)\n[/BOX]\n\n[BOX]\n**Example**\n(1/x)' = −1/x².  Or (x/(x²+1))' = (1·(x²+1) − x·2x)/(x²+1)² = (1−x²)/(x²+1)².\n[/BOX]\n\n[DIAGRAM:derivatives-table]",
+      "intro": "The **quotient rule** (for **g ≠ 0**): **(f/g)' = (f'·g − f·g') / g²**. So the derivative of a quotient is: (derivative of numerator × denominator − numerator × derivative of denominator) **divided by the square of the denominator**. **Do not** forget the **g²** in the denominator and the **minus** in the numerator.\n\n**Alternative:** You can sometimes write f/g = f·g⁻¹ and use the product rule and chain rule: (f·g⁻¹)' = f'·g⁻¹ + f·(−g⁻²·g') = (f'g − fg')/g². **Example:** (1/x)' = (0·x − 1·1)/x² = −1/x², or (x⁻¹)' = −x⁻².\n\n[BOX]\n**Quotient rule**\n(f/g)' = (f'g − fg') / g²   (g ≠ 0)\n[/BOX]\n\n[BOX]\n**Example**\n(1/x)' = −1/x².  Or (x/(x²+1))' = (1·(x²+1) − x·2x)/(x²+1)² = (1−x²)/(x²+1)².\n[/BOX]\n\n[IMAGE:quotientRule.webp]",
       "exercises": [
         {
           "id": "22-2-e1",
@@ -5495,7 +5495,7 @@
       "id": "22-3",
       "title": "Chain rule",
       "category": "Differential Calculus",
-      "intro": "The **chain rule** applies to **compositions**: if **y = f(g(x))**, then **y' = f'(g(x))·g'(x)**. So you differentiate the **outer** function (with the inner left as is) and **multiply** by the derivative of the **inner** function. In Leibniz notation: **dy/dx = (dy/du)·(du/dx)** where u = g(x).\n\n**Use:** For **e^(g(x))**: derivative = e^(g(x))·g'(x). For **sin(g(x))**: cos(g(x))·g'(x). For **(g(x))ⁿ**: n·(g(x))ⁿ⁻¹·g'(x). So (e^(x²))' = e^(x²)·2x; (sin(2x))' = cos(2x)·2; ((x²+1)⁵)' = 5(x²+1)⁴·2x.\n\n[BOX]\n**Chain rule**\n(f(g(x)))' = f'(g(x))·g'(x)\n[/BOX]\n\n[BOX]\n**Examples**\n(e^(x²))' = e^(x²)·2x.  (sin(2x))' = cos(2x)·2.\n[/BOX]\n\n[DIAGRAM:derivatives-table]",
+      "intro": "The **chain rule** applies to **compositions**: if **y = f(g(x))**, then **y' = f'(g(x))·g'(x)**. So you differentiate the **outer** function (with the inner left as is) and **multiply** by the derivative of the **inner** function. In Leibniz notation: **dy/dx = (dy/du)·(du/dx)** where u = g(x).\n\n**Use:** For **e^(g(x))**: derivative = e^(g(x))·g'(x). For **sin(g(x))**: cos(g(x))·g'(x). For **(g(x))ⁿ**: n·(g(x))ⁿ⁻¹·g'(x). So (e^(x²))' = e^(x²)·2x; (sin(2x))' = cos(2x)·2; ((x²+1)⁵)' = 5(x²+1)⁴·2x.\n\n[BOX]\n**Chain rule**\n(f(g(x)))' = f'(g(x))·g'(x)\n[/BOX]\n\n[BOX]\n**Examples**\n(e^(x²))' = e^(x²)·2x.  (sin(2x))' = cos(2x)·2.\n[/BOX]\n\n[IMAGE:chainRule.png]",
       "exercises": [
         {
           "id": "22-3-e1",
@@ -5556,7 +5556,7 @@
       "id": "23",
       "title": "Function Study",
       "category": "Differential Calculus",
-      "intro": "Using the **first derivative** you find **critical points** (f'(x)=0 or f' undefined) and **intervals of increase/decrease**. **Local maxima and minima** occur at critical points (first derivative test: sign change of f'). Using the **second derivative** you study **concavity** and **points of inflection** (where concavity changes).\n\n[DIAGRAM:critical-points]",
+      "intro": "Using the **first derivative** you find **critical points** (f'(x)=0 or f' undefined) and **intervals of increase/decrease**. **Local maxima and minima** occur at critical points (first derivative test: sign change of f'). Using the **second derivative** you study **concavity** and **points of inflection** (where concavity changes).",
       "exercises": [
         {
           "id": "23-e1",
@@ -5617,7 +5617,7 @@
       "id": "23-0",
       "title": "Maxima and Minima",
       "category": "Differential Calculus",
-      "intro": "**Critical points** are where **f'(x) = 0** or **f'** is **undefined** (but f is defined). **Local maxima** and **minima** can only occur at critical points or at endpoints of the domain. **First derivative test:** On an interval, if **f'** changes from **positive to negative** at a critical point, that point is a **local maximum**; if **f'** changes from **negative to positive**, it is a **local minimum**. If f' does not change sign, the critical point is a **saddle** (neither max nor min).\n\n[DIAGRAM:critical-points]\n\n**Second derivative test:** If f'(c)=0 and **f''(c) < 0**, then c is a local **maximum**; if **f''(c) > 0**, c is a local **minimum**. If f''(c)=0 the test is inconclusive.\n\n[BOX]\n**First derivative test**\nf' changes + → − : local max.  f' changes − → + : local min.\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x²: f'(x)=2x ⇒ critical point x=0.  f' changes − to + ⇒ local min at (0,0).\n[/BOX]",
+      "intro": "**Critical points** are where **f'(x) = 0** or **f'** is **undefined** (but f is defined). **Local maxima** and **minima** can only occur at critical points or at endpoints of the domain. **First derivative test:** On an interval, if **f'** changes from **positive to negative** at a critical point, that point is a **local maximum**; if **f'** changes from **negative to positive**, it is a **local minimum**. If f' does not change sign, the critical point is a **saddle** (neither max nor min).\n\n[IMAGE:maximaAndMinima.png]\n\n**Second derivative test:** If f'(c)=0 and **f''(c) < 0**, then c is a local **maximum**; if **f''(c) > 0**, c is a local **minimum**. If f''(c)=0 the test is inconclusive.\n\n[BOX]\n**First derivative test**\nf' changes + → − : local max.  f' changes − → + : local min.\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x²: f'(x)=2x ⇒ critical point x=0.  f' changes − to + ⇒ local min at (0,0).\n[/BOX]",
       "exercises": [
         {
           "id": "23-0-e1",
@@ -5678,7 +5678,7 @@
       "id": "23-1",
       "title": "Points of inflection",
       "category": "Differential Calculus",
-      "intro": "A **point of inflection** is a point on the graph where the **concavity** changes: the curve goes from **concave up** (f'' > 0, “cup”) to **concave down** (f'' < 0, “cap”) or vice versa. So at an inflection point, **f''** changes **sign** (from + to − or − to +). **Candidates** are where **f''(x) = 0** or f'' is undefined; then check that f'' actually **changes sign** at that point (not just touches 0). A point where f''=0 but f'' does not change sign is **not** an inflection point.\n\n**Concavity:** f'' > 0 ⇒ concave up; f'' < 0 ⇒ concave down. Inflection points are useful for sketching the graph and for optimization (e.g. minimizing cost).\n\n[BOX]\n**Definition**\nInflection: concavity changes  ⇔  f'' changes sign (typically f''(c)=0).\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x³: f''(x)=6x.  At x=0, f'' changes from − to + ⇒ inflection at (0,0).\n[/BOX]\n\n[DIAGRAM:critical-points]",
+      "intro": "A **point of inflection** is a point on the graph where the **concavity** changes: the curve goes from **concave up** (f'' > 0, “cup”) to **concave down** (f'' < 0, “cap”) or vice versa. So at an inflection point, **f''** changes **sign** (from + to − or − to +). **Candidates** are where **f''(x) = 0** or f'' is undefined; then check that f'' actually **changes sign** at that point (not just touches 0). A point where f''=0 but f'' does not change sign is **not** an inflection point.\n\n**Concavity:** f'' > 0 ⇒ concave up; f'' < 0 ⇒ concave down. Inflection points are useful for sketching the graph and for optimization (e.g. minimizing cost).\n\n[BOX]\n**Definition**\nInflection: concavity changes  ⇔  f'' changes sign (typically f''(c)=0).\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x³: f''(x)=6x.  At x=0, f'' changes from − to + ⇒ inflection at (0,0).\n[/BOX]\n\n[IMAGE:pointsOfInflections.png]",
       "exercises": [
         {
           "id": "23-1-e1",
@@ -5739,7 +5739,7 @@
       "id": "24",
       "title": "Indefinite Integrals",
       "category": "Integral Calculus",
-      "intro": "**Indefinite integrals** represent **antiderivatives** (primitive functions): **∫ f(x) dx = F(x) + C** where **F'(x) = f(x)** and **C** is an arbitrary constant. You will see **primitive functions** (F such that F' = f) and **immediate** integration rules (power rule, 1/x, eˣ, sin/cos).\n\n[DIAGRAM:primitive]",
+      "intro": "**Indefinite integrals** represent **antiderivatives** (primitive functions): **∫ f(x) dx = F(x) + C** where **F'(x) = f(x)** and **C** is an arbitrary constant. You will see **primitive functions** (F such that F' = f) and **immediate** integration rules (power rule, 1/x, eˣ, sin/cos).",
       "exercises": [
         {
           "id": "24-e1",
@@ -5800,7 +5800,7 @@
       "id": "24-0",
       "title": "Primitive functions",
       "category": "Integral Calculus",
-      "intro": "A **primitive** (or **antiderivative**) of a function **f** is a function **F** such that **F'(x) = f(x)** for all x in the domain. So differentiation “undoes” integration. **Indefinite integral:** **∫ f(x) dx = F(x) + C**, where F is any primitive and **C** is an arbitrary **constant of integration**. So if F is one primitive, **F + C** is also a primitive for any constant C; the family of all primitives is **F(x) + C**.\n\n**Uniqueness:** Two primitives of the same function differ by a constant. So we always write **+ C** when giving the indefinite integral. **Example:** (x²)' = 2x, so ∫ 2x dx = x² + C.\n\n[BOX]\n**Definition**\nF is a primitive of f if F'(x) = f(x).  ∫ f(x) dx = F(x) + C.\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=2x  ⇒  F(x)=x² (since (x²)'=2x).  So ∫ 2x dx = x² + C.\n[/BOX]\n\n[DIAGRAM:primitive]",
+      "intro": "A **primitive** (or **antiderivative**) of a function **f** is a function **F** such that **F'(x) = f(x)** for all x in the domain. So differentiation “undoes” integration. **Indefinite integral:** **∫ f(x) dx = F(x) + C**, where F is any primitive and **C** is an arbitrary **constant of integration**. So if F is one primitive, **F + C** is also a primitive for any constant C; the family of all primitives is **F(x) + C**.\n\n**Uniqueness:** Two primitives of the same function differ by a constant. So we always write **+ C** when giving the indefinite integral. **Example:** (x²)' = 2x, so ∫ 2x dx = x² + C.\n\n[BOX]\n**Definition**\nF is a primitive of f if F'(x) = f(x).  ∫ f(x) dx = F(x) + C.\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=2x  ⇒  F(x)=x² (since (x²)'=2x).  So ∫ 2x dx = x² + C.\n[/BOX]\n\n[IMAGE:primitiveFunctions.svg]",
       "exercises": [
         {
           "id": "24-0-e1",
@@ -5861,7 +5861,7 @@
       "id": "24-1",
       "title": "Immediate integration rules",
       "category": "Integral Calculus",
-      "intro": "**Immediate** (basic) integration rules are the reverse of differentiation. **Power rule:** **∫ xⁿ dx = xⁿ⁺¹/(n+1) + C** for **n ≠ −1** (so ∫ 1 dx = x + C, ∫ x dx = x²/2 + C). **n = −1:** **∫ (1/x) dx = ln|x| + C**. **Exponential:** **∫ eˣ dx = eˣ + C**. **Trig:** **∫ cos x dx = sin x + C**, **∫ sin x dx = −cos x + C**. **Linearity:** **∫ (af(x) + bg(x)) dx = a∫ f dx + b∫ g dx**. So you integrate **term by term** and pull out constants.\n\n**Sum of terms:** ∫ (3x² + 2x + 1) dx = 3·(x³/3) + 2·(x²/2) + x + C = x³ + x² + x + C. Always add **+ C** at the end.\n\n[BOX]\n**Formulas**\n∫ xⁿ dx = xⁿ⁺¹/(n+1) + C  (n≠−1).  ∫ 1/x dx = ln|x| + C.  ∫ eˣ dx = eˣ + C.\n∫ cos x dx = sin x + C.  ∫ sin x dx = −cos x + C.\n[/BOX]\n\n[BOX]\n**Example**\n∫ (3x² + 2x + 1) dx = x³ + x² + x + C\n[/BOX]\n\n[DIAGRAM:primitive]",
+      "intro": "**Immediate** (basic) integration rules are the reverse of differentiation. **Power rule:** **∫ xⁿ dx = xⁿ⁺¹/(n+1) + C** for **n ≠ −1** (so ∫ 1 dx = x + C, ∫ x dx = x²/2 + C). **n = −1:** **∫ (1/x) dx = ln|x| + C**. **Exponential:** **∫ eˣ dx = eˣ + C**. **Trig:** **∫ cos x dx = sin x + C**, **∫ sin x dx = −cos x + C**. **Linearity:** **∫ (af(x) + bg(x)) dx = a∫ f dx + b∫ g dx**. So you integrate **term by term** and pull out constants.\n\n**Sum of terms:** ∫ (3x² + 2x + 1) dx = 3·(x³/3) + 2·(x²/2) + x + C = x³ + x² + x + C. Always add **+ C** at the end.\n\n[BOX]\n**Formulas**\n∫ xⁿ dx = xⁿ⁺¹/(n+1) + C  (n≠−1).  ∫ 1/x dx = ln|x| + C.  ∫ eˣ dx = eˣ + C.\n∫ cos x dx = sin x + C.  ∫ sin x dx = −cos x + C.\n[/BOX]\n\n[BOX]\n**Example**\n∫ (3x² + 2x + 1) dx = x³ + x² + x + C\n[/BOX]\n\n[IMAGE:integrationRules.png]",
       "exercises": [
         {
           "id": "24-1-e1",
@@ -5922,7 +5922,7 @@
       "id": "25",
       "title": "Integration Methods",
       "category": "Integral Calculus",
-      "intro": "When the integrand is not a simple combination of immediate rules, use **integration by substitution** (reverse of the chain rule: set u = g(x), du = g'(x)dx) or **integration by parts** (from (uv)' = u'v + uv': ∫ u dv = uv − ∫ v du). These are the two main techniques for non-immediate integrals.\n\n[DIAGRAM:integral-area]",
+      "intro": "When the integrand is not a simple combination of immediate rules, use **integration by substitution** (reverse of the chain rule: set u = g(x), du = g'(x)dx) or **integration by parts** (from (uv)' = u'v + uv': ∫ u dv = uv − ∫ v du). These are the two main techniques for non-immediate integrals.",
       "exercises": [
         {
           "id": "25-e1",
@@ -5983,7 +5983,7 @@
       "id": "25-0",
       "title": "Integration by substitution",
       "category": "Integral Calculus",
-      "intro": "**Substitution** (change of variable) is the reverse of the **chain rule**. **Idea:** set **u = g(x)** so that the integrand becomes a function of u and **du = g'(x) dx** (or dx = du/g'(x)). Then ∫ f(g(x))·g'(x) dx = ∫ f(u) du; if you know a primitive F(u) of f(u), the result is **F(g(x)) + C**.\n\n**Steps:** (1) Choose u = g(x) so that g'(x) dx (or part of it) appears in the integral. (2) Compute du = g'(x) dx and replace. (3) Integrate with respect to u. (4) Substitute back u = g(x) and add + C. **Example:** ∫ 2x·e^(x²) dx: u = x², du = 2x dx ⇒ ∫ e^u du = e^u + C = e^(x²) + C.\n\n[BOX]\n**Procedure**\nu = g(x),  du = g'(x) dx  ⇒  ∫ f(g(x))·g'(x) dx = ∫ f(u) du\n[/BOX]\n\n[BOX]\n**Example**\n∫ 2x·e^(x²) dx.  u = x², du = 2x dx  ⇒  ∫ e^u du = e^u + C = e^(x²) + C\n[/BOX]\n\n[DIAGRAM:substitution]",
+      "intro": "**Substitution** (change of variable) is the reverse of the **chain rule**. **Idea:** set **u = g(x)** so that the integrand becomes a function of u and **du = g'(x) dx** (or dx = du/g'(x)). Then ∫ f(g(x))·g'(x) dx = ∫ f(u) du; if you know a primitive F(u) of f(u), the result is **F(g(x)) + C**.\n\n**Steps:** (1) Choose u = g(x) so that g'(x) dx (or part of it) appears in the integral. (2) Compute du = g'(x) dx and replace. (3) Integrate with respect to u. (4) Substitute back u = g(x) and add + C. **Example:** ∫ 2x·e^(x²) dx: u = x², du = 2x dx ⇒ ∫ e^u du = e^u + C = e^(x²) + C.\n\n[BOX]\n**Procedure**\nu = g(x),  du = g'(x) dx  ⇒  ∫ f(g(x))·g'(x) dx = ∫ f(u) du\n[/BOX]\n\n[BOX]\n**Example**\n∫ 2x·e^(x²) dx.  u = x², du = 2x dx  ⇒  ∫ e^u du = e^u + C = e^(x²) + C\n[/BOX]\n\n[IMAGE:integrationSubstitution.jpg]",
       "exercises": [
         {
           "id": "25-0-e1",
@@ -6044,7 +6044,7 @@
       "id": "25-1",
       "title": "Integration by parts",
       "category": "Integral Calculus",
-      "intro": "**Integration by parts** comes from **(uv)' = u'v + uv'**, so **∫ u'v dx = uv − ∫ uv' dx**. In differential form: **∫ u dv = uv − ∫ v du**. You **choose** u and dv so that (1) **du** and **v** are easy to compute, and (2) **∫ v du** is simpler than ∫ u dv. **LIATE** (Log, Inverse trig, Algebraic, Trig, Exponential) is a common guideline: often choose u to be the “earlier” type and dv the rest.\n\n**Example:** ∫ x·eˣ dx. Let u = x (du = dx), dv = eˣ dx (v = eˣ). Then ∫ x eˣ dx = x·eˣ − ∫ eˣ dx = x·eˣ − eˣ + C = eˣ(x−1) + C. Sometimes you need to apply parts **twice** (e.g. ∫ x² eˣ dx).\n\n[BOX]\n**Formula**\n∫ u dv = uv − ∫ v du\n[/BOX]\n\n[BOX]\n**Example**\n∫ x eˣ dx: u=x, dv=eˣ dx  ⇒  x eˣ − ∫ eˣ dx = eˣ(x−1) + C\n[/BOX]\n\n[DIAGRAM:parts]",
+      "intro": "**Integration by parts** comes from **(uv)' = u'v + uv'**, so **∫ u'v dx = uv − ∫ uv' dx**. In differential form: **∫ u dv = uv − ∫ v du**. You **choose** u and dv so that (1) **du** and **v** are easy to compute, and (2) **∫ v du** is simpler than ∫ u dv. **LIATE** (Log, Inverse trig, Algebraic, Trig, Exponential) is a common guideline: often choose u to be the “earlier” type and dv the rest.\n\n**Example:** ∫ x·eˣ dx. Let u = x (du = dx), dv = eˣ dx (v = eˣ). Then ∫ x eˣ dx = x·eˣ − ∫ eˣ dx = x·eˣ − eˣ + C = eˣ(x−1) + C. Sometimes you need to apply parts **twice** (e.g. ∫ x² eˣ dx).\n\n[BOX]\n**Formula**\n∫ u dv = uv − ∫ v du\n[/BOX]\n\n[BOX]\n**Example**\n∫ x eˣ dx: u=x, dv=eˣ dx  ⇒  x eˣ − ∫ eˣ dx = eˣ(x−1) + C\n[/BOX]\n\n[IMAGE:integrationParts.png]",
       "exercises": [
         {
           "id": "25-1-e1",
@@ -6105,7 +6105,7 @@
       "id": "26",
       "title": "Definite Integrals",
       "category": "Integral Calculus",
-      "intro": "**Definite integrals** **∫_a^b f(x) dx** represent the **signed area** between the graph of f and the x-axis from x = a to x = b (positive where f ≥ 0, negative where f ≤ 0). The **Fundamental Theorem of Calculus** says: if F is any antiderivative of f (F' = f), then **∫_a^b f(x) dx = F(b) − F(a)**. So you find a primitive F and evaluate at the endpoints.\n\n[DIAGRAM:integral-area]",
+      "intro": "**Definite integrals** **∫_a^b f(x) dx** represent the **signed area** between the graph of f and the x-axis from x = a to x = b (positive where f ≥ 0, negative where f ≤ 0). The **Fundamental Theorem of Calculus** says: if F is any antiderivative of f (F' = f), then **∫_a^b f(x) dx = F(b) − F(a)**. So you find a primitive F and evaluate at the endpoints.",
       "exercises": [
         {
           "id": "26-e1",
@@ -6166,7 +6166,7 @@
       "id": "26-0",
       "title": "Calculating the area under a curve",
       "category": "Integral Calculus",
-      "intro": "The **definite integral** **∫_a^b f(x) dx** is the **signed** (net) area between the graph of **y = f(x)** and the **x-axis** over the interval [a, b]: area above the axis counts **positive**, below counts **negative**. If **f(x) ≥ 0** on [a, b], then ∫_a^b f(x) dx equals the **geometric** area of the region under the curve. If f takes both signs, the integral is the **difference** (area above minus area below).\n\n[DIAGRAM:integral-area]\n\n**Computation:** By the **FTC**, ∫_a^b f(x) dx = **F(b) − F(a)** where F is any antiderivative of f. So find F (indefinite integral), then plug in b and a and subtract. **Example:** ∫_0^1 x² dx = [x³/3]_0^1 = 1/3 − 0 = 1/3 (area under y = x² from 0 to 1).\n\n[BOX]\n**Meaning**\n∫_a^b f(x) dx = signed area between graph and x-axis on [a,b].\nIf f ≥ 0: geometric area.  FTC: = F(b) − F(a).\n[/BOX]\n\n[BOX]\n**Example**\n∫_0^1 x² dx = [x³/3]_0^1 = 1/3\n[/BOX]",
+      "intro": "The **definite integral** **∫_a^b f(x) dx** is the **signed** (net) area between the graph of **y = f(x)** and the **x-axis** over the interval [a, b]: area above the axis counts **positive**, below counts **negative**. If **f(x) ≥ 0** on [a, b], then ∫_a^b f(x) dx equals the **geometric** area of the region under the curve. If f takes both signs, the integral is the **difference** (area above minus area below).\n\n[IMAGE:areaUnderACurve.jpg]\n\n**Computation:** By the **FTC**, ∫_a^b f(x) dx = **F(b) − F(a)** where F is any antiderivative of f. So find F (indefinite integral), then plug in b and a and subtract. **Example:** ∫_0^1 x² dx = [x³/3]_0^1 = 1/3 − 0 = 1/3 (area under y = x² from 0 to 1).\n\n[BOX]\n**Meaning**\n∫_a^b f(x) dx = signed area between graph and x-axis on [a,b].\nIf f ≥ 0: geometric area.  FTC: = F(b) − F(a).\n[/BOX]\n\n[BOX]\n**Example**\n∫_0^1 x² dx = [x³/3]_0^1 = 1/3\n[/BOX]",
       "exercises": [
         {
           "id": "26-0-e1",
@@ -6227,7 +6227,7 @@
       "id": "26-1",
       "title": "The Fundamental Theorem of Calculus",
       "category": "Integral Calculus",
-      "intro": "The **Fundamental Theorem of Calculus (FTC)** has two parts. **Part 1:** If f is continuous on [a,b] and we define **F(x) = ∫_a^x f(t) dt**, then **F'(x) = f(x)** (so F is an antiderivative of f). **Part 2:** If f is continuous on [a,b] and **F** is **any** antiderivative of f (i.e. F' = f), then **∫_a^b f(x) dx = F(b) − F(a)**. We often write **F(b) − F(a) = [F(x)]_a^b**.\n\nSo to compute a definite integral: (1) find **any** primitive F of f (indefinite integral), (2) evaluate **F(b) − F(a)**. This is the main tool for calculating areas and many applied quantities.\n\n[BOX]\n**FTC (Part 2)**\n∫_a^b f(x) dx = F(b) − F(a)   where F' = f\n[/BOX]\n\n[BOX]\n**Example**\n∫_0^1 x² dx = [x³/3]_0^1 = 1/3 − 0 = 1/3\n[/BOX]\n\n[DIAGRAM:integral-area]",
+      "intro": "The **Fundamental Theorem of Calculus (FTC)** has two parts. **Part 1:** If f is continuous on [a,b] and we define **F(x) = ∫_a^x f(t) dt**, then **F'(x) = f(x)** (so F is an antiderivative of f). **Part 2:** If f is continuous on [a,b] and **F** is **any** antiderivative of f (i.e. F' = f), then **∫_a^b f(x) dx = F(b) − F(a)**. We often write **F(b) − F(a) = [F(x)]_a^b**.\n\nSo to compute a definite integral: (1) find **any** primitive F of f (indefinite integral), (2) evaluate **F(b) − F(a)**. This is the main tool for calculating areas and many applied quantities.\n\n[BOX]\n**FTC (Part 2)**\n∫_a^b f(x) dx = F(b) − F(a)\nF'(x) = f(x)\n[/BOX]\n\n[BOX]\n**Example**\n∫_0^1 x² dx = [x³/3]_0^1 = 1/3 − 0 = 1/3\n[/BOX]\n\n[IMAGE:fundamentalTheoremsofCalculus.png]",
       "exercises": [
         {
           "id": "26-1-e1",
@@ -6288,7 +6288,7 @@
       "id": "27",
       "title": "Applications",
       "category": "Integral Calculus",
-      "intro": "**Applications** of integrals include **area** between curves, **volume** of solids of revolution (disk/washer method), arc length, work, and many physics/geometry problems. You will see **volumes** (e.g. rotation about the x-axis: V = π∫ (f(x))² dx) and **areas of plane figures** (area between y = f(x) and y = g(x) is ∫ (f − g) dx).\n\n[DIAGRAM:solids-of-revolution]",
+      "intro": "**Applications** of integrals include **area** between curves, **volume** of solids of revolution (disk/washer method), arc length, work, and many physics/geometry problems. You will see **volumes** (e.g. rotation about the x-axis: V = π∫ (f(x))² dx) and **areas of plane figures** (area between y = f(x) and y = g(x) is ∫ (f − g) dx).",
       "exercises": [
         {
           "id": "27-e1",
@@ -6349,7 +6349,7 @@
       "id": "27-0",
       "title": "Calculation of volumes",
       "category": "Integral Calculus",
-      "intro": "**Disk method** (solid of revolution): Rotate the region under **y = f(x)** (with f(x) ≥ 0) from x = a to x = b about the **x-axis**. Each vertical slice becomes a **disk** of radius f(x) and thickness dx; the volume is **V = π ∫_a^b (f(x))² dx**. **Washer method:** If the region is between **y = f(x)** and **y = g(x)** (with f ≥ g ≥ 0), rotation about the x-axis gives **V = π ∫_a^b [(f(x))² − (g(x))²] dx** (outer radius f, inner g).\n\n[DIAGRAM:solids-of-revolution]\n\n**Cone:** Rotating the line y = (r/h)x from 0 to h about the x-axis gives a cone of radius r and height h: V = π ∫_0^h (r²/h²)x² dx = (1/3)πr²h.\n\n[BOX]\n**Disk method (about x-axis)**\nV = π ∫_a^b (f(x))² dx.  Washer: V = π ∫_a^b (f² − g²) dx\n[/BOX]\n\n[BOX]\n**Example (cone)**\ny = (r/h)x on [0,h]: V = π ∫ (r²/h²)x² dx = (1/3)πr²h\n[/BOX]",
+      "intro": "**Disk method** (solid of revolution): Rotate the region under **y = f(x)** (with f(x) ≥ 0) from x = a to x = b about the **x-axis**. Each vertical slice becomes a **disk** of radius f(x) and thickness dx; the volume is **V = π ∫_a^b (f(x))² dx**. **Washer method:** If the region is between **y = f(x)** and **y = g(x)** (with f ≥ g ≥ 0), rotation about the x-axis gives **V = π ∫_a^b [(f(x))² − (g(x))²] dx** (outer radius f, inner g).\n\n[IMAGE:calculationOfVolumes.jpg]\n\n**Cone:** Rotating the line y = (r/h)x from 0 to h about the x-axis gives a cone of radius r and height h: V = π ∫_0^h (r²/h²)x² dx = (1/3)πr²h.\n\n[BOX]\n**Disk method (about x-axis)**\nV = π ∫_a^b (f(x))² dx.  Washer: V = π ∫_a^b (f² − g²) dx\n[/BOX]\n\n[BOX]\n**Example (cone)**\ny = (r/h)x on [0,h]: V = π ∫ (r²/h²)x² dx = (1/3)πr²h\n[/BOX]",
       "exercises": [
         {
           "id": "27-0-e1",
@@ -6410,7 +6410,7 @@
       "id": "27-1",
       "title": "Areas of plane figures",
       "category": "Integral Calculus",
-      "intro": "The **area between two curves** **y = f(x)** and **y = g(x)** from x = a to x = b (where **f(x) ≥ g(x)** on [a,b]) is **A = ∫_a^b (f(x) − g(x)) dx**. So you integrate the **vertical** distance (top minus bottom) between the curves. If the curves cross, split the interval at the intersection points so that on each subinterval one function is always on top; then add the absolute areas (or use |f − g|).\n\n**Procedure:** (1) Find intersection points (solve f(x) = g(x)). (2) Determine which curve is on top on each interval. (3) Integrate (top − bottom) over each interval. (4) Add. **Example:** Between y = x and y = x² on [0,1]: x ≥ x², so A = ∫_0^1 (x − x²) dx = 1/2 − 1/3 = 1/6.\n\n[DIAGRAM:area-between-curves]\n\n[BOX]\n**Formula (f ≥ g on [a,b])**\nA = ∫_a^b (f(x) − g(x)) dx\n[/BOX]\n\n[BOX]\n**Example**\nArea between y = x and y = x² on [0,1]: ∫_0^1 (x − x²) dx = 1/6\n[/BOX]",
+      "intro": "The **area between two curves** **y = f(x)** and **y = g(x)** from x = a to x = b (where **f(x) ≥ g(x)** on [a,b]) is **A = ∫_a^b (f(x) − g(x)) dx**. So you integrate the **vertical** distance (top minus bottom) between the curves. If the curves cross, split the interval at the intersection points so that on each subinterval one function is always on top; then add the absolute areas (or use |f − g|).\n\n**Procedure:** (1) Find intersection points (solve f(x) = g(x)). (2) Determine which curve is on top on each interval. (3) Integrate (top − bottom) over each interval. (4) Add. **Example:** Between y = x and y = x² on [0,1]: x ≥ x², so A = ∫_0^1 (x − x²) dx = 1/2 − 1/3 = 1/6.\n\n[IMAGE:areasOfPlaneFigures.jpg]\n\n[BOX]\n**Formula (f ≥ g on [a,b])**\nA = ∫_a^b (f(x) − g(x)) dx\n[/BOX]\n\n[BOX]\n**Example**\nArea between y = x and y = x² on [0,1]: ∫_0^1 (x − x²) dx = 1/6\n[/BOX]",
       "exercises": [
         {
           "id": "27-1-e1",

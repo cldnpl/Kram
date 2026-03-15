@@ -47,6 +47,7 @@ func TestGenerateLessonJSONFiles(t *testing.T) {
 				intro = localizeLessonIntro(id, base.Intro, lang)
 			}
 
+			intro = normalizeLessonIntro(intro)
 			exercises := buildExercisesForLesson(id, title, category, intro, lang)
 			lessons = append(lessons, lessonJSONItem{
 				ID:        id,
@@ -208,7 +209,7 @@ func firstSentence(intro string) string {
 		return ""
 	}
 
-	text := strings.Join(filtered, " ")
+	text := normalizeLessonIntro(strings.Join(filtered, " "))
 	text = strings.ReplaceAll(text, "**", "")
 	if idx := strings.Index(text, ". "); idx > 0 {
 		return strings.TrimSpace(text[:idx+1])
