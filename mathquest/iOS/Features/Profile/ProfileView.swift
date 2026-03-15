@@ -451,6 +451,7 @@ private struct RateAppView: View {
 }
 
 private struct StatCard: View {
+    @Environment(\.colorScheme) private var colorScheme
     let icon: String
     let value: String
     let label: String
@@ -470,13 +471,14 @@ private struct StatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
-        .background(Color(.secondarySystemBackground))
+        .background(colorScheme == .dark ? Color(.secondarySystemBackground) : .white)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
     }
 }
 
 private struct MenuRow<Destination: View>: View {
+    @Environment(\.colorScheme) private var colorScheme
     let icon: String
     let title: String
     let color: Color
@@ -508,7 +510,7 @@ private struct MenuRow<Destination: View>: View {
                     .foregroundStyle(.tertiary)
             }
             .padding(14)
-            .background(Color(.secondarySystemBackground))
+            .background(colorScheme == .dark ? Color(.secondarySystemBackground) : .white)
             .clipShape(RoundedRectangle(cornerRadius: 14))
             .shadow(color: .black.opacity(0.04), radius: 8, y: 2)
         }

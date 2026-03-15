@@ -3848,7 +3848,7 @@
       "id": "16",
       "title": "Functions & Domain",
       "category": "Pre-Calculus & Analysis",
-      "intro": "**Functions** assign to each input (e.g. x) exactly one output (e.g. y = f(x)). The **domain** is the set of allowed inputs; the **range** is the set of possible outputs. You will study **real functions of a real variable**, **classification** (injective, surjective, even/odd), and **how to find the domain** (denominators ≠ 0, even roots ≥ 0, log argument > 0).\n\n[BOX]\n**Summary**\nDomain restrictions: denominator≠0, even root≥0, log argument>0\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=1/(x−2) ⇒ domain: x≠2\nf(x)=√(x−1) ⇒ domain: x≥1\n[/BOX]\n\n[DIAGRAM:graph-transformations]",
+      "intro": "**Functions** assign to each input (e.g. x) exactly one output (e.g. y = f(x)). The **domain** is the set of allowed inputs; the **range** is the set of possible outputs. You will study **real functions of a real variable**, **classification** (injective, surjective, even/odd), and **how to find the domain** (denominators ≠ 0, even roots ≥ 0, log argument > 0).\n\n[BOX]\n**Summary**\nDomain restrictions: denominator≠0, even root≥0, log argument>0\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=1/(x−2) ⇒ domain: x≠2\nf(x)=√(x−1) ⇒ domain: x≥1\n[/BOX]\n\n[IMAGE:domain.png]",
       "exercises": [
         {
           "id": "16-e1",
@@ -3909,7 +3909,7 @@
       "id": "16-0",
       "title": "Real functions of a real variable",
       "category": "Pre-Calculus & Analysis",
-      "intro": "A **real function of a real variable** is a rule that assigns to each real number **x** in a set **D** (the **domain**) exactly one real number **f(x)**. We write **y = f(x)**; the **graph** is the set of points **(x, f(x))** in the plane. The **range** (or image) is the set of all values f(x) as x runs over the domain.\n\n**Examples.** **f(x) = x²**: domain ℝ, range [0, +∞). **g(x) = 1/x**: domain ℝ \\\\ {0} (all reals except 0), range ℝ \\\\ {0}. **h(x) = √x**: domain [0, +∞), range [0, +∞). The domain is determined by the **expression**: no division by zero, no even root of a negative number (in ℝ), no log of a non-positive number. The **codomain** is the set we consider for outputs (often ℝ); the range is the actual set of outputs.\n\n[BOX]\n**Notation**\ny = f(x),  x ∈ Domain(f) ⊆ ℝ.  Graph = {(x, f(x))}\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=x²: domain ℝ, range [0, +∞).  g(x)=1/x: domain ℝ\\\\{0}\n[/BOX]\n\n[DIAGRAM:domain-graph]",
+      "intro": "A **real function of a real variable** is a rule that assigns to each real number **x** in a set **D** (the **domain**) exactly one real number **f(x)**. We write **y = f(x)**; the **graph** is the set of points **(x, f(x))** in the plane. The **range** (or image) is the set of all values f(x) as x runs over the domain.\n\n**Examples.** **f(x) = x²**: domain ℝ, range [0, +∞). **g(x) = 1/x**: domain ℝ \\\\ {0} (all reals except 0), range ℝ \\\\ {0}. **h(x) = √x**: domain [0, +∞), range [0, +∞). The domain is determined by the **expression**: no division by zero, no even root of a negative number (in ℝ), no log of a non-positive number. The **codomain** is the set we consider for outputs (often ℝ); the range is the actual set of outputs.\n\n[BOX]\n**Notation**\ny = f(x),  x ∈ Domain(f) ⊆ ℝ.  Graph = {(x, f(x))}\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=x²: domain ℝ, range [0, +∞).  g(x)=1/x: domain ℝ\\\\{0}\n[/BOX]\n\n[IMAGE:realFunctionsofArEALvARIABLE.gif]",
       "exercises": [
         {
           "id": "16-0-e1",
@@ -3970,7 +3970,7 @@
       "id": "16-1",
       "title": "Classification",
       "category": "Pre-Calculus & Analysis",
-      "intro": "**Injective (one-to-one):** different inputs give different outputs: if **x₁ ≠ x₂** then **f(x₁) ≠ f(x₂)**. So each value in the range comes from at most one x. **Surjective (onto):** every element of the codomain is the image of some x (range = codomain). **Bijective:** both injective and surjective; then f has an **inverse** function f⁻¹.\n\n**Even:** **f(−x) = f(x)** for all x (graph symmetric about the **y-axis**). **Odd:** **f(−x) = −f(x)** (graph symmetric about the **origin**). So f(x)=x² is even; f(x)=x³ is odd; f(x)=x+1 is neither. Many functions are neither even nor odd. To check: compute f(−x) and compare to f(x) and −f(x).\n\n[BOX]\n**Definitions**\nInjective: x₁≠x₂ ⇒ f(x₁)≠f(x₂). Surjective: range = codomain. Bijective: both.\nEven: f(−x)=f(x). Odd: f(−x)=−f(x).\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=x³: injective on ℝ, odd.  f(x)=x²: not injective on ℝ, even.\n[/BOX]\n\n[DIAGRAM:graph-transformations]",
+      "intro": "**Injective (one-to-one):** different inputs give different outputs: if **x₁ ≠ x₂** then **f(x₁) ≠ f(x₂)**. So each value in the range comes from at most one x. **Surjective (onto):** every element of the codomain is the image of some x (range = codomain). **Bijective:** both injective and surjective; then f has an **inverse** function f⁻¹.\n\n**Even:** **f(−x) = f(x)** for all x (graph symmetric about the **y-axis**). **Odd:** **f(−x) = −f(x)** (graph symmetric about the **origin**). So f(x)=x² is even; f(x)=x³ is odd; f(x)=x+1 is neither. Many functions are neither even nor odd. To check: compute f(−x) and compare to f(x) and −f(x).\n\n[BOX]\n**Definitions**\nInjective: x₁≠x₂ ⇒ f(x₁)≠f(x₂). Surjective: range = codomain. Bijective: both.\nEven: f(−x)=f(x). Odd: f(−x)=−f(x).\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=x³: injective on ℝ, odd.  f(x)=x²: not injective on ℝ, even.\n[/BOX]",
       "exercises": [
         {
           "id": "16-1-e1",
@@ -4031,7 +4031,7 @@
       "id": "16-2",
       "title": "Finding the domain",
       "category": "Pre-Calculus & Analysis",
-      "intro": "The **domain** of a function given by a formula is the set of **x** for which the expression is **defined** (and real, if we work in ℝ). **Checklist:** (1) **Denominators** must be **≠ 0**. So 1/(x−2) has domain x ≠ 2. (2) **Even roots** (√, ⁴√, …): the **radicand** must be **≥ 0**. So √(x+1) requires x+1 ≥ 0, i.e. x ≥ −1. (3) **Logarithms:** the **argument** must be **> 0**. So ln(x−3) requires x−3 > 0, i.e. x > 3. (4) **Fractional exponents** (e.g. x^(1/2)): if the exponent has an even denominator in lowest terms, we usually take **base ≥ 0** for real output.\n\n[DIAGRAM:domain-graph]\n\nIf the function is a **sum**, **difference**, or **product** of several parts, the domain is the **intersection** of the domains of each part (and then exclude where denominators are zero). For a **composition** f(g(x)), x must be in the domain of g and g(x) must be in the domain of f.\n\n[BOX]\n**Checklist**\nDenominators ≠ 0. Even roots: radicand ≥ 0. log: argument > 0.\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=1/(x−2) ⇒ domain x ≠ 2.  f(x)=√(x+1) ⇒ x ≥ −1.  f(x)=ln(x−3) ⇒ x > 3.\n[/BOX]",
+      "intro": "The **domain** of a function given by a formula is the set of **x** for which the expression is **defined** (and real, if we work in ℝ). **Checklist:** (1) **Denominators** must be **≠ 0**. So 1/(x−2) has domain x ≠ 2. (2) **Even roots** (√, ⁴√, …): the **radicand** must be **≥ 0**. So √(x+1) requires x+1 ≥ 0, i.e. x ≥ −1. (3) **Logarithms:** the **argument** must be **> 0**. So ln(x−3) requires x−3 > 0, i.e. x > 3. (4) **Fractional exponents** (e.g. x^(1/2)): if the exponent has an even denominator in lowest terms, we usually take **base ≥ 0** for real output.\n\n[IMAGE:domain.png]\n\nIf the function is a **sum**, **difference**, or **product** of several parts, the domain is the **intersection** of the domains of each part (and then exclude where denominators are zero). For a **composition** f(g(x)), x must be in the domain of g and g(x) must be in the domain of f.\n\n[BOX]\n**Checklist**\nDenominators ≠ 0. Even roots: radicand ≥ 0. log: argument > 0.\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=1/(x−2) ⇒ domain x ≠ 2.  f(x)=√(x+1) ⇒ x ≥ −1.  f(x)=ln(x−3) ⇒ x > 3.\n[/BOX]",
       "exercises": [
         {
           "id": "16-2-e1",
@@ -4092,7 +4092,7 @@
       "id": "17",
       "title": "Properties of Functions",
       "category": "Pre-Calculus & Analysis",
-      "intro": "Beyond domain and range, we study **symmetries** (even/odd), **intercepts** (where the graph crosses the axes), and **sign** (where f(x) > 0, < 0, or = 0). These help sketch the graph and solve inequalities.\n\n[BOX]\n**Summary**\nEven: f(−x)=f(x); Odd: f(−x)=−f(x)\nIntercepts: y-intercept f(0), x-intercepts f(x)=0\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=x² is even\nf(x)=x³ is odd\n[/BOX]\n\n[DIAGRAM:graph-transformations]",
+      "intro": "Beyond domain and range, we study **symmetries** (even/odd), **intercepts** (where the graph crosses the axes), and **sign** (where f(x) > 0, < 0, or = 0). These help sketch the graph and solve inequalities.\n\n[BOX]\n**Summary**\nEven: f(−x)=f(x); Odd: f(−x)=−f(x)\nIntercepts: y-intercept f(0), x-intercepts f(x)=0\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=x² is even\nf(x)=x³ is odd\n[/BOX]",
       "exercises": [
         {
           "id": "17-e1",
@@ -4153,7 +4153,7 @@
       "id": "17-0",
       "title": "Symmetries (Even/Odd)",
       "category": "Pre-Calculus & Analysis",
-      "intro": "**Even function:** **f(−x) = f(x)** for all x in the domain. The graph is **symmetric about the y-axis**: if (a, f(a)) is on the graph, so is (−a, f(a)). Examples: x², x⁴, cos x, |x|. **Odd function:** **f(−x) = −f(x)** for all x. The graph is **symmetric about the origin**: if (a, f(a)) is on the graph, so is (−a, −f(a)). Examples: x, x³, sin x.\n\n**How to check:** Replace x by −x in the formula and simplify. If you get f(x), the function is even; if you get −f(x), it is odd; otherwise it is **neither**. Many functions (e.g. x+1, eˣ) are neither. **Use:** Even/odd symmetry reduces the work when sketching or integrating over symmetric intervals.\n\n[BOX]\n**Tests**\nEven: f(−x) = f(x)  (y-axis symmetry)\nOdd:  f(−x) = −f(x)  (origin symmetry)\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=x²−1: f(−x)=x²−1=f(x) → even.  g(x)=x³+x: g(−x)=−x³−x=−g(x) → odd.  h(x)=x+1: neither.\n[/BOX]\n\n[DIAGRAM:graph-transformations]",
+      "intro": "**Even function:** **f(−x) = f(x)** for all x in the domain. The graph is **symmetric about the y-axis**: if (a, f(a)) is on the graph, so is (−a, f(a)). Examples: x², x⁴, cos x, |x|. **Odd function:** **f(−x) = −f(x)** for all x. The graph is **symmetric about the origin**: if (a, f(a)) is on the graph, so is (−a, −f(a)). Examples: x, x³, sin x.\n\n**How to check:** Replace x by −x in the formula and simplify. If you get f(x), the function is even; if you get −f(x), it is odd; otherwise it is **neither**. Many functions (e.g. x+1, eˣ) are neither. **Use:** Even/odd symmetry reduces the work when sketching or integrating over symmetric intervals.\n\n[IMAGE:symmetriesEvenOdd.jpg]\n\n[BOX]\n**Tests**\nEven: f(−x) = f(x)  (y-axis symmetry)\nOdd:  f(−x) = −f(x)  (origin symmetry)\n[/BOX]\n\n[BOX]\n**Examples**\nf(x)=x²−1: f(−x)=x²−1=f(x) → even.  g(x)=x³+x: g(−x)=−x³−x=−g(x) → odd.  h(x)=x+1: neither.\n[/BOX]",
       "exercises": [
         {
           "id": "17-0-e1",
@@ -4214,7 +4214,7 @@
       "id": "17-1",
       "title": "Intercepts",
       "category": "Pre-Calculus & Analysis",
-      "intro": "**y-intercept:** the point where the graph crosses the **y-axis**. So **x = 0**; the y-intercept is **(0, f(0))**, provided **0** is in the domain. **x-intercepts (zeros):** the points where the graph crosses the **x-axis**. So **f(x) = 0**; solve the equation to find the x-values, then the intercepts are **(x, 0)**. The x-intercepts are exactly the **roots** (zeros) of the function.\n\n**Why they matter:** Intercepts help sketch the graph and often appear in applied problems (e.g. break-even when profit = 0). A function can have **no** x-intercepts (e.g. f(x)=x²+1), **one** (e.g. f(x)=x² at 0), or **many**. For polynomials, the number of real roots is at most the degree.\n\n[BOX]\n**Finding intercepts**\ny-intercept: (0, f(0))  if 0 ∈ domain\nx-intercepts: solve f(x) = 0  →  points (x, 0)\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x²−4.  y-intercept: f(0)=−4 → (0,−4).  Zeros: x²−4=0 → x=±2 → (−2,0), (2,0).\n[/BOX]\n\n[DIAGRAM:graph-transformations]",
+      "intro": "**y-intercept:** the point where the graph crosses the **y-axis**. So **x = 0**; the y-intercept is **(0, f(0))**, provided **0** is in the domain. **x-intercepts (zeros):** the points where the graph crosses the **x-axis**. So **f(x) = 0**; solve the equation to find the x-values, then the intercepts are **(x, 0)**. The x-intercepts are exactly the **roots** (zeros) of the function.\n\n**Why they matter:** Intercepts help sketch the graph and often appear in applied problems (e.g. break-even when profit = 0). A function can have **no** x-intercepts (e.g. f(x)=x²+1), **one** (e.g. f(x)=x² at 0), or **many**. For polynomials, the number of real roots is at most the degree.\n\n[IMAGE:intercepts.jpg]\n\n[BOX]\n**Finding intercepts**\ny-intercept: (0, f(0))  if 0 ∈ domain\nx-intercepts: solve f(x) = 0  →  points (x, 0)\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x²−4.  y-intercept: f(0)=−4 → (0,−4).  Zeros: x²−4=0 → x=±2 → (−2,0), (2,0).\n[/BOX]",
       "exercises": [
         {
           "id": "17-1-e1",
@@ -4275,7 +4275,7 @@
       "id": "17-2",
       "title": "Sign study",
       "category": "Pre-Calculus & Analysis",
-      "intro": "A **sign study** finds where **f(x) > 0**, **f(x) < 0**, or **f(x) = 0**. This is used to solve **inequalities** (e.g. f(x) ≥ 0) and to sketch the graph (above or below the x-axis).\n\n**Method.** (1) **Factor** f(x) (or write it in a form where zeros are clear). (2) Find all **zeros** (f(x)=0) and points where f is **undefined** (e.g. vertical asymptotes). These split the real line into **intervals**. (3) On each interval, f has **constant sign** (it cannot change sign without crossing zero or a discontinuity). **Test** one value in each interval to determine whether f is positive or negative there. (4) At the zeros, f(x)=0. For **strict** inequalities (> or <), the zeros are excluded; for ≥ or ≤ they are included.\n\n[BOX]\n**Procedure**\n1) Factor; find zeros and discontinuities. 2) Intervals. 3) Test one point per interval.\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x²−4=(x−2)(x+2). Zeros: x=±2.  f>0 for x<−2 or x>2;  f<0 for −2<x<2.\n[/BOX]\n\n[DIAGRAM:graph-transformations]",
+      "intro": "A **sign study** finds where **f(x) > 0**, **f(x) < 0**, or **f(x) = 0**. This is used to solve **inequalities** (e.g. f(x) ≥ 0) and to sketch the graph (above or below the x-axis).\n\n**Method.** (1) **Factor** f(x) (or write it in a form where zeros are clear). (2) Find all **zeros** (f(x)=0) and points where f is **undefined** (e.g. vertical asymptotes). These split the real line into **intervals**. (3) On each interval, f has **constant sign** (it cannot change sign without crossing zero or a discontinuity). **Test** one value in each interval to determine whether f is positive or negative there. (4) At the zeros, f(x)=0. For **strict** inequalities (> or <), the zeros are excluded; for ≥ or ≤ they are included.\n\n[IMAGE:signStudy.png]\n\n[BOX]\n**Procedure**\n1) Factor; find zeros and discontinuities. 2) Intervals. 3) Test one point per interval.\n[/BOX]\n\n[BOX]\n**Example**\nf(x)=x²−4=(x−2)(x+2). Zeros: x=±2.  f>0 for x<−2 or x>2;  f<0 for −2<x<2.\n[/BOX]",
       "exercises": [
         {
           "id": "17-2-e1",
@@ -4336,7 +4336,7 @@
       "id": "18",
       "title": "Exponential & Logarithms",
       "category": "Pre-Calculus & Analysis",
-      "intro": "**Exponential** (eˣ, aˣ) and **logarithmic** (ln x, log x) functions are **inverses**: ln(eˣ)=x and e^(ln x)=x for x>0. Both are **strictly monotone**, so you can solve equations and inequalities by “taking ln” or “taking exp” on both sides. You will solve **equations and inequalities** involving eˣ and ln x.\n\n[BOX]\n**Formulas**\nln(eˣ)=x; e^(ln x)=x\nlog_a(x·y)=log_a(x)+log_a(y)\nlog_a(xⁿ)=n·log_a(x)\n[/BOX]\n\n[BOX]\n**Examples**\neˣ=5 ⇒ x=ln 5≈1.61\nln(x)=3 ⇒ x=e³≈20.09\n[/BOX]\n\n[DIAGRAM:exp-log-graphs]",
+      "intro": "**Exponential** (eˣ, aˣ) and **logarithmic** (ln x, log x) functions are **inverses**: ln(eˣ)=x and e^(ln x)=x for x>0. Both are **strictly monotone**, so you can solve equations and inequalities by “taking ln” or “taking exp” on both sides. You will solve **equations and inequalities** involving eˣ and ln x.\n\n[BOX]\n**Formulas**\nln(eˣ)=x; e^(ln x)=x\nlog_a(x·y)=log_a(x)+log_a(y)\nlog_a(xⁿ)=n·log_a(x)\n[/BOX]\n\n[BOX]\n**Examples**\neˣ=5 ⇒ x=ln 5≈1.61\nln(x)=3 ⇒ x=e³≈20.09\n[/BOX]",
       "exercises": [
         {
           "id": "18-e1",
@@ -4397,7 +4397,7 @@
       "id": "18-0",
       "title": "Equations and inequalities with eˣ and log(x)",
       "category": "Pre-Calculus & Analysis",
-      "intro": "**eˣ** is **strictly increasing** on ℝ; **ln x** is **strictly increasing** on (0, +∞). So **e^a = e^b ⇔ a = b** and **ln u = ln v ⇔ u = v** (for u, v > 0). **Inverses:** ln(eˣ)=x for all x; e^(ln x)=x for x>0. So to solve **e^(f(x)) = e^(g(x))**, equate **f(x)=g(x)**. To solve **ln(f(x))=c**, write **f(x)=e^c** (and require f(x)>0). For **inequalities**, use the same monotonicity: eˣ > e^a ⇔ x > a; ln x < ln a ⇔ 0 < x < a (for a>0).\n\n[DIAGRAM:exp-log-graphs]\n\n**Domain:** For ln(f(x)), need **f(x) > 0**. When solving, always check that solutions lie in the domain.\n\n[BOX]\n**Facts**\ne^a = e^b ⇔ a = b.  ln u = ln v ⇔ u = v (u,v>0).  ln(eˣ)=x, e^(ln x)=x (x>0).\n[/BOX]\n\n[BOX]\n**Examples**\ne^(2x)=e^(x+1) ⇒ 2x=x+1 ⇒ x=1.  ln(x)=2 ⇒ x=e².\neˣ>e² ⇒ x>2.  ln(x)≤0 ⇒ 0<x≤1.\n[/BOX]",
+      "intro": "**eˣ** is **strictly increasing** on ℝ; **ln x** is **strictly increasing** on (0, +∞). So **e^a = e^b ⇔ a = b** and **ln u = ln v ⇔ u = v** (for u, v > 0). **Inverses:** ln(eˣ)=x for all x; e^(ln x)=x for x>0. So to solve **e^(f(x)) = e^(g(x))**, equate **f(x)=g(x)**. To solve **ln(f(x))=c**, write **f(x)=e^c** (and require f(x)>0). For **inequalities**, use the same monotonicity: eˣ > e^a ⇔ x > a; ln x < ln a ⇔ 0 < x < a (for a>0).\n\n[IMAGE:equationsAndInequalitiesvithExandLogx.png]\n\n**Domain:** For ln(f(x)), need **f(x) > 0**. When solving, always check that solutions lie in the domain.\n\n[BOX]\n**Facts**\ne^a = e^b ⇔ a = b.  ln u = ln v ⇔ u = v (u,v>0).  ln(eˣ)=x, e^(ln x)=x (x>0).\n[/BOX]\n\n[BOX]\n**Examples**\ne^(2x)=e^(x+1) ⇒ 2x=x+1 ⇒ x=1.  ln(x)=2 ⇒ x=e².\neˣ>e² ⇒ x>2.  ln(x)≤0 ⇒ 0<x≤1.\n[/BOX]",
       "exercises": [
         {
           "id": "18-0-e1",
@@ -4458,7 +4458,7 @@
       "id": "19",
       "title": "Analytic Geometry",
       "category": "Pre-Calculus & Analysis",
-      "intro": "**Analytic geometry** describes geometric figures using **coordinates** and **equations**. You will work with the **line** (slope-intercept, point-slope, general form), the **circle** (center-radius equation), the **parabola** (vertex, axis), the **ellipse** (semi-axes), and the **hyperbola** (equations and asymptotes) in the Cartesian plane.\n\n[DIAGRAM:conics]",
+      "intro": "**Analytic geometry** describes geometric figures using **coordinates** and **equations**. You will work with the **line** (slope-intercept, point-slope, general form), the **circle** (center-radius equation), the **parabola** (vertex, axis), the **ellipse** (semi-axes), and the **hyperbola** (equations and asymptotes) in the Cartesian plane.",
       "exercises": [
         {
           "id": "19-e1",
@@ -4519,7 +4519,7 @@
       "id": "19-0",
       "title": "The line",
       "category": "Pre-Calculus & Analysis",
-      "intro": "A **line** in the plane can be given by **slope-intercept** form **y = mx + q** (m = slope, q = y-intercept), **point-slope** form **y − y₁ = m(x − x₁)** (line through (x₁,y₁) with slope m), or **general** form **ax + by + c = 0**. The **slope** through two points (x₁,y₁) and (x₂,y₂) is **m = (y₂−y₁)/(x₂−x₁)** (undefined if x₁=x₂, i.e. vertical line). **Parallel** lines have the **same** slope; **perpendicular** lines have slopes whose product is **−1** (m₁·m₂ = −1).\n\n**From two points:** Compute m, then use point-slope with one of the points. **Vertical line:** x = constant. **Horizontal line:** y = constant (slope 0).\n\n[BOX]\n**Formulas**\nSlope: m = (y₂−y₁)/(x₂−x₁)\nPoint-slope: y − y₁ = m(x − x₁).  Slope-intercept: y = mx + q\n[/BOX]\n\n[BOX]\n**Example**\nThrough (1,2) and (3,6): m = (6−2)/(3−1) = 2.  y − 2 = 2(x−1) ⇒ y = 2x.\n[/BOX]",
+      "intro": "A **line** in the plane can be given by **slope-intercept** form **y = mx + q** (m = slope, q = y-intercept), **point-slope** form **y − y₁ = m(x − x₁)** (line through (x₁,y₁) with slope m), or **general** form **ax + by + c = 0**. The **slope** through two points (x₁,y₁) and (x₂,y₂) is **m = (y₂−y₁)/(x₂−x₁)** (undefined if x₁=x₂, i.e. vertical line). **Parallel** lines have the **same** slope; **perpendicular** lines have slopes whose product is **−1** (m₁·m₂ = −1).\n\n**From two points:** Compute m, then use point-slope with one of the points. **Vertical line:** x = constant. **Horizontal line:** y = constant (slope 0).\n\n[IMAGE:theLine.svg]\n\n[BOX]\n**Formulas**\nSlope: m = (y₂−y₁)/(x₂−x₁)\nPoint-slope: y − y₁ = m(x − x₁).  Slope-intercept: y = mx + q\n[/BOX]\n\n[BOX]\n**Example**\nThrough (1,2) and (3,6): m = (6−2)/(3−1) = 2.  y − 2 = 2(x−1) ⇒ y = 2x.\n[/BOX]",
       "exercises": [
         {
           "id": "19-0-e1",
@@ -4580,7 +4580,7 @@
       "id": "19-1",
       "title": "The circle",
       "category": "Pre-Calculus & Analysis",
-      "intro": "A **circle** is the set of points at distance **r** (the **radius**) from a fixed point **(h, k)** (the **center**). Equation: **(x − h)² + (y − k)² = r²**. Expanding gives **x² + y² + αx + βy + γ = 0** with α = −2h, β = −2k, γ = h²+k²−r². So from the expanded form, **center = (−α/2, −β/2)** and **r = √(α²/4 + β²/4 − γ)** (we need α²/4 + β²/4 − γ ≥ 0 for a real circle).\n\n**Tangent line** at a point on the circle: perpendicular to the radius at that point. **Distance from center to line:** if the line is ax+by+c=0, distance = |ah+bk+c|/√(a²+b²). The line is tangent when this equals r.\n\n[BOX]\n**Equation**\n(x − h)² + (y − k)² = r².  Center (h,k), radius r.\nFrom x²+y²+αx+βy+γ=0: center (−α/2, −β/2), r = √(α²/4+β²/4−γ).\n[/BOX]\n\n[BOX]\n**Example**\nx²+y²−4x+2y−4=0  ⇒  center (2,−1), r²=4+1+4=9  ⇒  r=3.\n[/BOX]",
+      "intro": "A **circle** is the set of points at distance **r** (the **radius**) from a fixed point **(h, k)** (the **center**). Equation: **(x − h)² + (y − k)² = r²**. Expanding gives **x² + y² + αx + βy + γ = 0** with α = −2h, β = −2k, γ = h²+k²−r². So from the expanded form, **center = (−α/2, −β/2)** and **r = √(α²/4 + β²/4 − γ)** (we need α²/4 + β²/4 − γ ≥ 0 for a real circle).\n\n**Tangent line** at a point on the circle: perpendicular to the radius at that point. **Distance from center to line:** if the line is ax+by+c=0, distance = |ah+bk+c|/√(a²+b²). The line is tangent when this equals r.\n\n[IMAGE:theCircle.png]\n\n[BOX]\n**Equation**\n(x − h)² + (y − k)² = r².  Center (h,k), radius r.\nFrom x²+y²+αx+βy+γ=0: center (−α/2, −β/2), r = √(α²/4+β²/4−γ).\n[/BOX]\n\n[BOX]\n**Example**\nx²+y²−4x+2y−4=0  ⇒  center (2,−1), r²=4+1+4=9  ⇒  r=3.\n[/BOX]",
       "exercises": [
         {
           "id": "19-1-e1",
@@ -4641,7 +4641,7 @@
       "id": "19-2",
       "title": "The parabola",
       "category": "Pre-Calculus & Analysis",
-      "intro": "A **parabola** (vertical axis) is the graph of **y = ax² + bx + c** with **a ≠ 0**. It opens **upward** if a > 0 and **downward** if a < 0. The **vertex** (minimum or maximum point) has **x-coordinate x_V = −b/(2a)**; then **y_V = f(x_V)**. So the vertex is **(x_V, y_V)**. The **axis of symmetry** is the vertical line **x = x_V**. You can also complete the square to get **y = a(x − x_V)² + y_V**.\n\n**Roots (x-intercepts):** solve ax²+bx+c=0; the quadratic formula gives 0, 1, or 2 roots depending on the discriminant. **y-intercept:** (0, c).\n\n[BOX]\n**Vertex**\nx_V = −b/(2a),  y_V = f(x_V)\n[/BOX]\n\n[BOX]\n**Example**\ny = x²−4x+3:  x_V = 4/2 = 2,  y_V = 4−8+3 = −1.  Vertex (2, −1).\n[/BOX]",
+      "intro": "A **parabola** (vertical axis) is the graph of **y = ax² + bx + c** with **a ≠ 0**. It opens **upward** if a > 0 and **downward** if a < 0. The **vertex** (minimum or maximum point) has **x-coordinate x_V = −b/(2a)**; then **y_V = f(x_V)**. So the vertex is **(x_V, y_V)**. The **axis of symmetry** is the vertical line **x = x_V**. You can also complete the square to get **y = a(x − x_V)² + y_V**.\n\n**Roots (x-intercepts):** solve ax²+bx+c=0; the quadratic formula gives 0, 1, or 2 roots depending on the discriminant. **y-intercept:** (0, c).\n\n[IMAGE:theParabola.jpg]\n\n[BOX]\n**Vertex**\nx_V = −b/(2a),  y_V = f(x_V)\n[/BOX]\n\n[BOX]\n**Example**\ny = x²−4x+3:  x_V = 4/2 = 2,  y_V = 4−8+3 = −1.  Vertex (2, −1).\n[/BOX]",
       "exercises": [
         {
           "id": "19-2-e1",
@@ -4702,7 +4702,7 @@
       "id": "19-3",
       "title": "The ellipse",
       "category": "Pre-Calculus & Analysis",
-      "intro": "An **ellipse** (centered at the origin, axes along the coordinate axes) has equation **x²/a² + y²/b² = 1** with **a, b > 0**. The numbers **a** and **b** are the **semi-axes** (half the lengths of the axes). Usually we take **a ≥ b**; then the **major axis** is along the x-axis (length 2a) and the **minor axis** along the y-axis (length 2b). The **foci** are on the major axis at (±c, 0) where **c² = a² − b²** (so c < a). For any point on the ellipse, the sum of distances to the two foci is **2a**.\n\n**Eccentricity** e = c/a (0 < e < 1). If the center is (h, k), the equation is (x−h)²/a² + (y−k)²/b² = 1.\n\n[BOX]\n**Equation (center at origin)**\nx²/a² + y²/b² = 1.  Semi-axes a, b.  Foci (±c,0) with c² = a²−b².\n[/BOX]\n\n[BOX]\n**Example**\nx²/9 + y²/4 = 1  ⇒  a=3, b=2.  c²=9−4=5  ⇒  c=√5.\n[/BOX]",
+      "intro": "An **ellipse** (centered at the origin, axes along the coordinate axes) has equation **x²/a² + y²/b² = 1** with **a, b > 0**. The numbers **a** and **b** are the **semi-axes** (half the lengths of the axes). Usually we take **a ≥ b**; then the **major axis** is along the x-axis (length 2a) and the **minor axis** along the y-axis (length 2b). The **foci** are on the major axis at (±c, 0) where **c² = a² − b²** (so c < a). For any point on the ellipse, the sum of distances to the two foci is **2a**.\n\n**Eccentricity** e = c/a (0 < e < 1). If the center is (h, k), the equation is (x−h)²/a² + (y−k)²/b² = 1.\n\n[IMAGE:theEllipse.png]\n\n[BOX]\n**Equation (center at origin)**\nx²/a² + y²/b² = 1.  Semi-axes a, b.  Foci (±c,0) with c² = a²−b².\n[/BOX]\n\n[BOX]\n**Example**\nx²/9 + y²/4 = 1  ⇒  a=3, b=2.  c²=9−4=5  ⇒  c=√5.\n[/BOX]",
       "exercises": [
         {
           "id": "19-3-e1",
@@ -4763,7 +4763,7 @@
       "id": "19-4",
       "title": "The hyperbola in the Cartesian plane",
       "category": "Pre-Calculus & Analysis",
-      "intro": "A **hyperbola** (centered at the origin) has two standard forms. **Opens left/right:** **x²/a² − y²/b² = 1** (a, b > 0). The branches go to the left and right; **vertices** at (±a, 0); **foci** at (±c, 0) with **c² = a² + b²**. **Opens up/down:** **y²/b² − x²/a² = 1**; vertices (0, ±b), foci (0, ±c). In both cases the **asymptotes** are the lines **y = ±(b/a)x** (for the first form). The hyperbola approaches these lines as |x| or |y| → ∞.\n\n**Eccentricity** e = c/a > 1. For center (h, k), replace x by (x−h) and y by (y−k) in the equation.\n\n[BOX]\n**Equations**\nx²/a² − y²/b² = 1  (opens left/right).  y²/b² − x²/a² = 1  (opens up/down).\nAsymptotes: y = ±(b/a)x.  c² = a² + b².\n[/BOX]\n\n[BOX]\n**Example**\nx²/4 − y²/9 = 1  ⇒  a=2, b=3.  Asymptotes: y = ±(3/2)x.\n[/BOX]\n\n[DIAGRAM:conics]",
+      "intro": "A **hyperbola** (centered at the origin) has two standard forms. **Opens left/right:** **x²/a² − y²/b² = 1** (a, b > 0). The branches go to the left and right; **vertices** at (±a, 0); **foci** at (±c, 0) with **c² = a² + b²**. **Opens up/down:** **y²/b² − x²/a² = 1**; vertices (0, ±b), foci (0, ±c). In both cases the **asymptotes** are the lines **y = ±(b/a)x** (for the first form). The hyperbola approaches these lines as |x| or |y| → ∞.\n\n**Eccentricity** e = c/a > 1. For center (h, k), replace x by (x−h) and y by (y−k) in the equation.\n\n[BOX]\n**Equations**\nx²/a² − y²/b² = 1  (opens left/right).  y²/b² − x²/a² = 1  (opens up/down).\nAsymptotes: y = ±(b/a)x.  c² = a² + b².\n[/BOX]\n\n[BOX]\n**Example**\nx²/4 − y²/9 = 1  ⇒  a=2, b=3.  Asymptotes: y = ±(3/2)x.\n[/BOX]\n\n[IMAGE:theHyperbola.png]",
       "exercises": [
         {
           "id": "19-4-e1",

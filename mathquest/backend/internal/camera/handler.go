@@ -356,7 +356,7 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 	if preferredLang == "" {
 		preferredLang = "en"
 	}
-	solution, err := h.claudeSvc.SolveMathProblem(req.ImageBase64, req.MediaType, preferredLang)
+	solution, err := h.claudeSvc.SolveMathProblem(req.ImageBase64, req.MediaType)
 	if err != nil {
 		remaining := unlimitedDailyLimit
 		if effectiveDailyLimit >= 0 {
@@ -423,23 +423,6 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 	}
 
 	var graphResp *GraphDataResponse
-	if solution.GraphData != nil && solution.GraphData.IsFunction {
-		criticalPts := make([]CriticalPointResponse, len(solution.GraphData.CriticalPoints))
-		for i, cp := range solution.GraphData.CriticalPoints {
-			criticalPts[i] = CriticalPointResponse{X: cp.X, Y: cp.Y, Type: cp.Type}
-		}
-		graphResp = &GraphDataResponse{
-			IsFunction:     solution.GraphData.IsFunction,
-			Expression:     solution.GraphData.Expression,
-			Variable:       solution.GraphData.Variable,
-			Domain:         solution.GraphData.Domain,
-			Range:          solution.GraphData.Range,
-			Intercepts:     solution.GraphData.Intercepts,
-			Asymptotes:     solution.GraphData.Asymptotes,
-			CriticalPoints: criticalPts,
-			Behavior:       solution.GraphData.Behavior,
-		}
-	}
 
 	stepsDetail := solution.StepsDetail
 	if stepsDetail == nil {

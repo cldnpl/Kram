@@ -75,10 +75,30 @@ type MathSolution struct {
 	Problem             string   `json:"problem"`
 	Solution            string   `json:"solution"`
 	Steps               []string `json:"steps"`
+	StepsDetail         []string `json:"steps_detail,omitempty"`
 	RawLatex            string   `json:"raw_latex"`
 	DifficultyLevel     string   `json:"difficulty_level"`
 	DetectedLanguage    string   `json:"detected_language"`
 	ShouldSaveToHistory *bool    `json:"should_save_to_history,omitempty"`
+	GraphData           *GraphData `json:"graph_data,omitempty"`
+}
+
+type GraphData struct {
+	IsFunction     bool                `json:"is_function"`
+	Expression     string              `json:"expression"`
+	Variable       string              `json:"variable"`
+	Domain         string              `json:"domain"`
+	Range          string              `json:"range"`
+	Intercepts     map[string][]string `json:"intercepts"`
+	Asymptotes     map[string][]string `json:"asymptotes"`
+	CriticalPoints []CriticalPoint     `json:"critical_points,omitempty"`
+	Behavior       map[string]string   `json:"behavior"`
+}
+
+type CriticalPoint struct {
+	X    string `json:"x"`
+	Y    string `json:"y"`
+	Type string `json:"type"`
 }
 
 const solveMathPrompt = `You are a careful math tutor helping students solve problems step by step.

@@ -1536,7 +1536,7 @@ f(x)=1/(x−2) ⇒ domain: x≠2
 f(x)=√(x−1) ⇒ domain: x≥1
 [/BOX]
 
-[DIAGRAM:graph-transformations]`,
+[IMAGE:domain.png]`,
 	},
 	"16-0": {
 		Title:    "Real functions of a real variable",
@@ -1555,7 +1555,7 @@ y = f(x),  x ∈ Domain(f) ⊆ ℝ.  Graph = {(x, f(x))}
 f(x)=x²: domain ℝ, range [0, +∞).  g(x)=1/x: domain ℝ\\{0}
 [/BOX]
 
-[DIAGRAM:domain-graph]`,
+`,
 	},
 	"16-1": {
 		Title:    "Classification",
@@ -1575,14 +1575,14 @@ Even: f(−x)=f(x). Odd: f(−x)=−f(x).
 f(x)=x³: injective on ℝ, odd.  f(x)=x²: not injective on ℝ, even.
 [/BOX]
 
-[DIAGRAM:graph-transformations]`,
+`,
 	},
 	"16-2": {
 		Title:    "Finding the domain",
 		Category: "Pre-Calculus & Analysis",
 		Intro: `The **domain** of a function given by a formula is the set of **x** for which the expression is **defined** (and real, if we work in ℝ). **Checklist:** (1) **Denominators** must be **≠ 0**. So 1/(x−2) has domain x ≠ 2. (2) **Even roots** (√, ⁴√, …): the **radicand** must be **≥ 0**. So √(x+1) requires x+1 ≥ 0, i.e. x ≥ −1. (3) **Logarithms:** the **argument** must be **> 0**. So ln(x−3) requires x−3 > 0, i.e. x > 3. (4) **Fractional exponents** (e.g. x^(1/2)): if the exponent has an even denominator in lowest terms, we usually take **base ≥ 0** for real output.
 
-[DIAGRAM:domain-graph]
+[IMAGE:domain.png]
 
 If the function is a **sum**, **difference**, or **product** of several parts, the domain is the **intersection** of the domains of each part (and then exclude where denominators are zero). For a **composition** f(g(x)), x must be in the domain of g and g(x) must be in the domain of f.
 
@@ -1613,7 +1613,7 @@ f(x)=x² is even
 f(x)=x³ is odd
 [/BOX]
 
-[DIAGRAM:graph-transformations]`,
+`,
 	},
 	"17-0": {
 		Title:    "Symmetries (Even/Odd)",
@@ -1621,6 +1621,8 @@ f(x)=x³ is odd
 		Intro: `**Even function:** **f(−x) = f(x)** for all x in the domain. The graph is **symmetric about the y-axis**: if (a, f(a)) is on the graph, so is (−a, f(a)). Examples: x², x⁴, cos x, |x|. **Odd function:** **f(−x) = −f(x)** for all x. The graph is **symmetric about the origin**: if (a, f(a)) is on the graph, so is (−a, −f(a)). Examples: x, x³, sin x.
 
 **How to check:** Replace x by −x in the formula and simplify. If you get f(x), the function is even; if you get −f(x), it is odd; otherwise it is **neither**. Many functions (e.g. x+1, eˣ) are neither. **Use:** Even/odd symmetry reduces the work when sketching or integrating over symmetric intervals.
+
+[IMAGE:symmetriesEvenOdd.jpg]
 
 [BOX]
 **Tests**
@@ -1633,7 +1635,7 @@ Odd:  f(−x) = −f(x)  (origin symmetry)
 f(x)=x²−1: f(−x)=x²−1=f(x) → even.  g(x)=x³+x: g(−x)=−x³−x=−g(x) → odd.  h(x)=x+1: neither.
 [/BOX]
 
-[DIAGRAM:graph-transformations]`,
+`,
 	},
 	"17-1": {
 		Title:    "Intercepts",
@@ -1641,6 +1643,8 @@ f(x)=x²−1: f(−x)=x²−1=f(x) → even.  g(x)=x³+x: g(−x)=−x³−x=−
 		Intro: `**y-intercept:** the point where the graph crosses the **y-axis**. So **x = 0**; the y-intercept is **(0, f(0))**, provided **0** is in the domain. **x-intercepts (zeros):** the points where the graph crosses the **x-axis**. So **f(x) = 0**; solve the equation to find the x-values, then the intercepts are **(x, 0)**. The x-intercepts are exactly the **roots** (zeros) of the function.
 
 **Why they matter:** Intercepts help sketch the graph and often appear in applied problems (e.g. break-even when profit = 0). A function can have **no** x-intercepts (e.g. f(x)=x²+1), **one** (e.g. f(x)=x² at 0), or **many**. For polynomials, the number of real roots is at most the degree.
+
+[IMAGE:intercepts.jpg]
 
 [BOX]
 **Finding intercepts**
@@ -1653,7 +1657,7 @@ x-intercepts: solve f(x) = 0  →  points (x, 0)
 f(x)=x²−4.  y-intercept: f(0)=−4 → (0,−4).  Zeros: x²−4=0 → x=±2 → (−2,0), (2,0).
 [/BOX]
 
-[DIAGRAM:graph-transformations]`,
+`,
 	},
 	"17-2": {
 		Title:    "Sign study",
@@ -1661,6 +1665,8 @@ f(x)=x²−4.  y-intercept: f(0)=−4 → (0,−4).  Zeros: x²−4=0 → x=±2 
 		Intro: `A **sign study** finds where **f(x) > 0**, **f(x) < 0**, or **f(x) = 0**. This is used to solve **inequalities** (e.g. f(x) ≥ 0) and to sketch the graph (above or below the x-axis).
 
 **Method.** (1) **Factor** f(x) (or write it in a form where zeros are clear). (2) Find all **zeros** (f(x)=0) and points where f is **undefined** (e.g. vertical asymptotes). These split the real line into **intervals**. (3) On each interval, f has **constant sign** (it cannot change sign without crossing zero or a discontinuity). **Test** one value in each interval to determine whether f is positive or negative there. (4) At the zeros, f(x)=0. For **strict** inequalities (> or <), the zeros are excluded; for ≥ or ≤ they are included.
+
+[IMAGE:signStudy.png]
 
 [BOX]
 **Procedure**
@@ -1672,7 +1678,7 @@ f(x)=x²−4.  y-intercept: f(0)=−4 → (0,−4).  Zeros: x²−4=0 → x=±2 
 f(x)=x²−4=(x−2)(x+2). Zeros: x=±2.  f>0 for x<−2 or x>2;  f<0 for −2<x<2.
 [/BOX]
 
-[DIAGRAM:graph-transformations]`,
+[IMAGE:realFunctionsofArEALvARIABLE.gif]`,
 	},
 	"18": {
 		Title:    "Exponential & Logarithms",
@@ -1692,14 +1698,14 @@ eˣ=5 ⇒ x=ln 5≈1.61
 ln(x)=3 ⇒ x=e³≈20.09
 [/BOX]
 
-[DIAGRAM:exp-log-graphs]`,
+`,
 	},
 	"18-0": {
 		Title:    "Equations and inequalities with eˣ and log(x)",
 		Category: "Pre-Calculus & Analysis",
 		Intro: `**eˣ** is **strictly increasing** on ℝ; **ln x** is **strictly increasing** on (0, +∞). So **e^a = e^b ⇔ a = b** and **ln u = ln v ⇔ u = v** (for u, v > 0). **Inverses:** ln(eˣ)=x for all x; e^(ln x)=x for x>0. So to solve **e^(f(x)) = e^(g(x))**, equate **f(x)=g(x)**. To solve **ln(f(x))=c**, write **f(x)=e^c** (and require f(x)>0). For **inequalities**, use the same monotonicity: eˣ > e^a ⇔ x > a; ln x < ln a ⇔ 0 < x < a (for a>0).
 
-[DIAGRAM:exp-log-graphs]
+[IMAGE:equationsAndInequalitiesvithExandLogx.png]
 
 **Domain:** For ln(f(x)), need **f(x) > 0**. When solving, always check that solutions lie in the domain.
 
@@ -1719,7 +1725,7 @@ eˣ>e² ⇒ x>2.  ln(x)≤0 ⇒ 0<x≤1.
 		Category: "Pre-Calculus & Analysis",
 		Intro: `**Analytic geometry** describes geometric figures using **coordinates** and **equations**. You will work with the **line** (slope-intercept, point-slope, general form), the **circle** (center-radius equation), the **parabola** (vertex, axis), the **ellipse** (semi-axes), and the **hyperbola** (equations and asymptotes) in the Cartesian plane.
 
-[DIAGRAM:conics]`,
+`,
 	},
 	"19-0": {
 		Title:    "The line",
@@ -1727,6 +1733,8 @@ eˣ>e² ⇒ x>2.  ln(x)≤0 ⇒ 0<x≤1.
 		Intro: `A **line** in the plane can be given by **slope-intercept** form **y = mx + q** (m = slope, q = y-intercept), **point-slope** form **y − y₁ = m(x − x₁)** (line through (x₁,y₁) with slope m), or **general** form **ax + by + c = 0**. The **slope** through two points (x₁,y₁) and (x₂,y₂) is **m = (y₂−y₁)/(x₂−x₁)** (undefined if x₁=x₂, i.e. vertical line). **Parallel** lines have the **same** slope; **perpendicular** lines have slopes whose product is **−1** (m₁·m₂ = −1).
 
 **From two points:** Compute m, then use point-slope with one of the points. **Vertical line:** x = constant. **Horizontal line:** y = constant (slope 0).
+
+[IMAGE:theLine.svg]
 
 [BOX]
 **Formulas**
@@ -1746,6 +1754,8 @@ Through (1,2) and (3,6): m = (6−2)/(3−1) = 2.  y − 2 = 2(x−1) ⇒ y = 2x
 
 **Tangent line** at a point on the circle: perpendicular to the radius at that point. **Distance from center to line:** if the line is ax+by+c=0, distance = |ah+bk+c|/√(a²+b²). The line is tangent when this equals r.
 
+[IMAGE:theCircle.png]
+
 [BOX]
 **Equation**
 (x − h)² + (y − k)² = r².  Center (h,k), radius r.
@@ -1764,6 +1774,8 @@ x²+y²−4x+2y−4=0  ⇒  center (2,−1), r²=4+1+4=9  ⇒  r=3.
 
 **Roots (x-intercepts):** solve ax²+bx+c=0; the quadratic formula gives 0, 1, or 2 roots depending on the discriminant. **y-intercept:** (0, c).
 
+[IMAGE:theParabola.jpg]
+
 [BOX]
 **Vertex**
 x_V = −b/(2a),  y_V = f(x_V)
@@ -1780,6 +1792,8 @@ y = x²−4x+3:  x_V = 4/2 = 2,  y_V = 4−8+3 = −1.  Vertex (2, −1).
 		Intro: `An **ellipse** (centered at the origin, axes along the coordinate axes) has equation **x²/a² + y²/b² = 1** with **a, b > 0**. The numbers **a** and **b** are the **semi-axes** (half the lengths of the axes). Usually we take **a ≥ b**; then the **major axis** is along the x-axis (length 2a) and the **minor axis** along the y-axis (length 2b). The **foci** are on the major axis at (±c, 0) where **c² = a² − b²** (so c < a). For any point on the ellipse, the sum of distances to the two foci is **2a**.
 
 **Eccentricity** e = c/a (0 < e < 1). If the center is (h, k), the equation is (x−h)²/a² + (y−k)²/b² = 1.
+
+[IMAGE:theEllipse.png]
 
 [BOX]
 **Equation (center at origin)**
@@ -1809,7 +1823,7 @@ Asymptotes: y = ±(b/a)x.  c² = a² + b².
 x²/4 − y²/9 = 1  ⇒  a=2, b=3.  Asymptotes: y = ±(3/2)x.
 [/BOX]
 
-[DIAGRAM:conics]`,
+[IMAGE:theHyperbola.png]`,
 	},
 
 	// ----------------------

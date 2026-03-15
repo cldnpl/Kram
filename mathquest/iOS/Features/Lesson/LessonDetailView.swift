@@ -323,12 +323,27 @@ private let legacyLessonImages: [String: [String]] = [
     "15-0": ["unitCircle.webp"],
     "15-1": ["sineCosineTangent.avif"],
     "15-2": ["lawOfSinesCosines.jpeg"],
+    "16": ["domain.png"],
+    "16-0": ["realFunctionsofArEALvARIABLE.gif"],
+    "16-2": ["domain.png"],
+    "18-0": ["equationsAndInequalitiesvithExandLogx.png"],
+    "17-0": ["symmetriesEvenOdd.jpg"],
+    "17-1": ["intercepts.jpg"],
+    "17-2": ["signStudy.png"],
+    "19-0": ["theLine.svg"],
+    "19-1": ["theCircle.png"],
+    "19-2": ["theParabola.jpg"],
+    "19-3": ["theEllipse.png"],
+    "19-4": ["theHyperbola.png"],
 ]
 
 private func normalizeLegacyDiagramReplacements(intro: String, lessonId: String) -> String {
-    guard intro.contains("[DIAGRAM:"),
-          let imageNames = legacyLessonImages[lessonId],
+    guard let imageNames = legacyLessonImages[lessonId],
           !imageNames.isEmpty else {
+        return intro
+    }
+
+    if intro.contains("[IMAGE:") {
         return intro
     }
 
@@ -336,13 +351,27 @@ private func normalizeLegacyDiagramReplacements(intro: String, lessonId: String)
         .map { "[IMAGE:\($0)]" }
         .joined(separator: "\n\n")
 
-    let pattern = #"\[DIAGRAM:[^\]]+\]"#
-    guard let regex = try? NSRegularExpression(pattern: pattern) else {
-        return intro
+    if intro.contains("[DIAGRAM:") {
+        let pattern = #"\[DIAGRAM:[^\]]+\]"#
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+            return intro
+        }
+
+        let range = NSRange(intro.startIndex..<intro.endIndex, in: intro)
+        return regex.stringByReplacingMatches(in: intro, options: [], range: range, withTemplate: replacement)
     }
 
-    let range = NSRange(intro.startIndex..<intro.endIndex, in: intro)
-    return regex.stringByReplacingMatches(in: intro, options: [], range: range, withTemplate: replacement)
+    if let boxRange = intro.range(of: "[BOX]") {
+        let beforeBox = intro[..<boxRange.lowerBound].trimmingCharacters(in: .whitespacesAndNewlines)
+        let afterBox = intro[boxRange.lowerBound...]
+        if beforeBox.isEmpty {
+            return "\(replacement)\n\n\(afterBox)"
+        }
+        return "\(beforeBox)\n\n\(replacement)\n\n\(afterBox)"
+    }
+
+    let trimmed = intro.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed.isEmpty ? replacement : "\(trimmed)\n\n\(replacement)"
 }
 
 private func parseContentBlocks(_ intro: String) -> [ContentBlock] {

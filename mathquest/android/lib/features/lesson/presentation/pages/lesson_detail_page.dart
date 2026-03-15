@@ -188,6 +188,18 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     '15-0': ['unitCircle.webp'],
     '15-1': ['sineCosineTangent.avif'],
     '15-2': ['lawOfSinesCosines.jpeg'],
+    '16': ['domain.png'],
+    '16-0': ['realFunctionsofArEALvARIABLE.gif'],
+    '16-2': ['domain.png'],
+    '18-0': ['equationsAndInequalitiesvithExandLogx.png'],
+    '17-0': ['symmetriesEvenOdd.jpg'],
+    '17-1': ['intercepts.jpg'],
+    '17-2': ['signStudy.png'],
+    '19-0': ['theLine.svg'],
+    '19-1': ['theCircle.png'],
+    '19-2': ['theParabola.jpg'],
+    '19-3': ['theEllipse.png'],
+    '19-4': ['theHyperbola.png'],
   };
 
   List<Widget> _buildIntroBlocks(String intro) {
@@ -358,12 +370,27 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
   }
 
   String _normalizeLegacyDiagramReplacements(String lessonId, String intro) {
-    if (!intro.contains('[DIAGRAM:')) return intro;
     final imageNames = _legacyLessonImages[lessonId];
     if (imageNames == null || imageNames.isEmpty) return intro;
+    if (intro.contains('[IMAGE:')) return intro;
 
     final replacement = imageNames.map((name) => '[IMAGE:$name]').join('\n\n');
-    return intro.replaceAll(RegExp(r'\[DIAGRAM:[^\]]+\]'), replacement);
+    if (intro.contains('[DIAGRAM:')) {
+      return intro.replaceAll(RegExp(r'\[DIAGRAM:[^\]]+\]'), replacement);
+    }
+
+    final boxIndex = intro.indexOf('[BOX]');
+    if (boxIndex != -1) {
+      final before = intro.substring(0, boxIndex).trimRight();
+      final after = intro.substring(boxIndex);
+      if (before.isEmpty) {
+        return '$replacement\n\n$after';
+      }
+      return '$before\n\n$replacement\n\n$after';
+    }
+
+    final trimmed = intro.trim();
+    return trimmed.isEmpty ? replacement : '$trimmed\n\n$replacement';
   }
 
   String _normalizeIntroImagePlacement(String intro) {

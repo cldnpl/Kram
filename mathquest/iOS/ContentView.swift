@@ -33,19 +33,16 @@ struct ContentView: View {
             HomeView()
                 .tabItem { Label(L10n.lessons, systemImage: "house.fill") }
                 .tag(0)
-            CommunityView()
-                .tabItem { Label(L10n.communityTitle, systemImage: "person.2.fill") }
-                .tag(1)
             NavigationStack {
                 CameraView()
             }
             .tabItem { Label(L10n.camera, systemImage: "camera.fill") }
-            .tag(2)
+            .tag(1)
             NavigationStack {
                 ProfileView()
             }
             .tabItem { Label(L10n.profileTab, systemImage: "person.fill") }
-            .tag(3)
+            .tag(2)
         }
         .id("tabs-\(language)")
         .environment(\.locale, Locale(identifier: language))
@@ -137,7 +134,7 @@ struct ContentView: View {
         do {
             let client = APIClient()
             let response: SharedSolutionResponse = try await client.request("camera/shared/\(token)")
-            tabSelection.selectedTab = 2
+            tabSelection.selectedTab = 1
             sharedSolutionSheet = SharedSolutionSheet(response: response)
         } catch {
             sharedSolutionErrorMessage = L10n.sharedSolutionLoadFailed
