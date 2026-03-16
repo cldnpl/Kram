@@ -2,7 +2,6 @@ import Foundation
 
 enum APIConfig {
     private static let productionBaseURLString = "https://kram.islamov.online/api"
-    private static let localSimulatorBaseURLString = "http://127.0.0.1:8080/api"
 
     /// Usato da tutte le richieste API (lessons, coins, ecc.).
     static var baseURLString: String {
@@ -15,11 +14,7 @@ enum APIConfig {
            !override.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return override
         }
-#if targetEnvironment(simulator)
-        return localSimulatorBaseURLString
-#else
         return productionBaseURLString
-#endif
 #else
         return productionBaseURLString
 #endif
