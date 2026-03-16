@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import Combine
 
 // MARK: - Theme-adaptive color scheme
 
@@ -205,15 +206,35 @@ struct ScientificCalculatorView: View {
 
     // MARK: - Expression area
 
+    @State private var cursorVisible = true
+
     private var expressionArea: some View {
         VStack(alignment: .trailing, spacing: 0) {
             Spacer(minLength: 0)
             ScrollView(.horizontal, showsIndicators: false) {
-                Text(expression.isEmpty ? "Type a math problem..." : expression)
-                    .font(.system(size: 24, weight: .light))
-                    .foregroundColor(expression.isEmpty ? colors.hint : colors.onSurface)
-                    .lineLimit(nil)
+                if expression.isEmpty {
+                    HStack(spacing: 0) {
+                        CursorView(color: colors.accentBg, visible: cursorVisible)
+                        Text("Type a math problem...")
+                            .font(.system(size: 24, weight: .light))
+                            .foregroundColor(colors.hint)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    let pos = min(cursorPos, expression.count)
+                    let before = String(expression.prefix(pos))
+                    let after = String(expression.suffix(expression.count - pos))
+                    HStack(spacing: 0) {
+                        Text(before)
+                            .font(.system(size: 24, weight: .light))
+                            .foregroundColor(colors.onSurface)
+                        CursorView(color: colors.accentBg, visible: cursorVisible)
+                        Text(after)
+                            .font(.system(size: 24, weight: .light))
+                            .foregroundColor(colors.onSurface)
+                    }
                     .frame(maxWidth: .infinity, alignment: .trailing)
+                }
             }
             .defaultScrollAnchor(.trailing)
         }
@@ -228,6 +249,9 @@ struct ScientificCalculatorView: View {
         )
         .padding(.horizontal, 16)
         .padding(.vertical, 4)
+        .onReceive(Timer.publish(every: 0.53, on: .main, in: .common).autoconnect()) { _ in
+            cursorVisible.toggle()
+        }
     }
 
     // MARK: - Status
@@ -692,6 +716,20 @@ struct ScientificCalculatorView: View {
         UIImpactFeedbackGenerator(style: style).impactOccurred()
     }
 
+}
+
+// MARK: - Blinking cursor
+
+private struct CursorView: View {
+    let color: Color
+    let visible: Bool
+
+    var body: some View {
+        Rectangle()
+            .fill(color)
+            .frame(width: 2, height: 26)
+            .opacity(visible ? 1 : 0)
+    }
 }
 
 // MARK: - Button type
