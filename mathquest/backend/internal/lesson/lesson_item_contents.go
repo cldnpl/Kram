@@ -2199,14 +2199,15 @@ If f ≥ 0: geometric area.  FTC: = F(b) − F(a).
 So to compute a definite integral: (1) find **any** primitive F of f (indefinite integral), (2) evaluate **F(b) − F(a)**. This is the main tool for calculating areas and many applied quantities.
 
 [BOX]
-**FTC (Part 2)**
-∫_a^b f(x) dx = F(b) − F(a)
+**FTC (Part 1)**
+F(x) = ∫_a^x f(t) dt
 F'(x) = f(x)
 [/BOX]
 
 [BOX]
-**Example**
-∫_0^1 x² dx = [x³/3]_0^1 = 1/3 − 0 = 1/3
+**FTC (Part 2)**
+∫_a^b f(x) dx = F(b) − F(a)
+F(b) − F(a) = [F(x)]_a^b
 [/BOX]
 
 [IMAGE:fundamentalTheoremsofCalculus.png]`,

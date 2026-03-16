@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -139,50 +140,213 @@ func buildExercisesForLesson(id, title, category, intro, lang string) []lessonJS
 	if first == "" {
 		first = title
 	}
+	baseTitle := title
+	baseCategory := category
+	if base, ok := lessonContentByID[id]; ok {
+		baseTitle = base.Title
+		baseCategory = base.Category
+	}
 
 	goal := fmt.Sprintf(p.goalTemplate, title)
-	summaryWrong1 := p.summaryWrong1
-	summaryWrong2 := p.summaryWrong2
-	summaryWrong3 := p.summaryWrong3
 
-	categoryWrong1 := p.categoryWrong1
-	categoryWrong2 := p.categoryWrong2
-	categoryWrong3 := p.categoryWrong3
-
-	return []lessonJSONExercise{
-		{
-			ID:            id + "-e1",
-			Question:      p.topicQuestion,
+	var exercises []lessonJSONExercise
+	seen := map[string]struct{}{}
+	appendExercise := func(question string, options []string, correct string) {
+		question = strings.TrimSpace(question)
+		correct = strings.TrimSpace(correct)
+		if question == "" || correct == "" {
+			return
+		}
+		filteredOptions := make([]string, 0, len(options)+1)
+		for _, option := range append([]string{correct}, options...) {
+			option = strings.TrimSpace(option)
+			if option == "" {
+				continue
+			}
+			duplicate := false
+			for _, existing := range filteredOptions {
+				if existing == option {
+					duplicate = true
+					break
+				}
+			}
+			if !duplicate {
+				filteredOptions = append(filteredOptions, option)
+			}
+		}
+		if len(filteredOptions) < 2 {
+			return
+		}
+		key := question + "\n" + correct
+		if _, ok := seen[key]; ok {
+			return
+		}
+		seen[key] = struct{}{}
+		exercises = append(exercises, lessonJSONExercise{
+			ID:            fmt.Sprintf("%s-e%d", id, len(exercises)+1),
+			Question:      question,
 			Type:          "multiple_choice",
-			Options:       []string{title, summaryWrong1, summaryWrong2, summaryWrong3},
-			CorrectAnswer: title,
+			Options:       filteredOptions,
+			CorrectAnswer: correct,
 			XPReward:      10,
-		},
-		{
-			ID:            id + "-e2",
-			Question:      p.summaryQuestion,
-			Type:          "multiple_choice",
-			Options:       []string{first, summaryWrong1, summaryWrong2, summaryWrong3},
-			CorrectAnswer: first,
-			XPReward:      10,
-		},
-		{
-			ID:            id + "-e3",
-			Question:      p.goalQuestion,
-			Type:          "multiple_choice",
-			Options:       []string{goal, categoryWrong1, categoryWrong2, categoryWrong3, category},
-			CorrectAnswer: goal,
-			XPReward:      10,
-		},
-		{
-			ID:            id + "-e4",
-			Question:      p.categoryQuestion,
-			Type:          "multiple_choice",
-			Options:       []string{category, categoryWrong1, categoryWrong2, categoryWrong3},
-			CorrectAnswer: category,
-			XPReward:      10,
-		},
+		})
 	}
+
+	for _, template := range buildTopicPracticeTemplates(id, baseTitle, baseCategory, lang) {
+		appendExercise(template.question, template.options, template.correct)
+	}
+
+	facts := extractLessonFacts(intro)
+	if len(facts) == 0 {
+		facts = []lessonExerciseFact{
+			{text: first, isFormula: looksLikeExerciseFormula(first)},
+			{text: goal, isFormula: false},
+			{text: title, isFormula: false},
+		}
+	}
+	factTexts := make([]string, 0, len(facts))
+	for _, fact := range facts {
+		factTexts = append(factTexts, fact.text)
+	}
+	for _, template := range buildDerivedPracticeTemplates(factTexts, lang) {
+		appendExercise(template.question, template.options, template.correct)
+	}
+
+	return exercises
+}
+
+type lessonExerciseFact struct {
+	text      string
+	isFormula bool
+}
+
+var exerciseWhitespace = regexp.MustCompile(`\s+`)
+
+func extractLessonFacts(intro string) []lessonExerciseFact {
+	lines := strings.Split(normalizeLessonIntro(intro), "\n")
+	seen := map[string]struct{}{}
+	var facts []lessonExerciseFact
+
+	for _, rawLine := range lines {
+		line := strings.TrimSpace(rawLine)
+		if line == "" || line == "[BOX]" || line == "[/BOX]" {
+			continue
+		}
+		if (strings.HasPrefix(line, "[DIAGRAM:") || strings.HasPrefix(line, "[IMAGE:")) && strings.HasSuffix(line, "]") {
+			continue
+		}
+
+		for _, fragment := range splitLessonExerciseFragments(line) {
+			normalized := sanitizeExerciseFragment(fragment)
+			if !isUsableExerciseFact(normalized) {
+				continue
+			}
+			if _, ok := seen[normalized]; ok {
+				continue
+			}
+			seen[normalized] = struct{}{}
+			facts = append(facts, lessonExerciseFact{
+				text:      normalized,
+				isFormula: looksLikeExerciseFormula(normalized),
+			})
+		}
+	}
+
+	return facts
+}
+
+func splitLessonExerciseFragments(line string) []string {
+	var out []string
+	var current strings.Builder
+
+	flush := func() {
+		part := strings.TrimSpace(current.String())
+		if part != "" {
+			out = append(out, part)
+		}
+		current.Reset()
+	}
+
+	for i, r := range line {
+		current.WriteRune(r)
+		if r != '.' && r != '!' && r != '?' && r != ';' {
+			continue
+		}
+
+		remaining := strings.TrimLeft(line[i+len(string(r)):], " ")
+		if remaining == "" {
+			flush()
+			continue
+		}
+		if strings.HasSuffix(current.String(), "e.g.") || strings.HasSuffix(current.String(), "i.e.") {
+			continue
+		}
+		first := rune(remaining[0])
+		if r == ';' || first == '(' || first == '[' || strings.ToUpper(string(first)) == string(first) {
+			flush()
+		}
+	}
+
+	flush()
+	return out
+}
+
+func sanitizeExerciseFragment(fragment string) string {
+	fragment = strings.TrimSpace(strings.ReplaceAll(fragment, "**", ""))
+	fragment = exerciseWhitespace.ReplaceAllString(fragment, " ")
+	fragment = strings.Trim(fragment, " -•")
+	if fragment == "" {
+		return ""
+	}
+	if len(fragment) > 140 {
+		fragment = strings.TrimSpace(fragment[:140]) + "..."
+	}
+	return fragment
+}
+
+func isUsableExerciseFact(fragment string) bool {
+	if fragment == "" || len(fragment) < 18 {
+		return false
+	}
+	if strings.HasSuffix(fragment, "e.g.") || strings.HasSuffix(fragment, "i.e.") {
+		return false
+	}
+	if strings.Count(fragment, "(") != strings.Count(fragment, ")") {
+		return false
+	}
+	return true
+}
+
+func looksLikeExerciseFormula(text string) bool {
+	lower := strings.ToLower(text)
+	return strings.ContainsAny(text, "=^√∫≤≥≠±∞") ||
+		strings.Contains(lower, "lim") ||
+		strings.Contains(lower, "sin") ||
+		strings.Contains(lower, "cos") ||
+		strings.Contains(lower, "tan") ||
+		strings.Contains(lower, "log") ||
+		strings.Contains(lower, "ln")
+}
+
+func buildExerciseOptions(correct string, wrongFacts []string, seed int) []string {
+	options := []string{correct}
+	for i := 0; len(options) < 4 && i < len(wrongFacts); i++ {
+		candidate := wrongFacts[(seed+i)%len(wrongFacts)]
+		if candidate == correct {
+			continue
+		}
+		duplicate := false
+		for _, existing := range options {
+			if existing == candidate {
+				duplicate = true
+				break
+			}
+		}
+		if !duplicate {
+			options = append(options, candidate)
+		}
+	}
+	return options
 }
 
 func firstSentence(intro string) string {
@@ -225,6 +389,8 @@ type exercisePromptPack struct {
 	summaryQuestion  string
 	goalQuestion     string
 	categoryQuestion string
+	factQuestion     string
+	formulaQuestion  string
 	goalTemplate     string
 	summaryWrong1    string
 	summaryWrong2    string
@@ -232,6 +398,7 @@ type exercisePromptPack struct {
 	categoryWrong1   string
 	categoryWrong2   string
 	categoryWrong3   string
+	wrongFacts       []string
 }
 
 func promptPackForLang(lang string) exercisePromptPack {
@@ -242,6 +409,8 @@ func promptPackForLang(lang string) exercisePromptPack {
 			summaryQuestion:  "Quale frase descrive meglio questa lezione?",
 			goalQuestion:     "Qual è l'obiettivo principale di questa lezione?",
 			categoryQuestion: "A quale categoria appartiene questa lezione?",
+			factQuestion:     "Quale fatto compare davvero in questa lezione?",
+			formulaQuestion:  "Quale formula o regola è presentata in questa lezione?",
 			goalTemplate:     "Capire e applicare: %s",
 			summaryWrong1:    "Questa lezione parla principalmente di storia generale.",
 			summaryWrong2:    "Questa lezione riguarda principalmente biologia e chimica.",
@@ -249,6 +418,14 @@ func promptPackForLang(lang string) exercisePromptPack {
 			categoryWrong1:   "Letteratura e linguistica",
 			categoryWrong2:   "Scienze naturali",
 			categoryWrong3:   "Storia contemporanea",
+			wrongFacts: []string{
+				"Questa lezione parla soprattutto di letteratura antica.",
+				"Questa lezione descrive un fenomeno biologico.",
+				"Questa lezione analizza eventi storici moderni.",
+				"Questa lezione riguarda la geografia dei continenti.",
+				"Questa lezione spiega regole grammaticali di una lingua.",
+				"Questa lezione tratta argomenti di chimica sperimentale.",
+			},
 		}
 	case "fr":
 		return exercisePromptPack{
@@ -256,6 +433,8 @@ func promptPackForLang(lang string) exercisePromptPack {
 			summaryQuestion:  "Quelle phrase décrit le mieux cette leçon ?",
 			goalQuestion:     "Quel est l'objectif principal de cette leçon ?",
 			categoryQuestion: "À quelle catégorie appartient cette leçon ?",
+			factQuestion:     "Quel fait apparaît vraiment dans cette leçon ?",
+			formulaQuestion:  "Quelle formule ou règle est présentée dans cette leçon ?",
 			goalTemplate:     "Comprendre et appliquer : %s",
 			summaryWrong1:    "Cette leçon parle surtout d'histoire générale.",
 			summaryWrong2:    "Cette leçon concerne surtout la biologie et la chimie.",
@@ -263,6 +442,14 @@ func promptPackForLang(lang string) exercisePromptPack {
 			categoryWrong1:   "Littérature et linguistique",
 			categoryWrong2:   "Sciences naturelles",
 			categoryWrong3:   "Histoire contemporaine",
+			wrongFacts: []string{
+				"Cette leçon parle surtout de littérature ancienne.",
+				"Cette leçon décrit un phénomène biologique.",
+				"Cette leçon analyse des événements historiques modernes.",
+				"Cette leçon concerne la géographie des continents.",
+				"Cette leçon explique des règles grammaticales.",
+				"Cette leçon traite de chimie expérimentale.",
+			},
 		}
 	case "es":
 		return exercisePromptPack{
@@ -270,6 +457,8 @@ func promptPackForLang(lang string) exercisePromptPack {
 			summaryQuestion:  "¿Qué frase describe mejor esta lección?",
 			goalQuestion:     "¿Cuál es el objetivo principal de esta lección?",
 			categoryQuestion: "¿A qué categoría pertenece esta lección?",
+			factQuestion:     "¿Qué hecho aparece realmente en esta lección?",
+			formulaQuestion:  "¿Qué fórmula o regla se presenta en esta lección?",
 			goalTemplate:     "Comprender y aplicar: %s",
 			summaryWrong1:    "Esta lección trata principalmente de historia general.",
 			summaryWrong2:    "Esta lección trata principalmente de biología y química.",
@@ -277,6 +466,14 @@ func promptPackForLang(lang string) exercisePromptPack {
 			categoryWrong1:   "Literatura y lingüística",
 			categoryWrong2:   "Ciencias naturales",
 			categoryWrong3:   "Historia contemporánea",
+			wrongFacts: []string{
+				"Esta lección trata sobre literatura antigua.",
+				"Esta lección describe un fenómeno biológico.",
+				"Esta lección analiza hechos históricos modernos.",
+				"Esta lección trata la geografía de los continentes.",
+				"Esta lección explica reglas gramaticales.",
+				"Esta lección trata de química experimental.",
+			},
 		}
 	case "uz":
 		return exercisePromptPack{
@@ -284,6 +481,8 @@ func promptPackForLang(lang string) exercisePromptPack {
 			summaryQuestion:  "Qaysi gap ushbu darsni eng yaxshi ifodalaydi?",
 			goalQuestion:     "Ushbu darsning asosiy maqsadi nima?",
 			categoryQuestion: "Ushbu dars qaysi toifaga kiradi?",
+			factQuestion:     "Quyidagilardan qaysi biri aynan shu darsda uchraydi?",
+			formulaQuestion:  "Quyidagi qaysi formula yoki qoida shu darsda berilgan?",
 			goalTemplate:     "Tushunish va qo'llash: %s",
 			summaryWrong1:    "Bu dars asosan umumiy tarix haqida.",
 			summaryWrong2:    "Bu dars asosan biologiya va kimyo haqida.",
@@ -291,6 +490,14 @@ func promptPackForLang(lang string) exercisePromptPack {
 			categoryWrong1:   "Adabiyot va tilshunoslik",
 			categoryWrong2:   "Tabiiy fanlar",
 			categoryWrong3:   "Zamonaviy tarix",
+			wrongFacts: []string{
+				"Bu dars qadimgi adabiyot haqida.",
+				"Bu dars biologik hodisani tasvirlaydi.",
+				"Bu dars zamonaviy tarixiy voqealarni tahlil qiladi.",
+				"Bu dars qit'alar geografiyasini tushuntiradi.",
+				"Bu dars grammatika qoidalarini bayon qiladi.",
+				"Bu dars tajribaviy kimyo haqida.",
+			},
 		}
 	default:
 		return exercisePromptPack{
@@ -298,6 +505,8 @@ func promptPackForLang(lang string) exercisePromptPack {
 			summaryQuestion:  "Which sentence best describes this lesson?",
 			goalQuestion:     "What is the main goal of this lesson?",
 			categoryQuestion: "Which category does this lesson belong to?",
+			factQuestion:     "Which fact really appears in this lesson?",
+			formulaQuestion:  "Which formula or rule is presented in this lesson?",
 			goalTemplate:     "Understand and apply: %s",
 			summaryWrong1:    "This lesson is mainly about general world history.",
 			summaryWrong2:    "This lesson is mainly about biology and chemistry.",
@@ -305,6 +514,14 @@ func promptPackForLang(lang string) exercisePromptPack {
 			categoryWrong1:   "Literature and linguistics",
 			categoryWrong2:   "Natural sciences",
 			categoryWrong3:   "Contemporary history",
+			wrongFacts: []string{
+				"This lesson is about ancient literature.",
+				"This lesson describes a biological phenomenon.",
+				"This lesson analyzes modern historical events.",
+				"This lesson focuses on continental geography.",
+				"This lesson explains grammar rules.",
+				"This lesson covers experimental chemistry.",
+			},
 		}
 	}
 }

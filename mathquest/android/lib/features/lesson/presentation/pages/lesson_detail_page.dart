@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -72,9 +73,11 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('${AppLocale.tr('error')}: $_error', textAlign: TextAlign.center),
+                      Text('${AppLocale.tr('error')}: $_error',
+                          textAlign: TextAlign.center),
                       const SizedBox(height: 16),
-                      FilledButton(onPressed: _load, child: Text(AppLocale.tr('retry'))),
+                      FilledButton(
+                          onPressed: _load, child: Text(AppLocale.tr('retry'))),
                     ],
                   ),
                 )
@@ -87,7 +90,8 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                         children: [
                           if (_detail!['content_json'] != null &&
                               _detail!['content_json'] is Map &&
-                              (_detail!['content_json'] as Map).containsKey('intro')) ...[
+                              (_detail!['content_json'] as Map)
+                                  .containsKey('intro')) ...[
                             Padding(
                               padding: const EdgeInsets.only(bottom: 16),
                               child: Column(
@@ -95,7 +99,9 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                                 children: _buildIntroBlocks(
                                   _normalizeLegacyDiagramReplacements(
                                     widget.lessonId,
-                                    (_detail!['content_json'] as Map)['intro'] as String? ?? '',
+                                    (_detail!['content_json'] as Map)['intro']
+                                            as String? ??
+                                        '',
                                   ),
                                 ),
                               ),
@@ -106,9 +112,28 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                             child: SizedBox(
                               width: double.infinity,
                               child: FilledButton(
-                                onPressed: () {},
+                                onPressed: () async {
+                                  final exercises =
+                                      _lessonExercisesFromDetail();
+                                  if (exercises.isEmpty) return;
+
+                                  await Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => _LessonPracticePage(
+                                        lessonId: widget.lessonId,
+                                        lessonTitle:
+                                            _detail?['title'] as String? ??
+                                                AppLocale.tr('lesson'),
+                                        lessonCost:
+                                            _lessonCostForId(widget.lessonId),
+                                        exercises: exercises,
+                                      ),
+                                    ),
+                                  );
+                                },
                                 style: FilledButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 14),
                                 ),
                                 child: Text(AppLocale.tr('practice')),
                               ),
@@ -119,6 +144,43 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                     ),
     );
   }
+
+  int _lessonCostForId(String lessonId) {
+    final sectionId = int.tryParse(lessonId.split('-').first) ?? 1;
+    final increment = (sectionId - 1) % 4;
+    return 20 + (increment * 5);
+  }
+
+  List<_LessonExercise> _lessonExercisesFromDetail() {
+    final raw = _detail?['exercises'];
+    if (raw is! List) return const [];
+
+    return raw
+        .map((item) =>
+            item is Map ? Map<String, dynamic>.from(item) : <String, dynamic>{})
+        .map((map) {
+          final options = (map['options'] as List<dynamic>? ?? const [])
+              .map((option) => option.toString().trim())
+              .where((option) => option.isNotEmpty)
+              .toList();
+          final correctAnswer = (map['correct_answer'] as String? ?? '').trim();
+          if (correctAnswer.isNotEmpty && !options.contains(correctAnswer)) {
+            options.insert(0, correctAnswer);
+          }
+          return _LessonExercise(
+            id: (map['id'] as String? ?? '').trim(),
+            question: (map['question'] as String? ?? '').trim(),
+            options: options,
+            correctAnswer: correctAnswer.isEmpty
+                ? (options.isEmpty ? '' : options.first)
+                : correctAnswer,
+          );
+        })
+        .where((exercise) =>
+            exercise.question.isNotEmpty && exercise.options.isNotEmpty)
+        .toList();
+  }
+
   // Dark purple (same as gradient) for formula boxes.
   static const _formulaBoxColor = Color(0xFF6650A4);
   // Light purple for example boxes.
@@ -220,7 +282,18 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     '27-1': ['areasOfPlaneFigures.jpg'],
   };
   static const Set<String> _lessonsWithoutReplacementImages = {
-    '16-1', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27',
+    '16-1',
+    '17',
+    '18',
+    '19',
+    '20',
+    '21',
+    '22',
+    '23',
+    '24',
+    '25',
+    '26',
+    '27',
   };
 
   List<Widget> _buildIntroBlocks(String intro) {
@@ -236,7 +309,9 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       final diagramIdx = remaining.indexOf(diagramPrefix);
       final imageIdx = remaining.indexOf(imagePrefix);
       final boxStartIdx = remaining.indexOf(boxStart);
-      final markerCandidates = <int>[diagramIdx, imageIdx, boxStartIdx].where((idx) => idx != -1).toList();
+      final markerCandidates = <int>[diagramIdx, imageIdx, boxStartIdx]
+          .where((idx) => idx != -1)
+          .toList();
       if (markerCandidates.isEmpty) {
         final text = remaining.trim();
         if (text.isNotEmpty) {
@@ -262,7 +337,8 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
             ));
           }
         }
-        final afterPrefix = remaining.substring(diagramIdx + diagramPrefix.length);
+        final afterPrefix =
+            remaining.substring(diagramIdx + diagramPrefix.length);
         final bracketIdx = afterPrefix.indexOf(']');
         if (bracketIdx != -1) {
           final diagramId = afterPrefix.substring(0, bracketIdx).trim();
@@ -334,9 +410,7 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
         final borderColor = isFormulaBox
             ? _formulaBoxColor.withOpacity(0.5)
             : _exampleBoxColor.withOpacity(0.5);
-        final textColor = isFormulaBox
-            ? _formulaBoxColor
-            : _exampleBoxColor;
+        final textColor = isFormulaBox ? _formulaBoxColor : _exampleBoxColor;
 
         blocks.add(
           Padding(
@@ -354,24 +428,25 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: boxContent
                     .split('\n')
+                    .expand(_splitCompoundLessonLine)
                     .map((line) => line.trim())
                     .where((line) => line.isNotEmpty)
                     .map((line) {
-                      final baseStyle = Theme.of(context).textTheme.bodyLarge!.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface,
-                      );
-                      final isFormula = _isFormulaLine(line);
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 4),
-                        child: isFormula
-                            ? _LessonFormulaLine(
-                                text: line,
-                                accentColor: textColor,
-                              )
-                            : _LessonParagraph(text: line, baseStyle: baseStyle),
-                      );
-                    })
-                    .toList(),
+                  final baseStyle =
+                      Theme.of(context).textTheme.bodyLarge!.copyWith(
+                            color: Theme.of(context).colorScheme.onSurface,
+                          );
+                  final isFormula = _isFormulaLine(line);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: isFormula
+                        ? _LessonFormulaLine(
+                            text: line,
+                            accentColor: textColor,
+                          )
+                        : _LessonParagraph(text: line, baseStyle: baseStyle),
+                  );
+                }).toList(),
               ),
             ),
           ),
@@ -388,7 +463,8 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
   String _normalizeLegacyDiagramReplacements(String lessonId, String intro) {
     final imageNames = _legacyLessonImages[lessonId];
     final shouldStripOnly = _lessonsWithoutReplacementImages.contains(lessonId);
-    if ((imageNames == null || imageNames.isEmpty) && !shouldStripOnly) return intro;
+    if ((imageNames == null || imageNames.isEmpty) && !shouldStripOnly)
+      return intro;
 
     final stripped = _stripLessonMediaMarkers(intro);
     if (shouldStripOnly) return stripped;
@@ -409,7 +485,8 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
   }
 
   String _stripLessonMediaMarkers(String intro) {
-    final stripped = intro.replaceAll(RegExp(r'\n?\n?\[(?:IMAGE|DIAGRAM):[^\]]+\]'), '');
+    final stripped =
+        intro.replaceAll(RegExp(r'\n?\n?\[(?:IMAGE|DIAGRAM):[^\]]+\]'), '');
     return stripped.replaceAll(RegExp(r'\n{3,}'), '\n\n');
   }
 
@@ -477,12 +554,28 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     if (lines.isEmpty) return null;
 
     const exampleHints = [
-      'example', 'examples', 'esempio', 'esempi', 'exemple', 'exemples',
-      'ejemplo', 'ejemplos', 'misol', 'misollar'
+      'example',
+      'examples',
+      'esempio',
+      'esempi',
+      'exemple',
+      'exemples',
+      'ejemplo',
+      'ejemplos',
+      'misol',
+      'misollar'
     ];
     const formulaHints = [
-      'formula', 'formulas', 'formule', 'fórmulas', 'formular',
-      'equation', 'equazioni', 'équation', 'ecuación', 'tenglama'
+      'formula',
+      'formulas',
+      'formule',
+      'fórmulas',
+      'formular',
+      'equation',
+      'equazioni',
+      'équation',
+      'ecuación',
+      'tenglama'
     ];
 
     final header = lines.first;
@@ -500,9 +593,19 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     final s = line.trim();
     if (s.isEmpty) return false;
     if (s.contains('=')) return true;
-    if (s.contains('→') || s.contains('±') || s.contains('√') || s.contains('∫') || s.contains('Δ') || s.contains('^')) return true;
+    if (s.contains('→') ||
+        s.contains('±') ||
+        s.contains('√') ||
+        s.contains('∫') ||
+        s.contains('Δ') ||
+        s.contains('^')) return true;
     final lower = s.toLowerCase();
-    if (lower.contains('lim') || lower.contains('sin') || lower.contains('cos') || lower.contains('tan') || lower.contains('ln') || lower.contains('log')) return true;
+    if (lower.contains('lim') ||
+        lower.contains('sin') ||
+        lower.contains('cos') ||
+        lower.contains('tan') ||
+        lower.contains('ln') ||
+        lower.contains('log')) return true;
     return false;
   }
 
@@ -540,7 +643,9 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
         final headingSplit = _splitLeadingBoldHeading(line);
         if (headingSplit != null) {
           flushCurrent();
-          out.add(headingSplit[1].isEmpty ? headingSplit[0] : '${headingSplit[0]} ${headingSplit[1]}');
+          out.add(headingSplit[1].isEmpty
+              ? headingSplit[0]
+              : '${headingSplit[0]} ${headingSplit[1]}');
           continue;
         }
 
@@ -562,12 +667,56 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
       RegExp(r'(^|[ \t])(\\n|/n)(?=[ \t]*$)', multiLine: true),
       (match) => '${match.group(1) ?? ''}\n',
     );
+    normalized = normalized.replaceAllMapped(
+      RegExp(r'\s+\*\*([^*\n]{1,80}:\s*)\*\*'),
+      (match) => '\n\n**${match.group(1)!}**',
+    );
+    normalized = normalized.replaceAllMapped(
+      RegExp(r'\s+(\(?\d+\))\s+'),
+      (match) => '\n${match.group(1)!} ',
+    );
     return normalized.replaceAll(RegExp(r'\n{3,}'), '\n\n').trim();
+  }
+
+  List<String> _splitCompoundLessonLine(String line) {
+    final pieces = line.split('. ');
+    if (pieces.length <= 1) return [line];
+
+    final result = <String>[];
+    var current = pieces.first.trim();
+
+    for (final piece in pieces.skip(1)) {
+      final trimmed = piece.trim();
+      if (trimmed.isEmpty) continue;
+
+      if (current.isNotEmpty &&
+          _looksLikeInlineMath(current) &&
+          _looksLikeInlineMath(trimmed)) {
+        result.add(current.endsWith('.') ? current : '$current.');
+        current = trimmed;
+        continue;
+      }
+
+      if (current.isEmpty) {
+        current = trimmed;
+      } else {
+        current = '$current. $trimmed';
+      }
+    }
+
+    if (current.isNotEmpty) {
+      result.add(current);
+    }
+
+    return result;
   }
 
   bool _isBulletLikeLine(String line) {
     final s = line.trimLeft();
-    return s.startsWith('•') || s.startsWith('- ') || s.startsWith('* ');
+    return s.startsWith('•') ||
+        s.startsWith('- ') ||
+        s.startsWith('* ') ||
+        RegExp(r'^\(?\d+\)').hasMatch(s);
   }
 
   bool _isStandaloneHeading(String line) {
@@ -620,17 +769,21 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     return out;
   }
 
-  Widget _buildTextWithBold(BuildContext context, String text, TextStyle baseStyle) {
+  Widget _buildTextWithBold(
+      BuildContext context, String text, TextStyle baseStyle) {
     final spans = <TextSpan>[];
     final parts = text.split('**');
     for (var i = 0; i < parts.length; i++) {
       if (parts[i].isEmpty) continue;
       spans.add(TextSpan(
         text: parts[i],
-        style: i.isOdd ? baseStyle.copyWith(fontWeight: FontWeight.bold) : baseStyle,
+        style: i.isOdd
+            ? baseStyle.copyWith(fontWeight: FontWeight.bold)
+            : baseStyle,
       ));
     }
-    final color = Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface;
+    final color = Theme.of(context).textTheme.bodyLarge?.color ??
+        Theme.of(context).colorScheme.onSurface;
     return RichText(
       text: TextSpan(style: baseStyle.copyWith(color: color), children: spans),
     );
@@ -645,14 +798,16 @@ class _LessonParagraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = (baseStyle ?? Theme.of(context).textTheme.bodyLarge!).copyWith(height: 1.45);
+    final style = (baseStyle ?? Theme.of(context).textTheme.bodyLarge!)
+        .copyWith(height: 1.45);
     return Center(
       child: RichText(
         textAlign: TextAlign.center,
         text: _buildLessonParagraphSpan(
           text,
           style.copyWith(
-            color: Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+            color: Theme.of(context).textTheme.bodyLarge?.color ??
+                Theme.of(context).colorScheme.onSurface,
           ),
         ),
       ),
@@ -695,7 +850,10 @@ class _LessonFormulaLine extends StatelessWidget {
             child: Text(
               split.note!,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Colors.grey[700]),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(color: Colors.grey[700]),
             ),
           ),
       ],
@@ -717,14 +875,17 @@ class _BoldText extends StatelessWidget {
       if (parts[i].isEmpty) continue;
       spans.add(TextSpan(
         text: parts[i],
-        style: i.isOdd ? baseStyle.copyWith(fontWeight: FontWeight.bold) : baseStyle,
+        style: i.isOdd
+            ? baseStyle.copyWith(fontWeight: FontWeight.bold)
+            : baseStyle,
       ));
     }
 
     return RichText(
       text: TextSpan(
         style: baseStyle.copyWith(
-          color: Theme.of(context).textTheme.bodyLarge?.color ?? Theme.of(context).colorScheme.onSurface,
+          color: Theme.of(context).textTheme.bodyLarge?.color ??
+              Theme.of(context).colorScheme.onSurface,
         ),
         children: spans,
       ),
@@ -761,15 +922,19 @@ class _LessonMathBlockState extends State<_LessonMathBlock> {
   @override
   void didUpdateWidget(covariant _LessonMathBlock oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.latex != widget.latex || oldWidget.displayMode != widget.displayMode) {
-      _controller.loadHtmlString(_lessonMathHtml(widget.latex, widget.displayMode));
+    if (oldWidget.latex != widget.latex ||
+        oldWidget.displayMode != widget.displayMode) {
+      _controller
+          .loadHtmlString(_lessonMathHtml(widget.latex, widget.displayMode));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return ConstrainedBox(
-      constraints: BoxConstraints(minHeight: widget.minHeight, maxHeight: widget.displayMode ? 132 : 56),
+      constraints: BoxConstraints(
+          minHeight: widget.minHeight,
+          maxHeight: widget.displayMode ? 168 : 56),
       child: WebViewWidget(controller: _controller),
     );
   }
@@ -807,7 +972,9 @@ _LessonFormulaSplit _splitLessonFormulaLine(String text) {
     if (_containsProseWords(formulaSource)) {
       return _LessonFormulaSplit(
         formula: null,
-        note: sanitized.note == null ? formulaSource : '$formulaSource ${sanitized.note!}',
+        note: sanitized.note == null
+            ? formulaSource
+            : '$formulaSource ${sanitized.note!}',
       );
     }
     return _LessonFormulaSplit(formula: formulaSource, note: sanitized.note);
@@ -819,7 +986,9 @@ _LessonFormulaSplit _splitLessonFormulaLine(String text) {
     if (_containsProseWords(formulaSource)) {
       return _LessonFormulaSplit(
         formula: null,
-        note: sanitized.note == null ? formulaSource : '$formulaSource ${sanitized.note!}',
+        note: sanitized.note == null
+            ? formulaSource
+            : '$formulaSource ${sanitized.note!}',
       );
     }
     return _LessonFormulaSplit(formula: formulaSource, note: sanitized.note);
@@ -833,20 +1002,23 @@ _LessonFormulaSplit _splitLessonFormulaLine(String text) {
     );
   }
 
-  return _LessonFormulaSplit(label: '$left:', formula: right, note: sanitized.note);
+  return _LessonFormulaSplit(
+      label: '$left:', formula: right, note: sanitized.note);
 }
 
 _LessonFormulaSplit _sanitizeLessonFormulaContent(String text) {
   var formula = text.trim();
   final notes = <String>[];
 
-  final arrowMatch = RegExp(r'\s*(?:→|⇒|->)\s*([A-Za-z][A-Za-z \-]+\.?)$').firstMatch(formula);
+  final arrowMatch =
+      RegExp(r'\s*(?:→|⇒|->)\s*([A-Za-z][A-Za-z \-]+\.?)$').firstMatch(formula);
   if (arrowMatch != null) {
     notes.add(formula.substring(arrowMatch.start).trim());
     formula = formula.substring(0, arrowMatch.start).trim();
   }
 
-  final parenMatch = RegExp(r'\(([A-Za-z][A-Za-z \-]+)\)\s*$').firstMatch(formula);
+  final parenMatch =
+      RegExp(r'\(([A-Za-z][A-Za-z \-]+)\)\s*$').firstMatch(formula);
   if (parenMatch != null) {
     notes.add(formula.substring(parenMatch.start).trim());
     formula = formula.substring(0, parenMatch.start).trim();
@@ -901,18 +1073,22 @@ String _prettifyLessonInlineMath(String text) {
 }
 
 String _prettifyLessonTextContent(String text) {
-  var value = text
-      .replaceAll(r'\pi', 'π')
-      .replaceAll('pi', 'π')
-      .replaceAll('∫_', '∫');
+  var value = text.replaceAll(r'\pi', 'π').replaceAll('∫_', '∫');
+
+  value = value.replaceAllMapped(
+    RegExp(r'\bpi\b'),
+    (_) => 'π',
+  );
 
   value = value.replaceAllMapped(
     RegExp(r'∫([A-Za-z0-9+\-]+)\^([A-Za-z0-9+\-]+)'),
-    (match) => '∫${_lessonSubscript(match.group(1)!)}${_lessonSuperscript(match.group(2)!)}',
+    (match) =>
+        '∫${_lessonSubscript(match.group(1)!)}${_lessonSuperscript(match.group(2)!)}',
   );
   value = value.replaceAllMapped(
     RegExp(r'\]_([A-Za-z0-9+\-]+)\^([A-Za-z0-9+\-]+)'),
-    (match) => ']${_lessonSubscript(match.group(1)!)}${_lessonSuperscript(match.group(2)!)}',
+    (match) =>
+        ']${_lessonSubscript(match.group(1)!)}${_lessonSuperscript(match.group(2)!)}',
   );
   value = value.replaceAll(' e^x', ' eˣ');
   return value;
@@ -920,19 +1096,80 @@ String _prettifyLessonTextContent(String text) {
 
 String _lessonSubscript(String text) {
   const map = {
-    '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉',
-    'a': 'ₐ', 'e': 'ₑ', 'h': 'ₕ', 'i': 'ᵢ', 'j': 'ⱼ', 'k': 'ₖ', 'l': 'ₗ', 'm': 'ₘ', 'n': 'ₙ',
-    'o': 'ₒ', 'p': 'ₚ', 'r': 'ᵣ', 's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ', 'v': 'ᵥ', 'x': 'ₓ', '+': '₊', '-': '₋', '=': '₌',
+    '0': '₀',
+    '1': '₁',
+    '2': '₂',
+    '3': '₃',
+    '4': '₄',
+    '5': '₅',
+    '6': '₆',
+    '7': '₇',
+    '8': '₈',
+    '9': '₉',
+    'a': 'ₐ',
+    'e': 'ₑ',
+    'h': 'ₕ',
+    'i': 'ᵢ',
+    'j': 'ⱼ',
+    'k': 'ₖ',
+    'l': 'ₗ',
+    'm': 'ₘ',
+    'n': 'ₙ',
+    'o': 'ₒ',
+    'p': 'ₚ',
+    'r': 'ᵣ',
+    's': 'ₛ',
+    't': 'ₜ',
+    'u': 'ᵤ',
+    'v': 'ᵥ',
+    'x': 'ₓ',
+    '+': '₊',
+    '-': '₋',
+    '=': '₌',
   };
   return text.split('').map((char) => map[char] ?? char).join();
 }
 
 String _lessonSuperscript(String text) {
   const map = {
-    '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹',
-    'a': 'ᵃ', 'b': 'ᵇ', 'c': 'ᶜ', 'd': 'ᵈ', 'e': 'ᵉ', 'f': 'ᶠ', 'g': 'ᵍ', 'h': 'ʰ', 'i': 'ⁱ', 'j': 'ʲ',
-    'k': 'ᵏ', 'l': 'ˡ', 'm': 'ᵐ', 'n': 'ⁿ', 'o': 'ᵒ', 'p': 'ᵖ', 'r': 'ʳ', 's': 'ˢ', 't': 'ᵗ',
-    'u': 'ᵘ', 'v': 'ᵛ', 'w': 'ʷ', 'x': 'ˣ', '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾',
+    '0': '⁰',
+    '1': '¹',
+    '2': '²',
+    '3': '³',
+    '4': '⁴',
+    '5': '⁵',
+    '6': '⁶',
+    '7': '⁷',
+    '8': '⁸',
+    '9': '⁹',
+    'a': 'ᵃ',
+    'b': 'ᵇ',
+    'c': 'ᶜ',
+    'd': 'ᵈ',
+    'e': 'ᵉ',
+    'f': 'ᶠ',
+    'g': 'ᵍ',
+    'h': 'ʰ',
+    'i': 'ⁱ',
+    'j': 'ʲ',
+    'k': 'ᵏ',
+    'l': 'ˡ',
+    'm': 'ᵐ',
+    'n': 'ⁿ',
+    'o': 'ᵒ',
+    'p': 'ᵖ',
+    'r': 'ʳ',
+    's': 'ˢ',
+    't': 'ᵗ',
+    'u': 'ᵘ',
+    'v': 'ᵛ',
+    'w': 'ʷ',
+    'x': 'ˣ',
+    '+': '⁺',
+    '-': '⁻',
+    '=': '⁼',
+    '(': '⁽',
+    ')': '⁾',
   };
   return text.split('').map((char) => map[char] ?? char).join();
 }
@@ -964,15 +1201,13 @@ String _normalizeLessonLatex(String raw) {
       .replaceAll('∉', r'\notin');
 
   value = value.replaceAllMapped(RegExp(r'\bpi\b'), (_) => r'\pi');
-  value = value.replaceAllMapped(RegExp(r'√\s*([A-Za-z0-9\(\)\+\-]+)'), (match) => r'\sqrt{${match.group(1)!}}');
-  value = value.replaceAllMapped(
-    RegExp(r'(?<!\\)\b([A-Za-z0-9]+)\s*/\s*([A-Za-z0-9]+)\b'),
-    (match) => r'\frac{${match.group(1)!}}{${match.group(2)!}}',
-  );
+  value = value.replaceAllMapped(RegExp(r'√\s*([A-Za-z0-9\(\)\+\-]+)'),
+      (match) => r'\sqrt{${match.group(1)!}}');
   value = value.replaceAllMapped(
     RegExp(r'(?<!\\)\b([A-Za-z])\s*\^\s*([0-9A-Za-z\+\-]+)\b'),
     (match) => '${match.group(1)!}^{${match.group(2)!}}',
   );
+  value = _replaceLessonLatexFractions(value);
   value = value.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
 
   if (!value.contains(r'\displaystyle')) {
@@ -980,6 +1215,21 @@ String _normalizeLessonLatex(String raw) {
   }
 
   return value;
+}
+
+String _replaceLessonLatexFractions(String value) {
+  final regex = RegExp(
+    r'(?<!\\)(\([^()]+\)|[A-Za-z0-9\}\]]+(?:\^\{?[A-Za-z0-9+\-]+\}?)?)\s*/\s*(\([^()]+\)|[A-Za-z0-9\{\[]+(?:\^\{?[A-Za-z0-9+\-]+\}?)?)',
+  );
+
+  return value.replaceAllMapped(regex, (match) {
+    final numerator = match.group(1)?.trim() ?? '';
+    final denominator = match.group(2)?.trim() ?? '';
+    if (numerator.isEmpty || denominator.isEmpty) {
+      return match.group(0) ?? '';
+    }
+    return r'\frac{' + numerator + '}{' + denominator + '}';
+  });
 }
 
 String _lessonMathHtml(String latex, bool displayMode) {
@@ -1058,9 +1308,12 @@ class _LessonDiagramWidgetState extends State<_LessonDiagramWidget> {
   }
 
   Future<void> _fetchAndLoad() async {
-    final base = kServerBaseUrl.endsWith('/') ? kServerBaseUrl.substring(0, kServerBaseUrl.length - 1) : kServerBaseUrl;
+    final base = kServerBaseUrl.endsWith('/')
+        ? kServerBaseUrl.substring(0, kServerBaseUrl.length - 1)
+        : kServerBaseUrl;
     try {
-      final dio = Dio(BaseOptions(baseUrl: base, connectTimeout: const Duration(seconds: 10)));
+      final dio = Dio(BaseOptions(
+          baseUrl: base, connectTimeout: const Duration(seconds: 10)));
       final res = await dio.get<List<int>>(
         'diagrams/${widget.diagramId}',
         options: Options(responseType: ResponseType.bytes),
@@ -1093,12 +1346,18 @@ class _LessonDiagramWidgetState extends State<_LessonDiagramWidget> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+            border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.5)),
           ),
           child: _failed
-              ? Center(child: Text(AppLocale.tr('diagram_not_available'), style: const TextStyle(fontSize: 12, color: Colors.grey)))
+              ? Center(
+                  child: Text(AppLocale.tr('diagram_not_available'),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey)))
               : _controller == null
-                  ? const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+                  ? const Center(
+                      child: Padding(
+                          padding: EdgeInsets.all(24),
+                          child: CircularProgressIndicator()))
                   : WebViewWidget(controller: _controller!),
         ),
       ),
@@ -1122,13 +1381,18 @@ class _LessonImageWidgetState extends State<_LessonImageWidget> {
   bool get _isSvg => widget.imageName.toLowerCase().endsWith('.svg');
   bool get _usesWebView {
     final lower = widget.imageName.toLowerCase();
-    return lower.endsWith('.svg') || lower.endsWith('.gif') || lower.endsWith('.webp') || lower.endsWith('.avif');
+    return lower.endsWith('.svg') ||
+        lower.endsWith('.gif') ||
+        lower.endsWith('.webp') ||
+        lower.endsWith('.avif');
   }
 
-  String get _base =>
-      kServerBaseUrl.endsWith('/') ? kServerBaseUrl.substring(0, kServerBaseUrl.length - 1) : kServerBaseUrl;
+  String get _base => kServerBaseUrl.endsWith('/')
+      ? kServerBaseUrl.substring(0, kServerBaseUrl.length - 1)
+      : kServerBaseUrl;
 
-  String get _imageUrl => '$_base/lesson-images/${Uri.encodeComponent(widget.imageName)}';
+  String get _imageUrl =>
+      '$_base/lesson-images/${Uri.encodeComponent(widget.imageName)}';
 
   @override
   void initState() {
@@ -1144,7 +1408,8 @@ class _LessonImageWidgetState extends State<_LessonImageWidget> {
 
   Future<void> _fetchAndLoadSvg() async {
     try {
-      final dio = Dio(BaseOptions(baseUrl: _base, connectTimeout: const Duration(seconds: 10)));
+      final dio = Dio(BaseOptions(
+          baseUrl: _base, connectTimeout: const Duration(seconds: 10)));
       final res = await dio.get<List<int>>(
         'lesson-images/${Uri.encodeComponent(widget.imageName)}',
         options: Options(responseType: ResponseType.bytes),
@@ -1177,27 +1442,637 @@ class _LessonImageWidgetState extends State<_LessonImageWidget> {
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+            border: Border.all(
+                color: Theme.of(context).dividerColor.withOpacity(0.5)),
           ),
           child: _usesWebView
               ? _failed
-                  ? Center(child: Text(AppLocale.tr('diagram_not_available'), style: const TextStyle(fontSize: 12, color: Colors.grey)))
+                  ? Center(
+                      child: Text(AppLocale.tr('diagram_not_available'),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.grey)))
                   : _controller == null
-                      ? const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()))
+                      ? const Center(
+                          child: Padding(
+                              padding: EdgeInsets.all(24),
+                              child: CircularProgressIndicator()))
                       : WebViewWidget(controller: _controller!)
               : Image.network(
                   _imageUrl,
                   fit: BoxFit.contain,
                   loadingBuilder: (context, child, progress) {
                     if (progress == null) return child;
-                    return const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()));
+                    return const Center(
+                        child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: CircularProgressIndicator()));
                   },
                   errorBuilder: (context, error, stackTrace) {
-                    return Center(child: Text(AppLocale.tr('diagram_not_available'), style: const TextStyle(fontSize: 12, color: Colors.grey)));
+                    return Center(
+                        child: Text(AppLocale.tr('diagram_not_available'),
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey)));
                   },
                 ),
         ),
       ),
     );
   }
+}
+
+class _LessonExercise {
+  const _LessonExercise({
+    required this.id,
+    required this.question,
+    required this.options,
+    required this.correctAnswer,
+  });
+
+  final String id;
+  final String question;
+  final List<String> options;
+  final String correctAnswer;
+}
+
+class _LessonPracticeQuestion {
+  const _LessonPracticeQuestion({
+    required this.id,
+    required this.question,
+    required this.options,
+    required this.correctAnswer,
+  });
+
+  final String id;
+  final String question;
+  final List<String> options;
+  final String correctAnswer;
+}
+
+class _LessonPracticePage extends StatefulWidget {
+  const _LessonPracticePage({
+    required this.lessonId,
+    required this.lessonTitle,
+    required this.lessonCost,
+    required this.exercises,
+  });
+
+  final String lessonId;
+  final String lessonTitle;
+  final int lessonCost;
+  final List<_LessonExercise> exercises;
+
+  @override
+  State<_LessonPracticePage> createState() => _LessonPracticePageState();
+}
+
+class _LessonPracticePageState extends State<_LessonPracticePage> {
+  final DioClient _dio = DioClient();
+  late final List<_LessonPracticeQuestion> _questions =
+      _buildPracticeQuestions(widget.exercises);
+  int _currentIndex = 0;
+  String? _selectedAnswer;
+  bool? _answerIsCorrect;
+  bool _isCompleting = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_questions.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(title: Text(AppLocale.tr('practice'))),
+        body: Center(child: Text(AppLocale.tr('no_content'))),
+      );
+    }
+
+    final question = _questions[_currentIndex];
+    final progress = (_currentIndex + (_answerIsCorrect == true ? 1 : 0)) /
+        _questions.length;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppLocale.tr('practice')),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            LinearProgressIndicator(
+              value: progress,
+              minHeight: 10,
+              backgroundColor:
+                  _LessonDetailPageState._lessonAccentColor.withOpacity(0.12),
+              valueColor: const AlwaysStoppedAnimation<Color>(
+                  _LessonDetailPageState._lessonAccentColor),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              AppLocale.trFormat('practice_question_format',
+                  [_currentIndex + 1, _questions.length]),
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: _LessonDetailPageState._lessonAccentColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              AppLocale.tr('practice_pick_answer'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 12),
+            _PracticeRichContent(
+              text: question.question,
+              centered: true,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
+            const SizedBox(height: 20),
+            Expanded(
+              child: ListView.separated(
+                itemCount: question.options.length,
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  final option = question.options[index];
+                  final selected = _selectedAnswer == option;
+                  final correct = option == question.correctAnswer;
+                  final bgColor = selected
+                      ? (_answerIsCorrect == true
+                          ? Colors.green.withOpacity(0.14)
+                          : Colors.red.withOpacity(0.1))
+                      : Theme.of(context)
+                          .colorScheme
+                          .surfaceVariant
+                          .withOpacity(0.38);
+                  final borderColor = selected
+                      ? (_answerIsCorrect == true ? Colors.green : Colors.red)
+                      : Colors.black.withOpacity(0.06);
+                  final textColor = selected
+                      ? (_answerIsCorrect == true ? Colors.green : Colors.red)
+                      : null;
+
+                  return Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: _isCompleting || _answerIsCorrect == true
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedAnswer = option;
+                                _answerIsCorrect = correct;
+                              });
+                            },
+                      borderRadius: BorderRadius.circular(18),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 18),
+                        decoration: BoxDecoration(
+                          color: bgColor,
+                          borderRadius: BorderRadius.circular(18),
+                          border: Border.all(color: borderColor, width: 2),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _PracticeRichContent(
+                                text: option,
+                                centered: false,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w600,
+                                color: textColor,
+                              ),
+                            ),
+                            if (selected)
+                              Icon(
+                                _answerIsCorrect == true
+                                    ? Icons.check_circle
+                                    : Icons.cancel,
+                                color: _answerIsCorrect == true
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            if (_answerIsCorrect != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                _answerIsCorrect == true
+                    ? AppLocale.tr('practice_correct')
+                    : AppLocale.tr('try_again'),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color:
+                          _answerIsCorrect == true ? Colors.green : Colors.red,
+                    ),
+              ),
+            ],
+            const SizedBox(height: 16),
+            if (_answerIsCorrect == true)
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _isCompleting ? null : _advanceOrComplete,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: _isCompleting
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text(
+                          _currentIndex == _questions.length - 1
+                              ? AppLocale.tr('practice_finish')
+                              : AppLocale.tr('next'),
+                        ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _advanceOrComplete() async {
+    if (_currentIndex < _questions.length - 1) {
+      setState(() {
+        _currentIndex += 1;
+        _selectedAnswer = null;
+        _answerIsCorrect = null;
+      });
+      return;
+    }
+
+    setState(() => _isCompleting = true);
+    try {
+      final response = await _dio.dio.post<Map<String, dynamic>>(
+        'lessons/${widget.lessonId}/complete',
+        data: {'lesson_cost': widget.lessonCost},
+        options: Options(headers: {'Authorization': 'Bearer mock-dev-token'}),
+      );
+      final coinsEarned =
+          (response.data?['coins_earned'] as num?)?.toInt() ?? 0;
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(AppLocale.trFormat(
+                'practice_completed_format', [coinsEarned]))),
+      );
+      Navigator.of(context).pop();
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.toString())),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isCompleting = false);
+      }
+    }
+  }
+}
+
+List<_LessonPracticeQuestion> _buildPracticeQuestions(
+    List<_LessonExercise> exercises) {
+  final cleaned = exercises
+      .where((exercise) =>
+          exercise.question.isNotEmpty && exercise.options.isNotEmpty)
+      .toList(growable: true);
+  if (cleaned.isEmpty) return const [];
+  cleaned.shuffle(Random());
+
+  final targetCount =
+      cleaned.length < 15 ? 15 : (cleaned.length > 20 ? 20 : cleaned.length);
+  return List<_LessonPracticeQuestion>.generate(targetCount, (index) {
+    final base = cleaned[index % cleaned.length];
+    final rotation = base.options.isEmpty ? 0 : index % base.options.length;
+    return _LessonPracticeQuestion(
+      id: '${base.id}-q$index',
+      question: base.question,
+      options: _rotatePracticeOptions(base.options, rotation),
+      correctAnswer: base.correctAnswer,
+    );
+  }, growable: false);
+}
+
+List<String> _rotatePracticeOptions(List<String> options, int offset) {
+  if (options.isEmpty) return const [];
+  final normalized = offset % options.length;
+  if (normalized == 0) return List<String>.from(options);
+  return [
+    ...options.sublist(normalized),
+    ...options.sublist(0, normalized),
+  ];
+}
+
+class _PracticeRichContent extends StatelessWidget {
+  const _PracticeRichContent({
+    required this.text,
+    required this.centered,
+    required this.fontSize,
+    required this.fontWeight,
+    this.color,
+  });
+
+  final String text;
+  final bool centered;
+  final double fontSize;
+  final FontWeight fontWeight;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_practiceContentNeedsMathRendering(text)) {
+      return Text(
+        _prettifyLessonTextContent(text),
+        textAlign: centered ? TextAlign.center : TextAlign.left,
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              fontSize: fontSize,
+              fontWeight: fontWeight,
+              color: color,
+            ),
+      );
+    }
+
+    return _PracticeMixedMathBlock(
+      html: _practiceMixedMathHtml(
+        text,
+        centered: centered,
+        fontSize: fontSize,
+        fontWeight: fontWeight,
+        color: color ?? Theme.of(context).colorScheme.onSurface,
+      ),
+      minHeight: _practiceContentMinHeight(text),
+      maxHeight: _practiceContentMaxHeight(text),
+    );
+  }
+}
+
+class _PracticeMixedMathBlock extends StatefulWidget {
+  const _PracticeMixedMathBlock({
+    required this.html,
+    required this.minHeight,
+    required this.maxHeight,
+  });
+
+  final String html;
+  final double minHeight;
+  final double maxHeight;
+
+  @override
+  State<_PracticeMixedMathBlock> createState() =>
+      _PracticeMixedMathBlockState();
+}
+
+class _PracticeMixedMathBlockState extends State<_PracticeMixedMathBlock> {
+  late final WebViewController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = WebViewController()
+      ..setJavaScriptMode(JavaScriptMode.unrestricted)
+      ..loadHtmlString(widget.html);
+  }
+
+  @override
+  void didUpdateWidget(covariant _PracticeMixedMathBlock oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.html != widget.html) {
+      _controller.loadHtmlString(widget.html);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        minHeight: widget.minHeight,
+        maxHeight: widget.maxHeight,
+      ),
+      child: WebViewWidget(controller: _controller),
+    );
+  }
+}
+
+bool _practiceContentNeedsMathRendering(String text) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return false;
+  if (_looksLikeInlineMath(trimmed) && !_containsProseWords(trimmed)) {
+    return true;
+  }
+  return _practiceLineContainsRenderableMath(trimmed);
+}
+
+double _practiceContentMinHeight(String text) {
+  final length = text.length;
+  if (length > 180) return 120;
+  if (length > 90) return 88;
+  return 56;
+}
+
+double _practiceContentMaxHeight(String text) {
+  final length = text.length;
+  if (length > 220) return 220;
+  if (length > 140) return 180;
+  return 120;
+}
+
+String _practiceMixedMathHtml(
+  String text, {
+  required bool centered,
+  required double fontSize,
+  required FontWeight fontWeight,
+  required Color color,
+}) {
+  final colorHex =
+      '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+  final body = _practiceRichSegments(text).map((segment) {
+    switch (segment.$1) {
+      case 'text':
+        return '<span class="text">${const HtmlEscape(HtmlEscapeMode.element).convert(_prettifyLessonTextContent(segment.$2))}</span>';
+      case 'display':
+        final latex = const HtmlEscape(HtmlEscapeMode.element)
+            .convert(_normalizeLessonLatex(segment.$2));
+        return '<div class="display">\\[$latex\\]</div>';
+      default:
+        final latex = const HtmlEscape(HtmlEscapeMode.element)
+            .convert(_normalizeLessonLatex(segment.$2));
+        return '<span class="inline">\\($latex\\)</span>';
+    }
+  }).join();
+  final align = centered ? 'center' : 'left';
+  final weight = fontWeight == FontWeight.w700
+      ? 700
+      : (fontWeight == FontWeight.w600 ? 600 : 500);
+
+  return '''
+  <html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <script>
+      window.MathJax = {
+        tex: { inlineMath: [['\\\\(', '\\\\)']], displayMath: [['\\\\[', '\\\\]']] },
+        svg: { fontCache: 'none', linebreaks: { automatic: true, width: 'container' } }
+      };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        overflow: hidden;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        font-size: ${fontSize.toStringAsFixed(0)}px;
+        font-weight: $weight;
+        line-height: 1.35;
+        color: $colorHex;
+        text-align: $align;
+      }
+      .wrap {
+        width: 100%;
+        box-sizing: border-box;
+        text-align: $align;
+        word-break: break-word;
+      }
+      .display {
+        width: 100%;
+        margin: 6px 0;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+      mjx-container {
+        max-width: 100% !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">$body</div>
+  </body>
+  </html>
+  ''';
+}
+
+List<(String, String)> _practiceRichSegments(String text) {
+  final normalized = text.replaceAll('\r\n', '\n').trim();
+  if (normalized.isEmpty) return const [];
+
+  final lines = normalized
+      .split('\n')
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .toList(growable: false);
+  if (lines.isEmpty) return [('text', normalized)];
+
+  final segments = <(String, String)>[];
+  for (var i = 0; i < lines.length; i++) {
+    if (i > 0) {
+      segments.add(('text', ' '));
+    }
+    segments.addAll(_practiceSegmentsForLine(lines[i]));
+  }
+  return segments;
+}
+
+List<(String, String)> _practiceSegmentsForLine(String line) {
+  final connectorSplit = _practiceSplitTextConnector(line);
+  if (connectorSplit != null) {
+    return [
+      ..._practiceSegmentsForLine(connectorSplit.$1),
+      ('text', connectorSplit.$2),
+      ..._practiceSegmentsForLine(connectorSplit.$3),
+    ];
+  }
+
+  if (_looksLikeInlineMath(line) && !_containsProseWords(line)) {
+    return [('display', line)];
+  }
+
+  final regex = RegExp(
+    r"(∫[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)",
+  );
+  final matches = regex.allMatches(line).toList(growable: false);
+  if (matches.isEmpty) {
+    return [('text', line)];
+  }
+
+  final segments = <(String, String)>[];
+  var cursor = 0;
+  for (final match in matches) {
+    if (cursor < match.start) {
+      segments.add(('text', line.substring(cursor, match.start)));
+    }
+    final candidate = line.substring(match.start, match.end);
+    if (_looksLikeInlineMath(candidate) && !_containsProseWords(candidate)) {
+      segments.add(('inline', candidate));
+    } else {
+      segments.add(('text', candidate));
+    }
+    cursor = match.end;
+  }
+  if (cursor < line.length) {
+    segments.add(('text', line.substring(cursor)));
+  }
+  return segments;
+}
+
+bool _practiceLineContainsRenderableMath(String line) {
+  final connectorSplit = _practiceSplitTextConnector(line);
+  if (connectorSplit != null) {
+    return _practiceLineContainsRenderableMath(connectorSplit.$1) ||
+        _practiceLineContainsRenderableMath(connectorSplit.$3);
+  }
+
+  final regex = RegExp(
+    r"(∫[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)",
+  );
+  for (final match in regex.allMatches(line)) {
+    final candidate = line.substring(match.start, match.end);
+    if (_looksLikeInlineMath(candidate) && !_containsProseWords(candidate)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+(String, String, String)? _practiceSplitTextConnector(String line) {
+  const connectors = [
+    ' where ',
+    ' equals ',
+    ' is ',
+    ' are ',
+    ' so ',
+    ' since ',
+    ' then ',
+  ];
+
+  for (final connector in connectors) {
+    final lowerLine = line.toLowerCase();
+    final matchIndex = lowerLine.indexOf(connector);
+    if (matchIndex <= 0) continue;
+
+    final before = line.substring(0, matchIndex).trim();
+    final after = line.substring(matchIndex + connector.length).trim();
+    if (before.isEmpty || after.isEmpty) continue;
+    if (_practiceLineContainsRenderableMath(before) ||
+        (_looksLikeInlineMath(before) && !_containsProseWords(before))) {
+      return (before, connector, after);
+    }
+  }
+  return null;
 }

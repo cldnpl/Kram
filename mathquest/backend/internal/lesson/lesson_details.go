@@ -1,6 +1,9 @@
 package lesson
 
 import (
+	"math/rand"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -13,8 +16,9 @@ func getLessonDetail(id, lang string) (title, category string, content fiber.Map
 		title = lesson.Title
 		category = lesson.Category
 		content = fiber.Map{"intro": normalizeLessonIntro(lesson.Intro)}
-		exercises = make([]fiber.Map, 0, len(lesson.Exercises))
-		for _, ex := range lesson.Exercises {
+		selectedExercises := selectPracticeSessionExercises(lesson.Exercises)
+		exercises = make([]fiber.Map, 0, len(selectedExercises))
+		for _, ex := range selectedExercises {
 			exercises = append(exercises, fiber.Map{
 				"id":             ex.ID,
 				"question":       ex.Question,
@@ -39,6 +43,37 @@ func getLessonDetail(id, lang string) (title, category string, content fiber.Map
 	}
 	exercises = defaultExercises()
 	return
+}
+
+func selectPracticeSessionExercises(pool []lessonJSONExercise) []lessonJSONExercise {
+	if len(pool) == 0 {
+		return nil
+	}
+
+	copied := make([]lessonJSONExercise, len(pool))
+	copy(copied, pool)
+
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+	rng.Shuffle(len(copied), func(i, j int) {
+		copied[i], copied[j] = copied[j], copied[i]
+	})
+
+	targetCount := len(copied)
+	if targetCount > 20 {
+		targetCount = 15 + rng.Intn(6)
+	}
+	if targetCount > len(copied) {
+		targetCount = len(copied)
+	}
+	selected := copied[:targetCount]
+	for i := range selected {
+		options := append([]string(nil), selected[i].Options...)
+		rng.Shuffle(len(options), func(a, b int) {
+			options[a], options[b] = options[b], options[a]
+		})
+		selected[i].Options = options
+	}
+	return selected
 }
 
 func defaultExercises() []fiber.Map {

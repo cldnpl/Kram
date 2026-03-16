@@ -100,6 +100,12 @@ enum L10n {
             "completion_reward_format": ["it": "Ricompensa completamento: fino a %d coin", "en": "Completion reward: up to %d coins", "fr": "Récompense : jusqu'à %d pièces", "es": "Recompensa al completar: hasta %d monedas", "uz": "Yakunlash mukofoti: %d tangagacha"],
             "completing": ["it": "Completamento...", "en": "Completing...", "fr": "En cours...", "es": "Completando...", "uz": "Yakunlanmoqda..."],
             "complete_lesson_format": ["it": "Completa lezione (+%d max)", "en": "Complete Lesson (+%d max)", "fr": "Terminer la leçon (+%d max)", "es": "Completar lección (+%d máx.)", "uz": "Darsni tugatish (+%d max)"],
+            "practice": ["it": "Practice", "en": "Practice", "fr": "Practice", "es": "Practice", "uz": "Practice"],
+            "practice_question_format": ["it": "Domanda %d di %d", "en": "Question %d of %d", "fr": "Question %d sur %d", "es": "Pregunta %d de %d", "uz": "Savol %d / %d"],
+            "practice_pick_answer": ["it": "Scegli la risposta corretta", "en": "Choose the correct answer", "fr": "Choisissez la bonne réponse", "es": "Elige la respuesta correcta", "uz": "To'g'ri javobni tanlang"],
+            "practice_finish": ["it": "Termina esercizi", "en": "Finish practice", "fr": "Terminer l'exercice", "es": "Terminar práctica", "uz": "Mashqni tugatish"],
+            "practice_completed_format": ["it": "Esercizi completati. Hai guadagnato %d coin.", "en": "Practice completed. You earned %d coins.", "fr": "Exercice terminé. Vous avez gagné %d pièces.", "es": "Práctica completada. Has ganado %d monedas.", "uz": "Mashq tugadi. Siz %d tanga oldingiz."],
+            "practice_correct": ["it": "Corretto!", "en": "Correct!", "fr": "Correct !", "es": "¡Correcto!", "uz": "To'g'ri!"],
             "content_not_available": ["it": "Contenuto non disponibile", "en": "Content not available", "fr": "Contenu indisponible", "es": "Contenido no disponible", "uz": "Mazmun mavjud emas"],
             "server_retry_message": ["it": "Assicurati che il server sia avviato e riprova.", "en": "Make sure the server is running and try again.", "fr": "Vérifiez que le serveur est démarré et réessayez.", "es": "Asegúrate de que el servidor esté en ejecución e inténtalo de nuevo.", "uz": "Server ishlayotganiga ishonch hosil qiling va qayta urinib ko'ring."],
             "ok": ["it": "OK", "en": "OK", "fr": "OK", "es": "OK", "uz": "OK"],
@@ -352,6 +358,12 @@ enum L10n {
     static func completionReward(_ n: Int) -> String { String(format: string("completion_reward_format"), n) }
     static var completing: String { string("completing") }
     static func completeLessonBtn(_ n: Int) -> String { String(format: string("complete_lesson_format"), n) }
+    static var practice: String { string("practice") }
+    static func practiceQuestion(_ current: Int, _ total: Int) -> String { String(format: string("practice_question_format"), current, total) }
+    static var practicePickAnswer: String { string("practice_pick_answer") }
+    static var practiceFinish: String { string("practice_finish") }
+    static func practiceCompleted(_ n: Int) -> String { String(format: string("practice_completed_format"), n) }
+    static var practiceCorrect: String { string("practice_correct") }
     static var contentNotAvailable: String { string("content_not_available") }
     static var serverRetryMessage: String { string("server_retry_message") }
     static var ok: String { string("ok") }

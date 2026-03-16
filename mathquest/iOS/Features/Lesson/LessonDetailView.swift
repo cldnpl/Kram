@@ -10,8 +10,6 @@ private let lessonAccentColor = Color(red: 102/255, green: 80/255, blue: 164/255
 struct LessonDetailView: View {
     let lesson: LessonItem
     @StateObject private var viewModel = LessonDetailViewModel()
-    @State private var feedbackMessage = ""
-    @State private var showFeedbackAlert = false
 
     var body: some View {
         Group {
@@ -79,26 +77,26 @@ struct LessonDetailView: View {
                         .foregroundStyle(.secondary)
                         .padding(.top, 12)
 
-                        Button {
-                            Task {
-                                await completeLesson()
-                            }
+                        NavigationLink {
+                            LessonPracticeView(
+                                lesson: lesson,
+                                exercises: detail.exercises,
+                                completeLessonAction: {
+                                    try await viewModel.completeLesson(
+                                        lessonId: lesson.id,
+                                        lessonCost: lesson.coinCost
+                                    )
+                                }
+                            )
                         } label: {
                             HStack {
-                                if viewModel.isCompleting {
-                                    ProgressView()
-                                        .progressViewStyle(.circular)
-                                }
-                                Text(viewModel.isCompleting
-                                     ? L10n.completing
-                                     : L10n.completeLessonBtn(projectedReward))
+                                Text(L10n.practice)
                                     .font(.headline)
                             }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
                         }
                         .buttonStyle(.borderedProminent)
-                        .disabled(viewModel.isCompleting)
                         .padding(.top, 24)
                     }
                     .padding()
@@ -129,25 +127,6 @@ struct LessonDetailView: View {
         .task {
             await viewModel.load(lessonId: lesson.id)
         }
-        .alert(L10n.lesson, isPresented: $showFeedbackAlert) {
-            Button(L10n.ok, role: .cancel) {}
-        } message: {
-            Text(feedbackMessage)
-        }
-    }
-
-    private func completeLesson() async {
-        do {
-            let coinsEarned = try await viewModel.completeLesson(
-                lessonId: lesson.id,
-                lessonCost: lesson.coinCost
-            )
-            feedbackMessage = "Completed. You earned \(coinsEarned) coins."
-        } catch {
-            feedbackMessage = error.localizedDescription
-        }
-
-        showFeedbackAlert = true
     }
 }
 
@@ -155,6 +134,7 @@ struct LessonDetailExercise: Identifiable {
     let id: String
     let question: String
     let options: [String]
+    let correctAnswer: String
 }
 
 @MainActor
@@ -178,7 +158,8 @@ final class LessonDetailViewModel: ObservableObject {
                 LessonDetailExercise(
                     id: ex.id ?? "",
                     question: ex.question ?? "",
-                    options: ex.options ?? []
+                    options: ex.options ?? [],
+                    correctAnswer: ex.correctAnswer ?? ex.options?.first ?? ""
                 )
             }
             lessonDetail = (intro: response.contentIntro, exercises: exercises)
@@ -226,6 +207,14 @@ private struct ExerciseDTO: Decodable {
     let id: String?
     let question: String?
     let options: [String]?
+    let correctAnswer: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case question
+        case options
+        case correctAnswer = "correct_answer"
+    }
 }
 
 private struct LessonCompleteRequest: Encodable {
@@ -285,7 +274,7 @@ private struct LessonFormulaLineView: View {
 
             if let formula = split.formula {
                 LessonMathView(latex: normalizeLessonLatex(formula), displayMode: true)
-                    .frame(minHeight: 64, maxHeight: 132)
+                    .frame(minHeight: 64, maxHeight: 168)
             }
 
             if let note = split.note, let attributed = attributedLessonText(from: note) {
@@ -638,6 +627,7 @@ private func boxLines(from content: String) -> [String] {
         .components(separatedBy: .newlines)
         .map { $0.trimmingCharacters(in: .whitespaces) }
         .filter { !$0.isEmpty }
+        .flatMap(splitCompoundLessonLine)
 }
 
 private func paragraphs(from text: String) -> [String] {
@@ -697,7 +687,43 @@ private func normalizeLessonDisplayText(_ text: String) -> String {
         with: "$1\n",
         options: .regularExpression
     )
+    normalized = normalized.replacingOccurrences(
+        of: #"\s+\*\*([^*\n]{1,80}:\s*)\*\*"#,
+        with: "\n\n**$1**",
+        options: .regularExpression
+    )
+    normalized = normalized.replacingOccurrences(
+        of: #"\s+(\(?\d+\))\s+"#,
+        with: "\n$1 ",
+        options: .regularExpression
+    )
     return normalized.replacingOccurrences(of: "\n{3,}", with: "\n\n", options: .regularExpression)
+}
+
+private func splitCompoundLessonLine(_ line: String) -> [String] {
+    let pieces = line.components(separatedBy: ". ")
+    guard pieces.count > 1 else { return [line] }
+
+    var result: [String] = []
+    var current = pieces[0].trimmingCharacters(in: .whitespacesAndNewlines)
+
+    for piece in pieces.dropFirst() {
+        let trimmed = piece.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !current.isEmpty, looksLikeInlineMath(current), looksLikeInlineMath(trimmed) {
+            result.append(current.hasSuffix(".") ? current : current + ".")
+            current = trimmed
+        } else if current.isEmpty {
+            current = trimmed
+        } else {
+            current += ". " + trimmed
+        }
+    }
+
+    if !current.isEmpty {
+        result.append(current)
+    }
+
+    return result
 }
 
 private func attributedLessonText(from text: String) -> AttributedString? {
@@ -743,9 +769,14 @@ private func prettifyLessonInlineMath(_ text: String) -> String {
 
 private func prettifyLessonTextContent(_ text: String) -> String {
     var value = text
-        .replacingOccurrences(of: "pi", with: "π")
         .replacingOccurrences(of: "\\pi", with: "π")
         .replacingOccurrences(of: "∫_", with: "∫")
+
+    value = value.replacingOccurrences(
+        of: #"\bpi\b"#,
+        with: "π",
+        options: .regularExpression
+    )
 
     value = replacingLessonBounds(pattern: #"∫([A-Za-z0-9+\-]+)\^([A-Za-z0-9+\-]+)"#, in: value, prefix: "∫")
     value = replacingLessonBounds(pattern: #"\]_([A-Za-z0-9+\-]+)\^([A-Za-z0-9+\-]+)"#, in: value, prefix: "]")
@@ -902,13 +933,44 @@ private func normalizeLessonLatex(_ raw: String) -> String {
 
     value = value.replacingOccurrences(of: #"\bpi\b"#, with: "\\pi", options: .regularExpression)
     value = value.replacingOccurrences(of: #"√\s*([A-Za-z0-9\(\)\+\-]+)"#, with: "\\sqrt{$1}", options: .regularExpression)
-    value = value.replacingOccurrences(of: #"(?<!\\)\b([A-Za-z0-9]+)\s*/\s*([A-Za-z0-9]+)\b"#, with: "\\frac{$1}{$2}", options: .regularExpression)
     value = value.replacingOccurrences(of: #"(?<!\\)\b([A-Za-z])\s*\^\s*([0-9A-Za-z\+\-]+)\b"#, with: "$1^{$2}", options: .regularExpression)
+    value = replacingLessonLatexFractions(in: value)
     value = value.replacingOccurrences(of: #"\s{2,}"#, with: " ", options: .regularExpression)
     value = value.trimmingCharacters(in: .whitespacesAndNewlines)
 
     if !value.contains("\\displaystyle") {
         value = "\\displaystyle \\large " + value
+    }
+
+    return value
+}
+
+private func replacingLessonLatexFractions(in text: String) -> String {
+    guard let regex = try? NSRegularExpression(
+        pattern: #"(?<!\\)(\([^()]+\)|[A-Za-z0-9\}\]]+(?:\^\{?[A-Za-z0-9+\-]+\}?)?)\s*/\s*(\([^()]+\)|[A-Za-z0-9\{\[]+(?:\^\{?[A-Za-z0-9+\-]+\}?)?)"#
+    ) else {
+        return text
+    }
+
+    var value = text
+    let fullRange = NSRange(value.startIndex..<value.endIndex, in: value)
+    let matches = regex.matches(in: value, range: fullRange).reversed()
+
+    for match in matches {
+        guard match.numberOfRanges >= 3,
+              let matchRange = Range(match.range(at: 0), in: value),
+              let numeratorRange = Range(match.range(at: 1), in: value),
+              let denominatorRange = Range(match.range(at: 2), in: value) else {
+            continue
+        }
+
+        let numerator = String(value[numeratorRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let denominator = String(value[denominatorRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !numerator.isEmpty, !denominator.isEmpty else {
+            continue
+        }
+
+        value.replaceSubrange(matchRange, with: #"\\frac{\#(numerator)}{\#(denominator)}"#)
     }
 
     return value
@@ -1026,7 +1088,10 @@ private func isFormulaLine(_ line: String) -> Bool {
 
 private func isBulletLikeLine(_ line: String) -> Bool {
     let s = line.trimmingCharacters(in: .whitespaces)
-    return s.hasPrefix("•") || s.hasPrefix("- ") || s.hasPrefix("* ")
+    return s.hasPrefix("•")
+        || s.hasPrefix("- ")
+        || s.hasPrefix("* ")
+        || s.range(of: #"^\(?\d+\)"#, options: .regularExpression) != nil
 }
 
 private func isStandaloneHeading(_ line: String) -> Bool {
@@ -1301,6 +1366,534 @@ private struct DiagramWebView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {}
+}
+
+private struct LessonPracticeQuestion: Identifiable {
+    let id: String
+    let question: String
+    let options: [String]
+    let correctAnswer: String
+}
+
+private struct LessonPracticeContentView: View {
+    let text: String
+    let textStyle: Font
+    let textSize: Int
+    let textWeight: Font.Weight
+    let textColor: Color
+    let centered: Bool
+
+    var body: some View {
+        if practiceContentNeedsMathRendering(text) {
+            LessonMixedMathView(
+                html: lessonMixedMathHTML(
+                    content: text,
+                    centered: centered,
+                    fontSize: textSize,
+                    fontWeight: mixedMathFontWeight(for: textWeight)
+                )
+            )
+            .frame(
+                minHeight: practiceContentMinimumHeight(for: text),
+                maxHeight: practiceContentMaximumHeight(for: text)
+            )
+        } else {
+            Text(prettifyLessonTextContent(text))
+                .font(textStyle.weight(textWeight))
+                .foregroundStyle(textColor)
+                .multilineTextAlignment(centered ? .center : .leading)
+                .frame(maxWidth: .infinity, alignment: centered ? .center : .leading)
+        }
+    }
+}
+
+private struct LessonPracticeView: View {
+    let lesson: LessonItem
+    let questions: [LessonPracticeQuestion]
+    let completeLessonAction: () async throws -> Int
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var currentIndex = 0
+    @State private var selectedAnswer: String?
+    @State private var answerIsCorrect: Bool?
+    @State private var isCompleting = false
+    @State private var alertMessage = ""
+    @State private var showAlert = false
+
+    init(lesson: LessonItem, exercises: [LessonDetailExercise], completeLessonAction: @escaping () async throws -> Int) {
+        self.lesson = lesson
+        self.questions = buildPracticeQuestions(from: exercises)
+        self.completeLessonAction = completeLessonAction
+    }
+
+    var body: some View {
+        Group {
+            if questions.isEmpty {
+                VStack(spacing: 12) {
+                    Text(L10n.contentNotAvailable)
+                        .font(.headline)
+                    Text(L10n.serverRetryMessage)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding()
+            } else {
+                let question = questions[currentIndex]
+
+                VStack(spacing: 20) {
+                    ProgressView(value: Double(currentIndex + (answerIsCorrect == true ? 1 : 0)), total: Double(questions.count))
+                        .tint(lessonAccentColor)
+
+                    Text(L10n.practiceQuestion(currentIndex + 1, questions.count))
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(lessonAccentColor)
+
+                    Text(L10n.practicePickAnswer)
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+
+                    LessonPracticeContentView(
+                        text: question.question,
+                        textStyle: .title3,
+                        textSize: 18,
+                        textWeight: .semibold,
+                        textColor: .primary,
+                        centered: true
+                    )
+
+                    VStack(spacing: 12) {
+                        ForEach(question.options, id: \.self) { option in
+                            Button {
+                                handleSelection(option, for: question)
+                            } label: {
+                                HStack(spacing: 12) {
+                                    LessonPracticeContentView(
+                                        text: option,
+                                        textStyle: .body,
+                                        textSize: 16,
+                                        textWeight: .medium,
+                                        textColor: optionForeground(option, correctAnswer: question.correctAnswer),
+                                        centered: false
+                                    )
+                                    Spacer()
+                                    if selectedAnswer == option {
+                                        Image(systemName: answerIsCorrect == true ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                            .foregroundStyle(answerIsCorrect == true ? .green : .red)
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 18)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .background(optionBackground(option, correctAnswer: question.correctAnswer))
+                                .clipShape(RoundedRectangle(cornerRadius: 18))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 18)
+                                        .stroke(optionBorder(option, correctAnswer: question.correctAnswer), lineWidth: 2)
+                                )
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(isCompleting || answerIsCorrect == true)
+                        }
+                    }
+
+                    if let answerIsCorrect {
+                        Text(answerIsCorrect ? L10n.practiceCorrect : L10n.tryAgain)
+                            .font(.headline)
+                            .foregroundStyle(answerIsCorrect ? .green : .red)
+                    }
+
+                    Spacer(minLength: 0)
+
+                    if answerIsCorrect == true {
+                        Button {
+                            Task {
+                                await advanceOrComplete()
+                            }
+                        } label: {
+                            HStack {
+                                if isCompleting {
+                                    ProgressView()
+                                        .progressViewStyle(.circular)
+                                }
+                                Text(currentIndex == questions.count - 1 ? L10n.practiceFinish : L10n.next)
+                                    .font(.headline)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .disabled(isCompleting)
+                    }
+                }
+                .padding()
+            }
+        }
+        .navigationTitle(L10n.practice)
+        .navigationBarTitleDisplayMode(.inline)
+        .alert(L10n.practice, isPresented: $showAlert) {
+            Button(L10n.ok) {
+                dismiss()
+            }
+        } message: {
+            Text(alertMessage)
+        }
+    }
+
+    private func handleSelection(_ option: String, for question: LessonPracticeQuestion) {
+        selectedAnswer = option
+        answerIsCorrect = (option == question.correctAnswer)
+    }
+
+    private func advanceOrComplete() async {
+        if currentIndex < questions.count - 1 {
+            currentIndex += 1
+            selectedAnswer = nil
+            answerIsCorrect = nil
+            return
+        }
+
+        isCompleting = true
+        defer { isCompleting = false }
+
+        do {
+            let coins = try await completeLessonAction()
+            alertMessage = L10n.practiceCompleted(coins)
+        } catch {
+            alertMessage = error.localizedDescription
+        }
+
+        showAlert = true
+    }
+
+    private func optionBackground(_ option: String, correctAnswer: String) -> Color {
+        guard let selectedAnswer else { return Color.black.opacity(0.035) }
+        if selectedAnswer != option { return Color.black.opacity(0.035) }
+        return selectedAnswer == correctAnswer ? Color.green.opacity(0.16) : Color.red.opacity(0.12)
+    }
+
+    private func optionBorder(_ option: String, correctAnswer: String) -> Color {
+        guard let selectedAnswer else { return Color.black.opacity(0.06) }
+        if selectedAnswer != option { return Color.black.opacity(0.06) }
+        return selectedAnswer == correctAnswer ? .green : .red
+    }
+
+    private func optionForeground(_ option: String, correctAnswer: String) -> Color {
+        guard let selectedAnswer, selectedAnswer == option else { return .primary }
+        return selectedAnswer == correctAnswer ? .green : .red
+    }
+}
+
+private func buildPracticeQuestions(from exercises: [LessonDetailExercise]) -> [LessonPracticeQuestion] {
+    let cleaned = exercises.compactMap { exercise -> LessonPracticeQuestion? in
+        let question = exercise.question.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !question.isEmpty else { return nil }
+
+        var options = exercise.options
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        let correctAnswer = exercise.correctAnswer.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !correctAnswer.isEmpty && !options.contains(correctAnswer) {
+            options.insert(correctAnswer, at: 0)
+        }
+        guard !options.isEmpty else { return nil }
+
+        return LessonPracticeQuestion(
+            id: exercise.id,
+            question: question,
+            options: options,
+            correctAnswer: correctAnswer.isEmpty ? options[0] : correctAnswer
+        )
+    }
+
+    guard !cleaned.isEmpty else { return [] }
+    let randomized = cleaned.shuffled()
+
+    let targetCount: Int
+    switch randomized.count {
+    case ..<15:
+        targetCount = 15
+    case 15...20:
+        targetCount = randomized.count
+    default:
+        targetCount = 20
+    }
+    var result: [LessonPracticeQuestion] = []
+    result.reserveCapacity(targetCount)
+
+    for index in 0..<targetCount {
+        let base = randomized[index % randomized.count]
+        let rotation = base.options.isEmpty ? 0 : index % base.options.count
+        result.append(
+            LessonPracticeQuestion(
+                id: "\(base.id)-q\(index)",
+                question: base.question,
+                options: rotatePracticeOptions(base.options, by: rotation),
+                correctAnswer: base.correctAnswer
+            )
+        )
+    }
+
+    return result
+}
+
+private func rotatePracticeOptions(_ options: [String], by offset: Int) -> [String] {
+    guard !options.isEmpty else { return [] }
+    let normalized = offset % options.count
+    guard normalized != 0 else { return options }
+    return Array(options[normalized...]) + Array(options[..<normalized])
+}
+
+private struct LessonMixedMathView: UIViewRepresentable {
+    let html: String
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    func makeUIView(context: Context) -> WKWebView {
+        let config = WKWebViewConfiguration()
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.isOpaque = false
+        webView.backgroundColor = .clear
+        webView.scrollView.isScrollEnabled = true
+        webView.scrollView.bounces = false
+        webView.scrollView.alwaysBounceHorizontal = false
+        webView.scrollView.alwaysBounceVertical = false
+        webView.scrollView.showsVerticalScrollIndicator = false
+        webView.scrollView.showsHorizontalScrollIndicator = false
+        webView.isUserInteractionEnabled = false
+        return webView
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {
+        if context.coordinator.lastHTML != html {
+            uiView.loadHTMLString(html, baseURL: nil)
+            context.coordinator.lastHTML = html
+        }
+    }
+
+    final class Coordinator {
+        var lastHTML: String?
+    }
+}
+
+private enum PracticeRichSegment {
+    case text(String)
+    case math(String, display: Bool)
+}
+
+private func practiceContentNeedsMathRendering(_ text: String) -> Bool {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.isEmpty {
+        return false
+    }
+    if looksLikeInlineMath(trimmed) && !containsProseWords(trimmed) {
+        return true
+    }
+    return practiceLineContainsRenderableMath(trimmed)
+}
+
+private func lessonMixedMathHTML(content: String, centered: Bool, fontSize: Int, fontWeight: Int) -> String {
+    let body = practiceRichSegments(from: content).map { segment -> String in
+        switch segment {
+        case .text(let text):
+            return "<span class=\"text\">\(escapeLessonHTML(prettifyLessonTextContent(text)))</span>"
+        case .math(let latex, let display):
+            let escaped = escapeLessonHTML(normalizeLessonLatex(latex))
+            if display {
+                return "<div class=\"display\">\\[\(escaped)\\]</div>"
+            }
+            return "<span class=\"inline\">\\(\(escaped)\\)</span>"
+        }
+    }.joined(separator: "")
+
+    let alignment = centered ? "center" : "left"
+
+    return """
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+      <script>
+        window.MathJax = {
+          tex: { inlineMath: [['\\\\(', '\\\\)']], displayMath: [['\\\\[', '\\\\]']] },
+          svg: { fontCache: 'none', linebreaks: { automatic: true, width: 'container' } }
+        };
+      </script>
+      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+      <style>
+        html, body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          background: transparent;
+          overflow: hidden;
+        }
+        body {
+          font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+          font-size: \(fontSize)px;
+          font-weight: \(fontWeight);
+          line-height: 1.35;
+          color: #111111;
+          text-align: \(alignment);
+          display: block;
+        }
+        .wrap {
+          width: 100%;
+          box-sizing: border-box;
+          text-align: \(alignment);
+          word-break: break-word;
+        }
+        .display {
+          width: 100%;
+          margin: 6px 0;
+          overflow-x: auto;
+          overflow-y: hidden;
+        }
+        .inline {
+          display: inline;
+        }
+        mjx-container {
+          max-width: 100% !important;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="wrap">\(body)</div>
+    </body>
+    </html>
+    """
+}
+
+private func practiceRichSegments(from text: String) -> [PracticeRichSegment] {
+    let normalized = text
+        .replacingOccurrences(of: "\r\n", with: "\n")
+        .trimmingCharacters(in: .whitespacesAndNewlines)
+
+    guard !normalized.isEmpty else { return [] }
+
+    let lines = normalized
+        .components(separatedBy: "\n")
+        .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+        .filter { !$0.isEmpty }
+
+    if lines.isEmpty {
+        return [.text(normalized)]
+    }
+
+    var segments: [PracticeRichSegment] = []
+    for (index, line) in lines.enumerated() {
+        if index > 0 {
+            segments.append(.text(" "))
+        }
+        segments.append(contentsOf: practiceSegmentsForLine(line))
+    }
+    return segments
+}
+
+private func practiceSegmentsForLine(_ line: String) -> [PracticeRichSegment] {
+    if let split = practiceSplitTextConnector(line) {
+        var segments = practiceSegmentsForLine(split.before)
+        segments.append(.text(split.connector))
+        segments.append(contentsOf: practiceSegmentsForLine(split.after))
+        return segments
+    }
+
+    if looksLikeInlineMath(line) && !containsProseWords(line) {
+        return [.math(line, display: true)]
+    }
+
+    let pattern = #"(∫[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)"#
+    guard let regex = try? NSRegularExpression(pattern: pattern) else {
+        return [.text(line)]
+    }
+
+    let range = NSRange(line.startIndex..<line.endIndex, in: line)
+    let matches = regex.matches(in: line, range: range)
+    if matches.isEmpty {
+        return [.text(line)]
+    }
+
+    var result: [PracticeRichSegment] = []
+    var currentLocation = line.startIndex
+    for match in matches {
+        guard let matchRange = Range(match.range, in: line) else { continue }
+        if currentLocation < matchRange.lowerBound {
+            result.append(.text(String(line[currentLocation..<matchRange.lowerBound])))
+        }
+        let candidate = String(line[matchRange])
+        if looksLikeInlineMath(candidate) && !containsProseWords(candidate) {
+            result.append(.math(candidate, display: false))
+        } else {
+            result.append(.text(candidate))
+        }
+        currentLocation = matchRange.upperBound
+    }
+    if currentLocation < line.endIndex {
+        result.append(.text(String(line[currentLocation..<line.endIndex])))
+    }
+    return result
+}
+
+private func practiceLineContainsRenderableMath(_ line: String) -> Bool {
+    if let split = practiceSplitTextConnector(line) {
+        return practiceLineContainsRenderableMath(split.before) || practiceLineContainsRenderableMath(split.after)
+    }
+    guard let regex = try? NSRegularExpression(pattern: #"(∫[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)"#) else {
+        return false
+    }
+    let range = NSRange(line.startIndex..<line.endIndex, in: line)
+    for match in regex.matches(in: line, range: range) {
+        guard let matchRange = Range(match.range, in: line) else { continue }
+        let candidate = String(line[matchRange])
+        if looksLikeInlineMath(candidate) && !containsProseWords(candidate) {
+            return true
+        }
+    }
+    return false
+}
+
+private func practiceSplitTextConnector(_ line: String) -> (before: String, connector: String, after: String)? {
+    let connectors = [" where ", " equals ", " is ", " are ", " so ", " since ", " then "]
+    for connector in connectors {
+        guard let range = line.range(of: connector, options: .caseInsensitive) else { continue }
+        let before = String(line[..<range.lowerBound]).trimmingCharacters(in: .whitespacesAndNewlines)
+        let after = String(line[range.upperBound...]).trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !before.isEmpty, !after.isEmpty else { continue }
+        if practiceLineContainsRenderableMath(before) || (looksLikeInlineMath(before) && !containsProseWords(before)) {
+            return (before, connector, after)
+        }
+    }
+    return nil
+}
+
+private func practiceContentMinimumHeight(for text: String) -> CGFloat {
+    let length = text.count
+    if length > 180 { return 120 }
+    if length > 90 { return 88 }
+    return 56
+}
+
+private func practiceContentMaximumHeight(for text: String) -> CGFloat {
+    let length = text.count
+    if length > 220 { return 220 }
+    if length > 140 { return 180 }
+    return 120
+}
+
+private func mixedMathFontWeight(for weight: Font.Weight) -> Int {
+    switch weight {
+    case .semibold:
+        return 600
+    case .medium:
+        return 500
+    case .bold:
+        return 700
+    default:
+        return 400
+    }
 }
 
 #Preview {
