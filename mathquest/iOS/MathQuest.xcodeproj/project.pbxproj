@@ -47,6 +47,7 @@
 		B10000000000000000000026 /* KeychainFlag.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000026 /* KeychainFlag.swift */; };
 		B10000000000000000000027 /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000027 /* CommunityView.swift */; };
 		B10000000000000000000028 /* SolveReviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000028 /* SolveReviewSheet.swift */; };
+		B10000000000000000000029 /* LessonImages in Resources */ = {isa = PBXBuildFile; fileRef = F10000000000000000000029 /* LessonImages */; };
 		B20000000000000000000001 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000001 /* FirebaseAuth */; };
 		B20000000000000000000002 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = S20000000000000000000002 /* GoogleSignIn */; };
 		E349E3B42F57B0EE000B1E48 /* Kram.storekit in Resources */ = {isa = PBXBuildFile; fileRef = E349E3B32F57B0EE000B1E48 /* Kram.storekit */; };
@@ -118,6 +119,7 @@
 		F10000000000000000000013 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F10000000000000000000014 /* APIConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfig.swift; sourceTree = "<group>"; };
 		F10000000000000000000015 /* LessonDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LessonDetailView.swift; sourceTree = "<group>"; };
+		F10000000000000000000029 /* LessonImages */ = {isa = PBXFileReference; lastKnownFileType = folder; path = LessonImages; sourceTree = "<group>"; };
 		F10000000000000000000016 /* CameraHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraHistoryView.swift; sourceTree = "<group>"; };
 		F10000000000000000000017 /* CameraModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraModels.swift; sourceTree = "<group>"; };
 		F10000000000000000000018 /* CameraPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPreviewView.swift; sourceTree = "<group>"; };
@@ -279,6 +281,7 @@
 			isa = PBXGroup;
 			children = (
 				F10000000000000000000013 /* Assets.xcassets */,
+				F10000000000000000000029 /* LessonImages */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -512,6 +515,7 @@
 			files = (
 				E349E3B42F57B0EE000B1E48 /* Kram.storekit in Resources */,
 				B10000000000000000000013 /* Assets.xcassets in Resources */,
+				B10000000000000000000029 /* LessonImages in Resources */,
 				E37D5ED92F572CAB0024821A /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

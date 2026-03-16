@@ -266,6 +266,7 @@ struct SettingsView: View {
         UserDefaults.standard.removeObject(forKey: "profile_level")
         UserDefaults.standard.removeObject(forKey: "profile_photo_path")
         CoinWallet.resetLocalBonus()
+        CoinWallet.resetRewardedLessons()
 
         // Sign out from Firebase if authenticated
         if authManager.isAuthenticated {

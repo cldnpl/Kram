@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../../core/wallet/coin_wallet.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
@@ -78,12 +79,14 @@ class _ProfilePageState extends State<ProfilePage> {
     final hasAuthUser = FirebaseAuth.instance.currentUser != null;
     final canShowIdentity = hasSession || hasAuthUser;
     setState(() {
-      _userName = canShowIdentity ? (prefs.getString('profile_name') ?? '') : '';
+      _userName =
+          canShowIdentity ? (prefs.getString('profile_name') ?? '') : '';
       _profileUsername = prefs.getString('profile_username') ?? '';
       _mathLevel = canShowIdentity
           ? _normalizeLevel(prefs.getString('profile_level') ?? 'Beginner')
           : 'Beginner';
-      _profilePhotoPath = canShowIdentity ? (prefs.getString(_keyProfilePhoto) ?? '') : '';
+      _profilePhotoPath =
+          canShowIdentity ? (prefs.getString(_keyProfilePhoto) ?? '') : '';
       _sessionLoggedIn = hasSession;
     });
   }
@@ -161,7 +164,8 @@ class _ProfilePageState extends State<ProfilePage> {
       if (remoteName.isNotEmpty && !isPlaceholderName) {
         await prefs.setString('profile_name', remoteName);
       }
-      if (remoteUsername.isNotEmpty) await prefs.setString('profile_username', remoteUsername);
+      if (remoteUsername.isNotEmpty)
+        await prefs.setString('profile_username', remoteUsername);
       if (remoteLevel.isNotEmpty && !hasLocalLevel) {
         await prefs.setString('profile_level', normalizedRemoteLevel);
       }
@@ -295,7 +299,8 @@ class _ProfilePageState extends State<ProfilePage> {
         },
         builder: (context, state) {
           final user = state.user;
-          final isLoggedIn = state.status == AuthStatus.authenticated || _sessionLoggedIn;
+          final isLoggedIn =
+              state.status == AuthStatus.authenticated || _sessionLoggedIn;
           final displayName = isLoggedIn
               ? (_userName.isNotEmpty
                   ? _userName
@@ -376,6 +381,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                             ),
                                     ),
                                   ),
+                      ),
                       if (isLoggedIn)
                         Positioned(
                           right: 0,
@@ -534,8 +540,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         ? null
                         : () async {
                             if (isLoggedIn) {
-                              final prefs = await SharedPreferences.getInstance();
+                              final prefs =
+                                  await SharedPreferences.getInstance();
                               await prefs.setBool(_keySessionLoggedIn, false);
+                              await CoinWallet.resetLocalBonus();
+                              await CoinWallet.resetRewardedLessons();
                               if (mounted) {
                                 setState(() => _sessionLoggedIn = false);
                               }
@@ -573,7 +582,9 @@ class _ProfilePageState extends State<ProfilePage> {
                               const Icon(Icons.logout, size: 20),
                               const SizedBox(width: 8),
                               Text(
-                                isLoggedIn ? AppLocale.tr('sign_out') : AppLocale.tr('sign_in'),
+                                isLoggedIn
+                                    ? AppLocale.tr('sign_out')
+                                    : AppLocale.tr('sign_in'),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,

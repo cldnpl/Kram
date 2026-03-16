@@ -88,11 +88,11 @@ func buildTopicPracticeTemplates(id, baseTitle, baseCategory, lang string) []pra
 		return factoringQuadraticTemplates(lang)
 	case containsPracticeTopic(titleKey, "systems of equations"):
 		return append(substitutionTemplates(lang), comparisonTemplates(lang)...)
-	case containsPracticeTopic(titleKey, "substitution"):
+	case containsPracticeTopic(titleKey, "substitution") && strings.Contains(categoryKey, "algebra"):
 		return substitutionTemplates(lang)
-	case containsPracticeTopic(titleKey, "comparison"):
+	case containsPracticeTopic(titleKey, "comparison") && strings.Contains(categoryKey, "algebra"):
 		return comparisonTemplates(lang)
-	case containsPracticeTopic(titleKey, "cramer"):
+	case containsPracticeTopic(titleKey, "cramer") && strings.Contains(categoryKey, "algebra"):
 		return cramerTemplates(lang)
 	case containsPracticeTopic(titleKey, "plane geometry"):
 		return append(anglesTemplates(lang), trianglesTemplates(lang)...)
@@ -250,6 +250,72 @@ func buildTopicPracticeTemplates(id, baseTitle, baseCategory, lang string) []pra
 	}
 
 	return nil
+}
+
+func buildSectionPracticeTemplates(id, lang string) []practiceExerciseTemplate {
+	sectionID := id
+	if parsedSectionID, _, ok := parseItemID(id); ok {
+		sectionID = parsedSectionID
+	}
+
+	switch sectionID {
+	case "1":
+		return append(append(numberSetsTemplates(lang), integersTemplates(lang)...), rationalNumbersTemplates(lang)...)
+	case "2":
+		return append(append(fourOperationsTemplates(lang), powersTemplates(lang)...), rootsTemplates(lang)...)
+	case "3":
+		return append(append(orderOfOperationsTemplates(lang), powersTemplates(lang)...), rootsTemplates(lang)...)
+	case "4":
+		return append(append(multiplesTemplates(lang), divisorsTemplates(lang)...), append(gcdTemplates(lang), lcmTemplates(lang)...)...)
+	case "5":
+		return append(append(equivalentFractionsTemplates(lang), fractionOperationsTemplates(lang)...), append(percentagesTemplates(lang), proportionsTemplates(lang)...)...)
+	case "6":
+		return append(append(polynomialOperationsTemplates(lang), degreeTemplates(lang)...), specialProductsTemplates(lang)...)
+	case "7":
+		return append(append(commonFactoringTemplates(lang), ruffiniTemplates(lang)...), differenceOfSquaresTemplates(lang)...)
+	case "8":
+		return append(append(linearEquationTemplates(lang), literalEquationTemplates(lang)...), substitutionTemplates(lang)...)
+	case "9":
+		return append(append(quadraticTemplates(lang), discriminantTemplates(lang)...), factoringQuadraticTemplates(lang)...)
+	case "10":
+		return append(append(substitutionTemplates(lang), comparisonTemplates(lang)...), cramerTemplates(lang)...)
+	case "11":
+		return append(append(append(segmentsTemplates(lang), anglesTemplates(lang)...), trianglesTemplates(lang)...), append(quadrilateralsTemplates(lang), polygonsTemplates(lang)...)...)
+	case "12":
+		return append(append(criteriaTrianglesTemplates(lang), pythagorasTemplates(lang)...), trianglesTemplates(lang)...)
+	case "13":
+		return append(append(circumferenceTemplates(lang), circleAreaTemplates(lang)...), append(tangentsTemplates(lang), secantsTemplates(lang)...)...)
+	case "14":
+		return append(append(append(prismsTemplates(lang), pyramidsTemplates(lang)...), append(cylindersTemplates(lang), conesTemplates(lang)...)...), spheresTemplates(lang)...)
+	case "15":
+		return append(append(unitCircleTemplates(lang), sineCosineTangentTemplates(lang)...), lawOfSinesCosinesTemplates(lang)...)
+	case "16":
+		return append(append(realFunctionsTemplates(lang), classificationTemplates(lang)...), domainTemplates(lang)...)
+	case "17":
+		return append(append(symmetryTemplates(lang), interceptsTemplates(lang)...), append(signStudyTemplates(lang), realFunctionsTemplates(lang)...)...)
+	case "18":
+		return append(append(expLogTemplates(lang), domainTemplates(lang)...), realFunctionsTemplates(lang)...)
+	case "19":
+		return append(append(append(lineTemplates(lang), analyticCircleTemplates(lang)...), append(parabolaTemplates(lang), ellipseTemplates(lang)...)...), hyperbolaTemplates(lang)...)
+	case "20":
+		return append(append(limitsTemplates(lang), indeterminateFormsTemplates(lang)...), asymptotesTemplates(lang)...)
+	case "21":
+		return append(append(differenceQuotientTemplates(lang), geometricMeaningTemplates(lang)...), powerRuleTemplates(lang)...)
+	case "22":
+		return append(append(powerRuleTemplates(lang), productRuleTemplates(lang)...), append(quotientRuleTemplates(lang), chainRuleTemplates(lang)...)...)
+	case "23":
+		return append(append(maximaMinimaTemplates(lang), inflectionTemplates(lang)...), signStudyTemplates(lang)...)
+	case "24":
+		return append(append(primitivesTemplates(lang), immediateIntegrationTemplates(lang)...), substitutionIntegrationTemplates(lang)...)
+	case "25":
+		return append(append(substitutionIntegrationTemplates(lang), integrationByPartsTemplates(lang)...), immediateIntegrationTemplates(lang)...)
+	case "26":
+		return append(append(areaUnderCurveTemplates(lang), ftcTemplates(lang)...), immediateIntegrationTemplates(lang)...)
+	case "27":
+		return append(append(volumeTemplates(lang), planeAreaTemplates(lang)...), areaUnderCurveTemplates(lang)...)
+	default:
+		return nil
+	}
 }
 
 func normalizePracticeTopic(s string) string {
@@ -1133,13 +1199,13 @@ func primitivesTemplates(lang string) []practiceExerciseTemplate {
 		t(qChoose(lang, "a primitive of 3"), "3x + C", "x^3 + C", "3 + C", "1 + C"),
 		t(qChoose(lang, "if F'(x) = f(x), then F is"), "a primitive of f", "the quotient of f", "the asymptote of f", "the domain of f"),
 		t(qChoose(lang, "primitives of the same function differ by"), "a constant", "a variable", "a root", "a denominator"),
-		t(qChoose(lang, "a primitive of x^2"), "x^3/3 + C", "2x + C", "x^2/2 + C", "3x^2 + C"),
+		t(qChoose(lang, "a primitive of x^2"), "\\frac{x^3}{3} + C", "2x + C", "\\frac{x^2}{2} + C", "3x^2 + C"),
 	}
 }
 
 func immediateIntegrationTemplates(lang string) []practiceExerciseTemplate {
 	return []practiceExerciseTemplate{
-		t(qIntegrate(lang, "x^4 dx"), "x^5/5 + C", "4x^3 + C", "x^4/4 + C", "5x + C"),
+		t(qIntegrate(lang, "x^4 dx"), "\\frac{x^5}{5} + C", "4x^3 + C", "\\frac{x^4}{4} + C", "5x + C"),
 		t(qIntegrate(lang, "1/x dx"), "ln|x| + C", "1/(x^2) + C", "x + C", "e^x + C"),
 		t(qIntegrate(lang, "e^x dx"), "e^x + C", "xe^x + C", "ln|x| + C", "1/e^x + C"),
 		t(qIntegrate(lang, "cos x dx"), "sin x + C", "-sin x + C", "cos x + C", "-cos x + C"),
@@ -1170,8 +1236,8 @@ func integrationByPartsTemplates(lang string) []practiceExerciseTemplate {
 func areaUnderCurveTemplates(lang string) []practiceExerciseTemplate {
 	return []practiceExerciseTemplate{
 		t(qChoose(lang, "if f(x) >= 0 on [a,b], then ∫_a^b f(x) dx is"), "the geometric area under the curve", "always zero", "always negative", "the slope of the tangent"),
-		t(qEvaluate(lang, "∫_0^1 x dx"), "1/2", "1", "2", "1/3"),
-		t(qEvaluate(lang, "∫_0^1 x^2 dx"), "1/3", "1/2", "1", "1/4"),
+		t(qEvaluate(lang, "∫_0^1 x dx"), "\\frac{1}{2}", "1", "2", "\\frac{1}{3}"),
+		t(qEvaluate(lang, "∫_0^1 x^2 dx"), "\\frac{1}{3}", "\\frac{1}{2}", "1", "\\frac{1}{4}"),
 		t(qChoose(lang, "a definite integral represents"), "signed area", "only positive area", "always a derivative", "only the domain"),
 		t(qChoose(lang, "if the graph is below the x-axis"), "the integral contribution is negative", "the contribution is positive", "the contribution is zero", "the integral is undefined"),
 	}
@@ -1183,7 +1249,7 @@ func ftcTemplates(lang string) []practiceExerciseTemplate {
 		t(qChoose(lang, "if F'(x) = f(x), then F is"), "an antiderivative of f", "the quotient of f", "the inverse of f always", "an asymptote of f"),
 		t(qEvaluate(lang, "∫_0^2 x dx using FTC"), "2", "1", "4", "3"),
 		t(qChoose(lang, "FTC Part 1 states that if F(x)=∫_a^x f(t)dt, then"), "F'(x)=f(x)", "F(x)=f'(x)", "F''(x)=f(x)", "F(x)=a"),
-		t(qChoose(lang, "to compute a definite integral you"), "find an antiderivative and evaluate endpoints", "differentiate twice", "always use substitution", "always use parts"),
+		t(qChoose(lang, "the correct endpoint evaluation for ∫_a^b f(x) dx"), "F(b) - F(a)", "F(a) - F(b)", "F'(b) - F'(a)", "f(b) - f(a)"),
 	}
 }
 
@@ -1209,311 +1275,4 @@ func planeAreaTemplates(lang string) []practiceExerciseTemplate {
 
 func fmtInt(value int) string {
 	return strconv.Itoa(value)
-}
-
-func buildDerivedPracticeTemplates(facts []string, lang string) []practiceExerciseTemplate {
-	var templates []practiceExerciseTemplate
-	seen := map[string]struct{}{}
-
-	formulaParts := collectFactParts(facts, true)
-	definitionParts := collectFactParts(facts, false)
-
-	for index, fact := range facts {
-		fact = strings.TrimSpace(fact)
-		if fact == "" {
-			continue
-		}
-
-		if lhs, rhs, ok := splitFactForPractice(fact); ok {
-			question := practicePrompt(lang, "complete")
-			if isFormulaLikeText(fact) {
-				question = practicePrompt(lang, "formula")
-			}
-			template := t(
-				question+" "+formatPracticeBlank(lhs),
-				rhs,
-				pickPracticeDistractors(rhs, formulaParts, definitionParts, index)...,
-			)
-			key := template.question + "\n" + template.correct
-			if _, exists := seen[key]; exists {
-				continue
-			}
-			seen[key] = struct{}{}
-			templates = append(templates, template)
-
-			if isFormulaLikeText(fact) {
-				alt := t(
-					practicePrompt(lang, "apply")+" "+lhs,
-					rhs,
-					pickPracticeDistractors(rhs, formulaParts, definitionParts, index+7)...,
-				)
-				altKey := alt.question + "\n" + alt.correct
-				if _, exists := seen[altKey]; !exists {
-					seen[altKey] = struct{}{}
-					templates = append(templates, alt)
-				}
-			}
-			continue
-		}
-
-		if head, tail, ok := splitConditionalFact(fact); ok {
-			template := t(
-				practicePrompt(lang, "apply")+" "+head,
-				tail,
-				pickPracticeDistractors(tail, formulaParts, definitionParts, index)...,
-			)
-			key := template.question + "\n" + template.correct
-			if _, exists := seen[key]; exists {
-				continue
-			}
-			seen[key] = struct{}{}
-			templates = append(templates, template)
-		}
-	}
-
-	return templates
-}
-
-func collectFactParts(facts []string, wantFormula bool) []string {
-	var parts []string
-	seen := map[string]struct{}{}
-	for _, fact := range facts {
-		if lhs, rhs, ok := splitFactForPractice(strings.TrimSpace(fact)); ok {
-			_ = lhs
-			if isFormulaLikeText(fact) != wantFormula {
-				continue
-			}
-			if _, exists := seen[rhs]; exists {
-				continue
-			}
-			seen[rhs] = struct{}{}
-			parts = append(parts, rhs)
-		}
-	}
-	return parts
-}
-
-func splitFactForPractice(fact string) (string, string, bool) {
-	candidates := []string{" ⇒ ", " = ", ": ", " means ", " is ", " are "}
-	for _, separator := range candidates {
-		index := strings.Index(fact, separator)
-		if index <= 0 {
-			continue
-		}
-		left := strings.TrimSpace(fact[:index])
-		right := strings.TrimSpace(fact[index+len(separator):])
-		if left == "" || right == "" || len(right) < 2 {
-			continue
-		}
-		if len(left) < 6 || len(left) > 110 || len(right) > 110 {
-			continue
-		}
-		lowerLeft := strings.ToLower(left)
-		if lowerLeft == "this" || lowerLeft == "that" || lowerLeft == "it" || lowerLeft == "there" {
-			continue
-		}
-		if shouldSkipPracticeLead(left) {
-			continue
-		}
-		if strings.HasPrefix(lowerLeft, "if ") {
-			continue
-		}
-		if separator == " = " {
-			if strings.Contains(left, ".") || len(strings.Fields(left)) > 10 {
-				continue
-			}
-		}
-		if strings.HasPrefix(left, "(") && !strings.Contains(left, ")") {
-			continue
-		}
-		return left, right, true
-	}
-	return "", "", false
-}
-
-func splitConditionalFact(fact string) (string, string, bool) {
-	lower := strings.ToLower(fact)
-	marker := " then "
-	index := strings.Index(lower, marker)
-	if index > 0 {
-		left := strings.TrimSpace(fact[:index])
-		right := strings.TrimSpace(fact[index+len(marker):])
-		if left == "" || right == "" || len(right) < 3 || len(right) > 110 {
-			return "", "", false
-		}
-		if shouldSkipPracticeLead(left) {
-			return "", "", false
-		}
-		return left, right, true
-	}
-
-	if strings.HasPrefix(lower, "if ") {
-		comma := strings.Index(fact, ",")
-		if comma > 2 && comma < len(fact)-2 {
-			left := strings.TrimSpace(fact[:comma]) + ","
-			right := strings.TrimSpace(fact[comma+1:])
-			if left != "" && right != "" && len(right) <= 110 {
-				if shouldSkipPracticeLead(left) {
-					return "", "", false
-				}
-				return left, right, true
-			}
-		}
-	}
-	return "", "", false
-}
-
-func shouldSkipPracticeLead(left string) bool {
-	lower := strings.ToLower(strings.TrimSpace(left))
-	if lower == "" {
-		return true
-	}
-	if strings.HasPrefix(lower, "example") || strings.HasPrefix(lower, "definition") ||
-		strings.HasPrefix(lower, "steps") || strings.HasPrefix(lower, "remark") {
-		return true
-	}
-	switch lower {
-	case "formula", "example", "uniqueness", "definition", "summary", "important":
-		return true
-	}
-	if !isFormulaLikeText(left) && len(strings.Fields(lower)) <= 2 {
-		return true
-	}
-	return false
-}
-
-func pickPracticeDistractors(correct string, formulaParts, definitionParts []string, seed int) []string {
-	source := definitionParts
-	if isFormulaLikeText(correct) {
-		source = formulaParts
-	}
-	options := make([]string, 0, 3)
-	for i := 0; i < len(source) && len(options) < 3; i++ {
-		candidate := source[(seed+i)%len(source)]
-		candidate = strings.TrimSpace(candidate)
-		if candidate == "" || candidate == correct {
-			continue
-		}
-		duplicate := false
-		for _, existing := range options {
-			if existing == candidate {
-				duplicate = true
-				break
-			}
-		}
-		if !duplicate {
-			options = append(options, candidate)
-		}
-	}
-	for _, fallback := range genericPracticeDistractors(correct) {
-		if len(options) >= 3 {
-			break
-		}
-		duplicate := false
-		for _, existing := range options {
-			if existing == fallback {
-				duplicate = true
-				break
-			}
-		}
-		if !duplicate && fallback != correct {
-			options = append(options, fallback)
-		}
-	}
-	return options
-}
-
-func genericPracticeDistractors(correct string) []string {
-	if isFormulaLikeText(correct) {
-		return []string{
-			"x + C",
-			"0",
-			"1",
-			"x^2",
-			"undefined",
-			"f'(x)",
-		}
-	}
-	return []string{
-		"is always zero",
-		"is always positive",
-		"is not defined for any real x",
-		"has infinitely many values for the same x",
-		"uses a different formula",
-		"is not the correct completion",
-	}
-}
-
-func formatPracticeBlank(left string) string {
-	left = strings.TrimSpace(left)
-	if strings.HasSuffix(left, ":") || strings.HasSuffix(left, "=") || strings.HasSuffix(left, "⇒") {
-		return left + " ____"
-	}
-	return left + " = ____"
-}
-
-func isFormulaLikeText(text string) bool {
-	lower := strings.ToLower(text)
-	return strings.ContainsAny(text, "=^√∫≤≥≠±∞∆") ||
-		strings.Contains(lower, "sin") ||
-		strings.Contains(lower, "cos") ||
-		strings.Contains(lower, "tan") ||
-		strings.Contains(lower, "log") ||
-		strings.Contains(lower, "ln") ||
-		strings.Contains(lower, "sqrt") ||
-		strings.Contains(lower, "lim") ||
-		strings.Contains(lower, "f(") ||
-		strings.Contains(lower, "x^")
-}
-
-func practicePrompt(lang, key string) string {
-	switch normalizeLessonLang(lang) {
-	case "it":
-		switch key {
-		case "complete":
-			return "Completa correttamente:"
-		case "formula":
-			return "Completa la formula:"
-		case "apply":
-			return "Qual è il completamento corretto?"
-		}
-	case "fr":
-		switch key {
-		case "complete":
-			return "Complète correctement :"
-		case "formula":
-			return "Complète la formule :"
-		case "apply":
-			return "Quel est le bon complément ?"
-		}
-	case "es":
-		switch key {
-		case "complete":
-			return "Completa correctamente:"
-		case "formula":
-			return "Completa la fórmula:"
-		case "apply":
-			return "¿Cuál es la continuación correcta?"
-		}
-	case "uz":
-		switch key {
-		case "complete":
-			return "To'g'ri to'ldiring:"
-		case "formula":
-			return "Formulani to'ldiring:"
-		case "apply":
-			return "To'g'ri davomni tanlang:"
-		}
-	}
-
-	switch key {
-	case "complete":
-		return "Complete correctly:"
-	case "formula":
-		return "Complete the formula:"
-	case "apply":
-		return "Choose the correct completion:"
-	default:
-		return "Choose:"
-	}
 }

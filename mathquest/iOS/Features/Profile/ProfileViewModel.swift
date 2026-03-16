@@ -286,6 +286,7 @@ final class ProfileViewModel: ObservableObject {
         // Keep cached profile data/photo so it remains visible across logout/login.
         // Source of truth stays backend profile by uid/username.
         CoinWallet.resetLocalBonus()
+        CoinWallet.resetRewardedLessons()
         userEmail = ""
         userPhotoURL = nil
         load()

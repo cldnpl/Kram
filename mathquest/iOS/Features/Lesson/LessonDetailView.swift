@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import WebKit
 
 // Dark purple (same as app gradient) for formula boxes (1st, 3rd, …)
@@ -169,6 +170,10 @@ final class LessonDetailViewModel: ObservableObject {
     }
 
     func completeLesson(lessonId: String, lessonCost: Int) async throws -> Int {
+        if CoinWallet.hasRewardedLesson(lessonId) {
+            return 0
+        }
+
         isCompleting = true
         defer { isCompleting = false }
 
@@ -184,6 +189,7 @@ final class LessonDetailViewModel: ObservableObject {
         let normalizedCost = Swift.max(0, response.lessonCost ?? lessonCost)
         let safeReward = Swift.max(0, Swift.min(normalizedCost, response.coinsEarned))
         CoinWallet.addLocalBonus(safeReward)
+        CoinWallet.markLessonRewarded(lessonId)
         return safeReward
     }
 }
@@ -930,11 +936,17 @@ private func normalizeLessonLatex(_ raw: String) -> String {
     value = value.replacingOccurrences(of: "→", with: "\\to")
     value = value.replacingOccurrences(of: "∈", with: "\\in")
     value = value.replacingOccurrences(of: "∉", with: "\\notin")
+    value = value.replacingOccurrences(of: "∫", with: "\\int")
 
     value = value.replacingOccurrences(of: #"\bpi\b"#, with: "\\pi", options: .regularExpression)
     value = value.replacingOccurrences(of: #"√\s*([A-Za-z0-9\(\)\+\-]+)"#, with: "\\sqrt{$1}", options: .regularExpression)
-    value = value.replacingOccurrences(of: #"(?<!\\)\b([A-Za-z])\s*\^\s*([0-9A-Za-z\+\-]+)\b"#, with: "$1^{$2}", options: .regularExpression)
     value = replacingLessonLatexFractions(in: value)
+    value = value.replacingOccurrences(of: #"\\int_([^\s\^=]+)\^([^\s=]+)"#, with: "\\int_{$1}^{$2}", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"\[([^\[\]]+)\]_([^\s\^=]+)\^([^\s=]+)"#, with: "\\left[$1\\right]_{$2}^{$3}", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(?<!\\)\b([A-Za-z])\s*\^\s*\(([^()]+)\)"#, with: "$1^{$2}", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(?<!\\)\b([A-Za-z])\s*\^\s*([0-9A-Za-z\+\-]+)\b"#, with: "$1^{$2}", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(?<!\\)\b(e)\^([A-Za-z0-9\(\)\+\-]+)"#, with: "$1^{$2}", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"\\([A-Za-z]+)(?=[A-Za-z])"#, with: "\\$1 ", options: .regularExpression)
     value = value.replacingOccurrences(of: #"\s{2,}"#, with: " ", options: .regularExpression)
     value = value.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -947,7 +959,7 @@ private func normalizeLessonLatex(_ raw: String) -> String {
 
 private func replacingLessonLatexFractions(in text: String) -> String {
     guard let regex = try? NSRegularExpression(
-        pattern: #"(?<!\\)(\([^()]+\)|[A-Za-z0-9\}\]]+(?:\^\{?[A-Za-z0-9+\-]+\}?)?)\s*/\s*(\([^()]+\)|[A-Za-z0-9\{\[]+(?:\^\{?[A-Za-z0-9+\-]+\}?)?)"#
+        pattern: #"(?<!\\)(\[[^\]]+\]_[A-Za-z0-9{}]+|\([^()]+\)|[A-Za-z0-9]+(?:\^\{[^}]+\}|\^[A-Za-z0-9+\-]+)?)\s*/\s*(\([^()]+\)|\{[^{}]+\}|[A-Za-z0-9]+(?:\^\{[^}]+\}|\^[A-Za-z0-9+\-]+)?)"#
     ) else {
         return text
     }
@@ -970,7 +982,7 @@ private func replacingLessonLatexFractions(in text: String) -> String {
             continue
         }
 
-        value.replaceSubrange(matchRange, with: #"\\frac{\#(numerator)}{\#(denominator)}"#)
+        value.replaceSubrange(matchRange, with: #"\frac{\#(numerator)}{\#(denominator)}"#)
     }
 
     return value
@@ -1233,14 +1245,15 @@ struct LessonDiagramView: View {
 
 struct LessonImageView: View {
     let imageName: String
-    @State private var svgData: Data?
+    @State private var imageData: Data?
     @State private var loadFailed = false
 
-    private var imageURL: URL? {
-        let base = APIConfig.serverBaseURLString
+    private var candidateImageURLs: [URL] {
         let encodedName = imageName.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) ?? imageName
-        let path = base.hasSuffix("/") ? base + "lesson-images/" + encodedName : base + "/lesson-images/" + encodedName
-        return URL(string: path)
+        let primaryBase = APIConfig.serverBaseURLString
+        let primaryPath = primaryBase.hasSuffix("/") ? primaryBase + "lesson-images/" + encodedName : primaryBase + "/lesson-images/" + encodedName
+        let fallbackPath = "https://raw.githubusercontent.com/cldnpl/Kram/main/mathquest/backend/static/imagesLessons/\(encodedName)"
+        return [primaryPath, fallbackPath].compactMap(URL.init(string:))
     }
 
     private var isSVG: Bool {
@@ -1252,12 +1265,36 @@ struct LessonImageView: View {
         return lower.hasSuffix(".svg") || lower.hasSuffix(".gif") || lower.hasSuffix(".webp") || lower.hasSuffix(".avif")
     }
 
+    private var mimeType: String {
+        switch imageName.lowercased() {
+        case let name where name.hasSuffix(".svg"):
+            return "image/svg+xml"
+        case let name where name.hasSuffix(".gif"):
+            return "image/gif"
+        case let name where name.hasSuffix(".webp"):
+            return "image/webp"
+        case let name where name.hasSuffix(".avif"):
+            return "image/avif"
+        case let name where name.hasSuffix(".jpg"), let name where name.hasSuffix(".jpeg"):
+            return "image/jpeg"
+        default:
+            return "image/png"
+        }
+    }
+
+    private var bundledImageData: Data? {
+        if let url = Bundle.main.url(forResource: imageName, withExtension: nil, subdirectory: "LessonImages") {
+            return try? Data(contentsOf: url)
+        }
+        return nil
+    }
+
     var body: some View {
         Group {
             if isSVG {
                 if loadFailed {
                     mediaFailureView
-                } else if let data = svgData {
+                } else if let data = imageData {
                     DiagramWebView(svgData: data)
                         .frame(minHeight: 120, maxHeight: 280)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -1268,52 +1305,58 @@ struct LessonImageView: View {
                 } else {
                     mediaLoadingView
                 }
-            } else if usesWebView, let url = imageURL {
-                RemoteImageWebView(url: url)
+            } else if usesWebView, let data = imageData {
+                BinaryImageWebView(data: data, mimeType: mimeType)
                     .frame(minHeight: 120, maxHeight: 280)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
                     )
-            } else if let url = imageURL {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .empty:
-                        mediaLoadingView
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxWidth: .infinity)
-                            .padding(12)
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
-                            )
-                    case .failure:
-                        mediaFailureView
-                    @unknown default:
-                        mediaFailureView
-                    }
-                }
-            } else {
+            } else if loadFailed {
                 mediaFailureView
+            } else if let data = imageData, let uiImage = UIImage(data: data) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity)
+                    .padding(12)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
+                    )
+            } else if let data = imageData {
+                BinaryImageWebView(data: data, mimeType: mimeType)
+                    .frame(minHeight: 120, maxHeight: 280)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
+                    )
+            } else {
+                mediaLoadingView
             }
         }
         .task(id: imageName) {
-            guard isSVG, let url = imageURL else { return }
-            do {
-                let (data, resp) = try await URLSession.shared.data(from: url)
-                if (resp as? HTTPURLResponse)?.statusCode == 200 {
-                    svgData = data
-                    loadFailed = false
-                } else {
-                    loadFailed = true
-                }
-            } catch {
-                loadFailed = true
+            imageData = nil
+            loadFailed = false
+            if let localData = bundledImageData, !localData.isEmpty {
+                imageData = localData
+                return
             }
+            for url in candidateImageURLs {
+                do {
+                    let (data, resp) = try await URLSession.shared.data(from: url)
+                    if (resp as? HTTPURLResponse)?.statusCode == 200, !data.isEmpty {
+                        imageData = data
+                        loadFailed = false
+                        return
+                    }
+                } catch {
+                    continue
+                }
+            }
+            loadFailed = true
         }
     }
 
@@ -1332,8 +1375,9 @@ struct LessonImageView: View {
     }
 }
 
-private struct RemoteImageWebView: UIViewRepresentable {
-    let url: URL
+private struct BinaryImageWebView: UIViewRepresentable {
+    let data: Data
+    let mimeType: String
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
@@ -1342,12 +1386,12 @@ private struct RemoteImageWebView: UIViewRepresentable {
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.isScrollEnabled = false
-        webView.load(URLRequest(url: url))
+        webView.load(data, mimeType: mimeType, characterEncodingName: "UTF-8", baseURL: URL(string: "about:blank")!)
         return webView
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {
-        uiView.load(URLRequest(url: url))
+        uiView.load(data, mimeType: mimeType, characterEncodingName: "UTF-8", baseURL: URL(string: "about:blank")!)
     }
 }
 
@@ -1419,6 +1463,8 @@ private struct LessonPracticeView: View {
     @State private var isCompleting = false
     @State private var alertMessage = ""
     @State private var showAlert = false
+    @State private var completionCoins = 0
+    @State private var showCompletionPopup = false
 
     init(lesson: LessonItem, exercises: [LessonDetailExercise], completeLessonAction: @escaping () async throws -> Int) {
         self.lesson = lesson
@@ -1427,107 +1473,156 @@ private struct LessonPracticeView: View {
     }
 
     var body: some View {
-        Group {
-            if questions.isEmpty {
-                VStack(spacing: 12) {
-                    Text(L10n.contentNotAvailable)
-                        .font(.headline)
-                    Text(L10n.serverRetryMessage)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
+        ZStack {
+            Group {
+                if questions.isEmpty {
+                    VStack(spacing: 12) {
+                        Text(L10n.contentNotAvailable)
+                            .font(.headline)
+                        Text(L10n.serverRetryMessage)
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
+                } else {
+                    let question = questions[currentIndex]
+
+                    VStack(spacing: 20) {
+                        ProgressView(value: Double(currentIndex + (answerIsCorrect == true ? 1 : 0)), total: Double(questions.count))
+                            .tint(lessonAccentColor)
+
+                        Text(L10n.practiceQuestion(currentIndex + 1, questions.count))
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(lessonAccentColor)
+
+                        Text(L10n.practicePickAnswer)
+                            .font(.headline)
+                            .multilineTextAlignment(.center)
+
+                        LessonPracticeContentView(
+                            text: question.question,
+                            textStyle: .title3,
+                            textSize: 18,
+                            textWeight: .semibold,
+                            textColor: .primary,
+                            centered: true
+                        )
+
+                        VStack(spacing: 12) {
+                            ForEach(question.options, id: \.self) { option in
+                                Button {
+                                    handleSelection(option, for: question)
+                                } label: {
+                                    HStack(spacing: 12) {
+                                        LessonPracticeContentView(
+                                            text: option,
+                                            textStyle: .body,
+                                            textSize: 16,
+                                            textWeight: .medium,
+                                            textColor: optionForeground(option, correctAnswer: question.correctAnswer),
+                                            centered: false
+                                        )
+                                        Spacer()
+                                        if selectedAnswer == option {
+                                            Image(systemName: answerIsCorrect == true ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                                .foregroundStyle(answerIsCorrect == true ? .green : .red)
+                                        }
+                                    }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 18)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .background(optionBackground(option, correctAnswer: question.correctAnswer))
+                                    .clipShape(RoundedRectangle(cornerRadius: 18))
+                                    .overlay(
+                                        RoundedRectangle(cornerRadius: 18)
+                                            .stroke(optionBorder(option, correctAnswer: question.correctAnswer), lineWidth: 2)
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .disabled(isCompleting || answerIsCorrect == true)
+                            }
+                        }
+
+                        if let answerIsCorrect {
+                            Text(answerIsCorrect ? L10n.practiceCorrect : L10n.tryAgain)
+                                .font(.headline)
+                                .foregroundStyle(answerIsCorrect ? .green : .red)
+                        }
+
+                        Spacer(minLength: 0)
+
+                        if answerIsCorrect == true {
+                            Button {
+                                Task {
+                                    await advanceOrComplete()
+                                }
+                            } label: {
+                                HStack {
+                                    if isCompleting {
+                                        ProgressView()
+                                            .progressViewStyle(.circular)
+                                    }
+                                    Text(currentIndex == questions.count - 1 ? L10n.practiceFinish : L10n.next)
+                                        .font(.headline)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 14)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .disabled(isCompleting)
+                        }
+                    }
+                    .padding()
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding()
-            } else {
-                let question = questions[currentIndex]
+            }
 
-                VStack(spacing: 20) {
-                    ProgressView(value: Double(currentIndex + (answerIsCorrect == true ? 1 : 0)), total: Double(questions.count))
-                        .tint(lessonAccentColor)
+            if showCompletionPopup {
+                Color.black.opacity(0.16)
+                    .ignoresSafeArea()
 
-                    Text(L10n.practiceQuestion(currentIndex + 1, questions.count))
-                        .font(.subheadline.weight(.semibold))
+                VStack(spacing: 16) {
+                    Image(systemName: "star.circle")
+                        .font(.system(size: 56, weight: .regular))
                         .foregroundStyle(lessonAccentColor)
 
-                    Text(L10n.practicePickAnswer)
-                        .font(.headline)
+                    Text(L10n.practiceCompletedTitle)
+                        .font(.title3.weight(.bold))
                         .multilineTextAlignment(.center)
 
-                    LessonPracticeContentView(
-                        text: question.question,
-                        textStyle: .title3,
-                        textSize: 18,
-                        textWeight: .semibold,
-                        textColor: .primary,
-                        centered: true
-                    )
-
-                    VStack(spacing: 12) {
-                        ForEach(question.options, id: \.self) { option in
-                            Button {
-                                handleSelection(option, for: question)
-                            } label: {
-                                HStack(spacing: 12) {
-                                    LessonPracticeContentView(
-                                        text: option,
-                                        textStyle: .body,
-                                        textSize: 16,
-                                        textWeight: .medium,
-                                        textColor: optionForeground(option, correctAnswer: question.correctAnswer),
-                                        centered: false
-                                    )
-                                    Spacer()
-                                    if selectedAnswer == option {
-                                        Image(systemName: answerIsCorrect == true ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                            .foregroundStyle(answerIsCorrect == true ? .green : .red)
-                                    }
-                                }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 18)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(optionBackground(option, correctAnswer: question.correctAnswer))
-                                .clipShape(RoundedRectangle(cornerRadius: 18))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 18)
-                                        .stroke(optionBorder(option, correctAnswer: question.correctAnswer), lineWidth: 2)
-                                )
-                            }
-                            .buttonStyle(.plain)
-                            .disabled(isCompleting || answerIsCorrect == true)
+                    if completionCoins > 0 {
+                        HStack(spacing: 10) {
+                            Text(L10n.practiceYouEarned)
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                            Image("coin", bundle: .main)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 42, height: 42)
+                            Text("\(completionCoins)")
+                                .font(.subheadline.weight(.semibold))
+                                .foregroundStyle(.secondary)
                         }
                     }
 
-                    if let answerIsCorrect {
-                        Text(answerIsCorrect ? L10n.practiceCorrect : L10n.tryAgain)
+                    Button {
+                        showCompletionPopup = false
+                        dismiss()
+                    } label: {
+                        Text(L10n.back)
                             .font(.headline)
-                            .foregroundStyle(answerIsCorrect ? .green : .red)
-                    }
-
-                    Spacer(minLength: 0)
-
-                    if answerIsCorrect == true {
-                        Button {
-                            Task {
-                                await advanceOrComplete()
-                            }
-                        } label: {
-                            HStack {
-                                if isCompleting {
-                                    ProgressView()
-                                        .progressViewStyle(.circular)
-                                }
-                                Text(currentIndex == questions.count - 1 ? L10n.practiceFinish : L10n.next)
-                                    .font(.headline)
-                            }
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(isCompleting)
                     }
+                    .buttonStyle(.borderedProminent)
                 }
-                .padding()
+                .padding(.horizontal, 24)
+                .padding(.vertical, 28)
+                .frame(maxWidth: 300)
+                .background(Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+                .shadow(color: .black.opacity(0.08), radius: 24, y: 10)
             }
         }
         .navigationTitle(L10n.practice)
@@ -1559,12 +1654,12 @@ private struct LessonPracticeView: View {
 
         do {
             let coins = try await completeLessonAction()
-            alertMessage = L10n.practiceCompleted(coins)
+            completionCoins = coins
+            showCompletionPopup = true
         } catch {
             alertMessage = error.localizedDescription
+            showAlert = true
         }
-
-        showAlert = true
     }
 
     private func optionBackground(_ option: String, correctAnswer: String) -> Color {

@@ -82,6 +82,7 @@ final class HomeViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     private let client = APIClient()
+    private var remoteCoinBalance = 0
 
     private func fetchLessonsWithRetry(lang: String, attempts: Int = 3) async throws -> CategoriesResponse {
         var lastError: Error?
@@ -123,7 +124,8 @@ final class HomeViewModel: ObservableObject {
         do {
             print("[Home] fetching balance...")
             let balanceRes: BalanceResponse = try await client.request("coins/balance")
-            coinBalance = balanceRes.balance + CoinWallet.localBonus()
+            remoteCoinBalance = balanceRes.balance
+            syncDisplayedCoinBalanceWithLocalBonus()
             print("[Home] balance = \(coinBalance)")
         } catch {
             print("[Home] balance fetch failed: \(error)")
@@ -149,5 +151,9 @@ final class HomeViewModel: ObservableObject {
     /// Total subcategory count for a category (for progress display).
     func totalItems(for category: CategoryItem) -> Int {
         category.sections.reduce(0) { $0 + $1.items.count }
+    }
+
+    func syncDisplayedCoinBalanceWithLocalBonus() {
+        coinBalance = max(0, remoteCoinBalance + CoinWallet.localBonus())
     }
 }

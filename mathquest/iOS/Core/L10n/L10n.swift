@@ -105,6 +105,9 @@ enum L10n {
             "practice_pick_answer": ["it": "Scegli la risposta corretta", "en": "Choose the correct answer", "fr": "Choisissez la bonne réponse", "es": "Elige la respuesta correcta", "uz": "To'g'ri javobni tanlang"],
             "practice_finish": ["it": "Termina esercizi", "en": "Finish practice", "fr": "Terminer l'exercice", "es": "Terminar práctica", "uz": "Mashqni tugatish"],
             "practice_completed_format": ["it": "Esercizi completati. Hai guadagnato %d coin.", "en": "Practice completed. You earned %d coins.", "fr": "Exercice terminé. Vous avez gagné %d pièces.", "es": "Práctica completada. Has ganado %d monedas.", "uz": "Mashq tugadi. Siz %d tanga oldingiz."],
+            "practice_completed_title": ["it": "Hai completato la lezione!", "en": "You completed the lesson!", "fr": "Vous avez terminé la leçon !", "es": "¡Has completado la lección!", "uz": "Siz darsni tugatdingiz!"],
+            "practice_you_earned": ["it": "Hai guadagnato", "en": "You earned", "fr": "Vous avez gagné", "es": "Has ganado", "uz": "Siz oldingiz"],
+            "back": ["it": "Indietro", "en": "Back", "fr": "Retour", "es": "Volver", "uz": "Orqaga"],
             "practice_correct": ["it": "Corretto!", "en": "Correct!", "fr": "Correct !", "es": "¡Correcto!", "uz": "To'g'ri!"],
             "content_not_available": ["it": "Contenuto non disponibile", "en": "Content not available", "fr": "Contenu indisponible", "es": "Contenido no disponible", "uz": "Mazmun mavjud emas"],
             "server_retry_message": ["it": "Assicurati che il server sia avviato e riprova.", "en": "Make sure the server is running and try again.", "fr": "Vérifiez que le serveur est démarré et réessayez.", "es": "Asegúrate de que el servidor esté en ejecución e inténtalo de nuevo.", "uz": "Server ishlayotganiga ishonch hosil qiling va qayta urinib ko'ring."],
@@ -363,7 +366,10 @@ enum L10n {
     static var practicePickAnswer: String { string("practice_pick_answer") }
     static var practiceFinish: String { string("practice_finish") }
     static func practiceCompleted(_ n: Int) -> String { String(format: string("practice_completed_format"), n) }
+    static var practiceCompletedTitle: String { string("practice_completed_title") }
+    static var practiceYouEarned: String { string("practice_you_earned") }
     static var practiceCorrect: String { string("practice_correct") }
+    static var back: String { string("back") }
     static var contentNotAvailable: String { string("content_not_available") }
     static var serverRetryMessage: String { string("server_retry_message") }
     static var ok: String { string("ok") }

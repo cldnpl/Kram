@@ -172,6 +172,9 @@ struct HomeView: View {
                 .onChange(of: language) { _, _ in
                     Task { await viewModel.load() }
                 }
+                .onReceive(NotificationCenter.default.publisher(for: .coinWalletDidChange)) { _ in
+                    viewModel.syncDisplayedCoinBalanceWithLocalBonus()
+                }
             }
         }
     }

@@ -349,6 +349,27 @@ class AppLocale {
       'es': 'Práctica completada. Has ganado %d monedas.',
       'uz': 'Mashq tugadi. Siz %d tanga oldingiz.'
     },
+    'practice_completed_title': {
+      'it': 'Hai completato la lezione!',
+      'en': 'You completed the lesson!',
+      'fr': 'Vous avez terminé la leçon !',
+      'es': '¡Has completado la lección!',
+      'uz': 'Siz darsni tugatdingiz!'
+    },
+    'practice_you_earned': {
+      'it': 'Hai guadagnato',
+      'en': 'You earned',
+      'fr': 'Vous avez gagné',
+      'es': 'Has ganado',
+      'uz': 'Siz oldingiz'
+    },
+    'back': {
+      'it': 'Indietro',
+      'en': 'Back',
+      'fr': 'Retour',
+      'es': 'Volver',
+      'uz': 'Orqaga'
+    },
     'practice_correct': {
       'it': 'Corretto!',
       'en': 'Correct!',

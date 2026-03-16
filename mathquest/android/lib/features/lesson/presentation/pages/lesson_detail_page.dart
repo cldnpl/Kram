@@ -1,14 +1,17 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../../core/l10n/app_locale.dart';
 import '../../../../core/network/api_config.dart';
 import '../../../../core/network/dio_client.dart';
+import '../../../../core/wallet/coin_wallet.dart';
 
 class LessonDetailPage extends StatefulWidget {
   const LessonDetailPage({super.key, required this.lessonId});
@@ -1198,16 +1201,44 @@ String _normalizeLessonLatex(String raw) {
       .replaceAll('⇒', r'\Rightarrow')
       .replaceAll('→', r'\to')
       .replaceAll('∈', r'\in')
-      .replaceAll('∉', r'\notin');
+      .replaceAll('∉', r'\notin')
+      .replaceAll('∫', r'\int');
 
   value = value.replaceAllMapped(RegExp(r'\bpi\b'), (_) => r'\pi');
   value = value.replaceAllMapped(RegExp(r'√\s*([A-Za-z0-9\(\)\+\-]+)'),
       (match) => r'\sqrt{${match.group(1)!}}');
+  value = _replaceLessonLatexFractions(value);
+  value = value.replaceAllMapped(
+    RegExp(r'\\int_([^\s\^=]+)\^([^\s=]+)'),
+    (match) => r'\int_{' + match.group(1)! + '}^{' + match.group(2)! + '}',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'\[([^\[\]]+)\]_([^\s\^=]+)\^([^\s=]+)'),
+    (match) =>
+        r'\left[' +
+        match.group(1)! +
+        r'\right]_{' +
+        match.group(2)! +
+        '}^{' +
+        match.group(3)! +
+        '}',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'(?<!\\)\b([A-Za-z])\s*\^\s*\(([^()]+)\)'),
+    (match) => '${match.group(1)!}^{${match.group(2)!}}',
+  );
   value = value.replaceAllMapped(
     RegExp(r'(?<!\\)\b([A-Za-z])\s*\^\s*([0-9A-Za-z\+\-]+)\b'),
     (match) => '${match.group(1)!}^{${match.group(2)!}}',
   );
-  value = _replaceLessonLatexFractions(value);
+  value = value.replaceAllMapped(
+    RegExp(r'(?<!\\)\b(e)\^([A-Za-z0-9\(\)\+\-]+)'),
+    (match) => '${match.group(1)!}^{${match.group(2)!}}',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'\\([A-Za-z]+)(?=[A-Za-z])'),
+    (match) => '\\${match.group(1)!} ',
+  );
   value = value.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
 
   if (!value.contains(r'\displaystyle')) {
@@ -1219,7 +1250,7 @@ String _normalizeLessonLatex(String raw) {
 
 String _replaceLessonLatexFractions(String value) {
   final regex = RegExp(
-    r'(?<!\\)(\([^()]+\)|[A-Za-z0-9\}\]]+(?:\^\{?[A-Za-z0-9+\-]+\}?)?)\s*/\s*(\([^()]+\)|[A-Za-z0-9\{\[]+(?:\^\{?[A-Za-z0-9+\-]+\}?)?)',
+    r'(?<!\\)(\[[^\]]+\]_[A-Za-z0-9{}]+|\([^()]+\)|[A-Za-z0-9]+(?:\^\{[^}]+\}|\^[A-Za-z0-9+\-]+)?)\s*/\s*(\([^()]+\)|\{[^{}]+\}|[A-Za-z0-9]+(?:\^\{[^}]+\}|\^[A-Za-z0-9+\-]+)?)',
   );
 
   return value.replaceAllMapped(regex, (match) {
@@ -1377,6 +1408,7 @@ class _LessonImageWidget extends StatefulWidget {
 class _LessonImageWidgetState extends State<_LessonImageWidget> {
   WebViewController? _controller;
   bool _failed = false;
+  Uint8List? _imageBytes;
 
   bool get _isSvg => widget.imageName.toLowerCase().endsWith('.svg');
   bool get _usesWebView {
@@ -1391,45 +1423,108 @@ class _LessonImageWidgetState extends State<_LessonImageWidget> {
       ? kServerBaseUrl.substring(0, kServerBaseUrl.length - 1)
       : kServerBaseUrl;
 
-  String get _imageUrl =>
-      '$_base/lesson-images/${Uri.encodeComponent(widget.imageName)}';
+  List<String> get _imageUrls {
+    final encodedName = Uri.encodeComponent(widget.imageName);
+    return [
+      '$_base/lesson-images/$encodedName',
+      'https://raw.githubusercontent.com/cldnpl/Kram/main/mathquest/backend/static/imagesLessons/$encodedName',
+    ];
+  }
+
+  String get _mimeType {
+    final lower = widget.imageName.toLowerCase();
+    if (lower.endsWith('.svg')) return 'image/svg+xml';
+    if (lower.endsWith('.gif')) return 'image/gif';
+    if (lower.endsWith('.webp')) return 'image/webp';
+    if (lower.endsWith('.avif')) return 'image/avif';
+    if (lower.endsWith('.jpg') || lower.endsWith('.jpeg')) return 'image/jpeg';
+    return 'image/png';
+  }
 
   @override
   void initState() {
     super.initState();
-    if (_isSvg) {
-      _fetchAndLoadSvg();
-    } else if (_usesWebView) {
-      _controller = WebViewController()
-        ..setJavaScriptMode(JavaScriptMode.disabled)
-        ..loadRequest(Uri.parse(_imageUrl));
+    _fetchAndLoadImage();
+  }
+
+  @override
+  void didUpdateWidget(covariant _LessonImageWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.imageName != widget.imageName) {
+      _fetchAndLoadImage();
     }
   }
 
-  Future<void> _fetchAndLoadSvg() async {
+  Future<void> _fetchAndLoadImage() async {
+    setState(() {
+      _failed = false;
+      _controller = null;
+      _imageBytes = null;
+    });
+
     try {
-      final dio = Dio(BaseOptions(
-          baseUrl: _base, connectTimeout: const Duration(seconds: 10)));
-      final res = await dio.get<List<int>>(
-        'lesson-images/${Uri.encodeComponent(widget.imageName)}',
-        options: Options(responseType: ResponseType.bytes),
-      );
-      if (res.statusCode == 200 && res.data != null) {
-        final bytes = res.data!;
+      final localData =
+          await rootBundle.load('assets/images/lessons/${widget.imageName}');
+      final bytes = localData.buffer.asUint8List();
+      if (!mounted) return;
+      if (_usesWebView) {
         final base64 = base64Encode(bytes);
-        final dataUrl = 'data:image/svg+xml;charset=utf-8;base64,$base64';
-        if (!mounted) return;
+        final dataUrl = 'data:$_mimeType;base64,$base64';
         setState(() {
           _controller = WebViewController()
             ..setJavaScriptMode(JavaScriptMode.disabled)
             ..loadRequest(Uri.parse(dataUrl));
+          _imageBytes = null;
           _failed = false;
         });
       } else {
-        if (mounted) setState(() => _failed = true);
+        setState(() {
+          _imageBytes = bytes;
+          _controller = null;
+          _failed = false;
+        });
       }
-    } catch (_) {
-      if (mounted) setState(() => _failed = true);
+      return;
+    } catch (_) {}
+
+    final dio = Dio(BaseOptions(connectTimeout: const Duration(seconds: 10)));
+    for (final url in _imageUrls) {
+      try {
+        final res = await dio.get<List<int>>(
+          url,
+          options: Options(responseType: ResponseType.bytes),
+        );
+        if (res.statusCode != 200 || res.data == null || res.data!.isEmpty) {
+          continue;
+        }
+
+        final bytes = Uint8List.fromList(res.data!);
+        if (!mounted) return;
+
+        if (_usesWebView) {
+          final base64 = base64Encode(bytes);
+          final dataUrl = 'data:$_mimeType;base64,$base64';
+          setState(() {
+            _controller = WebViewController()
+              ..setJavaScriptMode(JavaScriptMode.disabled)
+              ..loadRequest(Uri.parse(dataUrl));
+            _imageBytes = null;
+            _failed = false;
+          });
+        } else {
+          setState(() {
+            _imageBytes = bytes;
+            _controller = null;
+            _failed = false;
+          });
+        }
+        return;
+      } catch (_) {
+        continue;
+      }
+    }
+    if (mounted) {
+      setState(() => _failed = true);
     }
   }
 
@@ -1457,23 +1552,20 @@ class _LessonImageWidgetState extends State<_LessonImageWidget> {
                               padding: EdgeInsets.all(24),
                               child: CircularProgressIndicator()))
                       : WebViewWidget(controller: _controller!)
-              : Image.network(
-                  _imageUrl,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, progress) {
-                    if (progress == null) return child;
-                    return const Center(
-                        child: Padding(
-                            padding: EdgeInsets.all(24),
-                            child: CircularProgressIndicator()));
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Center(
-                        child: Text(AppLocale.tr('diagram_not_available'),
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey)));
-                  },
-                ),
+              : _failed
+                  ? Center(
+                      child: Text(AppLocale.tr('diagram_not_available'),
+                          style: const TextStyle(
+                              fontSize: 12, color: Colors.grey)))
+                  : _imageBytes == null
+                      ? const Center(
+                          child: Padding(
+                              padding: EdgeInsets.all(24),
+                              child: CircularProgressIndicator()))
+                      : Image.memory(
+                          _imageBytes!,
+                          fit: BoxFit.contain,
+                        ),
         ),
       ),
     );
@@ -1715,6 +1807,12 @@ class _LessonPracticePageState extends State<_LessonPracticePage> {
 
     setState(() => _isCompleting = true);
     try {
+      if (await CoinWallet.hasRewardedLesson(widget.lessonId)) {
+        if (!mounted) return;
+        await _showPracticeCompletionDialog(0);
+        return;
+      }
+
       final response = await _dio.dio.post<Map<String, dynamic>>(
         'lessons/${widget.lessonId}/complete',
         data: {'lesson_cost': widget.lessonCost},
@@ -1722,13 +1820,10 @@ class _LessonPracticePageState extends State<_LessonPracticePage> {
       );
       final coinsEarned =
           (response.data?['coins_earned'] as num?)?.toInt() ?? 0;
+      await CoinWallet.addLocalBonus(coinsEarned);
+      await CoinWallet.markLessonRewarded(widget.lessonId);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(AppLocale.trFormat(
-                'practice_completed_format', [coinsEarned]))),
-      );
-      Navigator.of(context).pop();
+      await _showPracticeCompletionDialog(coinsEarned);
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1739,6 +1834,82 @@ class _LessonPracticePageState extends State<_LessonPracticePage> {
         setState(() => _isCompleting = false);
       }
     }
+  }
+
+  Future<void> _showPracticeCompletionDialog(int coinsEarned) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.star_border_rounded,
+                  size: 56,
+                  color: _LessonDetailPageState._lessonAccentColor,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  AppLocale.tr('practice_completed_title'),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+                if (coinsEarned > 0) ...[
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        AppLocale.tr('practice_you_earned'),
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey.shade500,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                      const SizedBox(width: 10),
+                      Image.asset(
+                        'assets/images/coin_icon.png',
+                        width: 42,
+                        height: 42,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '$coinsEarned',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey.shade600,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(AppLocale.tr('back')),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 
