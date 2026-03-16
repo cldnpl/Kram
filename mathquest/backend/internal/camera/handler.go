@@ -341,9 +341,9 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 		})
 	}
 
-	if req.ImageBase64 == "" {
+	if req.ImageBase64 == "" && req.ProblemText == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "image_base64 is required",
+			"error": "image_base64 or problem_text is required",
 		})
 	}
 
@@ -356,8 +356,17 @@ func (h *Handler) Solve(c *fiber.Ctx) error {
 	if preferredLang == "" {
 		preferredLang = "en"
 	}
-	solution, err := h.claudeSvc.SolveMathProblem(req.ImageBase64, req.MediaType)
-	if err != nil {
+
+	var (
+		solution *claude.MathSolution
+		solveErr error
+	)
+	if req.ProblemText != "" {
+		solution, solveErr = h.claudeSvc.SolveMathProblemFromText(req.ProblemText)
+	} else {
+		solution, solveErr = h.claudeSvc.SolveMathProblem(req.ImageBase64, req.MediaType)
+	}
+	if solveErr != nil {
 		remaining := unlimitedDailyLimit
 		if effectiveDailyLimit >= 0 {
 			remaining = effectiveDailyLimit - usedToday

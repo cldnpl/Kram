@@ -1,3 +1,4 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/l10n/app_locale.dart';
@@ -5,6 +6,7 @@ import '../../data/camera_models.dart';
 import '../providers/camera_provider.dart';
 import '../widgets/camera_preview.dart';
 import '../widgets/solution_panel.dart';
+import 'calculator_page.dart';
 import 'camera_history_page.dart';
 
 class CameraPage extends StatefulWidget {
@@ -16,6 +18,7 @@ class CameraPage extends StatefulWidget {
 
 class _CameraPageState extends State<CameraPage> {
   late CameraProvider _provider;
+  bool _isFlashOn = false;
 
   @override
   void initState() {
@@ -54,6 +57,20 @@ class _CameraPageState extends State<CameraPage> {
           onPressed: () => context.go('/'),
         ),
         actions: [
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                _isFlashOn ? Icons.flash_on : Icons.flash_off,
+                color: _isFlashOn ? Colors.yellow : Colors.white,
+              ),
+            ),
+            onPressed: _toggleFlash,
+          ),
           IconButton(
             icon: Container(
               padding: const EdgeInsets.all(8),
@@ -137,15 +154,39 @@ class _CameraPageState extends State<CameraPage> {
   }
 
   Widget _buildFocusFrame() {
-    return Center(
-      child: Container(
-        width: 280,
-        height: 200,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.white, width: 2),
-          borderRadius: BorderRadius.circular(16),
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = Size(constraints.maxWidth, constraints.maxHeight);
+        const focusWidth = 280.0;
+        const focusHeight = 200.0;
+        const radius = 16.0;
+        final focusRect = Rect.fromCenter(
+          center: Offset(size.width / 2, size.height / 2),
+          width: focusWidth,
+          height: focusHeight,
+        );
+
+        return Stack(
+          children: [
+            // Dark overlay with transparent cutout
+            ClipPath(
+              clipper: _InvertedRRectClipper(focusRect, radius),
+              child: Container(color: Colors.black.withOpacity(0.5)),
+            ),
+            // Focus frame border
+            Center(
+              child: Container(
+                width: focusWidth,
+                height: focusHeight,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.white, width: 2),
+                  borderRadius: BorderRadius.circular(radius),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -232,34 +273,82 @@ class _CameraPageState extends State<CameraPage> {
             ),
             const SizedBox(height: 16),
 
-            // Capture button
+            // Capture button row with calculator
             if (_provider.state == CameraState.idle)
-              GestureDetector(
-                onTap: (_provider.hasUnlimitedAccess || _provider.usesRemaining > 0) ? _provider.capture : null,
-                child: Opacity(
-                  opacity: (_provider.hasUnlimitedAccess || _provider.usesRemaining > 0) ? 1 : 0.5,
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Calculator button
+                  GestureDetector(
+                    onTap: _openCalculator,
+                    child: Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.55),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.calculate, color: Colors.white, size: 28),
                     ),
-                    child: Center(
+                  ),
+                  const SizedBox(width: 24),
+                  // Capture button
+                  GestureDetector(
+                    onTap: (_provider.hasUnlimitedAccess || _provider.usesRemaining > 0) ? _provider.capture : null,
+                    child: Opacity(
+                      opacity: (_provider.hasUnlimitedAccess || _provider.usesRemaining > 0) ? 1 : 0.5,
                       child: Container(
-                        width: 68,
-                        height: 68,
-                        decoration: const BoxDecoration(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: Colors.white,
+                          border: Border.all(color: Colors.white, width: 4),
+                        ),
+                        child: Center(
+                          child: Container(
+                            width: 68,
+                            height: 68,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(width: 24),
+                  // Spacer to balance the row
+                  const SizedBox(width: 56, height: 56),
+                ],
               ),
           ],
         ),
+      ),
+    );
+  }
+
+  Future<void> _toggleFlash() async {
+    if (_provider.cameraController == null) return;
+    try {
+      if (_isFlashOn) {
+        await _provider.cameraController!.setFlashMode(FlashMode.off);
+      } else {
+        await _provider.cameraController!.setFlashMode(FlashMode.torch);
+      }
+      setState(() {
+        _isFlashOn = !_isFlashOn;
+      });
+    } catch (e) {
+      debugPrint('Flash toggle failed: $e');
+    }
+  }
+
+  void _openCalculator() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CalculatorPage(provider: _provider),
       ),
     );
   }
@@ -274,5 +363,26 @@ class _CameraPageState extends State<CameraPage> {
         ),
       );
     }
+  }
+}
+
+class _InvertedRRectClipper extends CustomClipper<Path> {
+  final Rect rect;
+  final double radius;
+
+  _InvertedRRectClipper(this.rect, this.radius);
+
+  @override
+  Path getClip(Size size) {
+    final path = Path()
+      ..addRect(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(radius)))
+      ..fillType = PathFillType.evenOdd;
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant _InvertedRRectClipper oldClipper) {
+    return oldClipper.rect != rect || oldClipper.radius != radius;
   }
 }

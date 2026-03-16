@@ -1,235 +1,551 @@
 import SwiftUI
+import UIKit
+
+// MARK: - Theme-adaptive color scheme
+
+private struct CalcColors {
+    let isDark: Bool
+
+    var background: Color { isDark ? Color(red: 0.06, green: 0.09, blue: 0.14) : Color(red: 0.95, green: 0.95, blue: 0.97) }
+    var surface: Color { isDark ? Color(red: 0.09, green: 0.11, blue: 0.18) : .white }
+    var onSurface: Color { isDark ? .white : Color(red: 0.11, green: 0.11, blue: 0.12) }
+    var hint: Color { isDark ? .white.opacity(0.3) : Color(red: 0.78, green: 0.78, blue: 0.80) }
+    var divider: Color { isDark ? .white.opacity(0.06) : Color(red: 0.82, green: 0.82, blue: 0.84) }
+
+    var toolbarBg: Color { isDark ? Color(red: 0.10, green: 0.13, blue: 0.22) : Color(red: 0.90, green: 0.90, blue: 0.93) }
+    var toolbarFg: Color { isDark ? .white.opacity(0.7) : Color(red: 0.39, green: 0.39, blue: 0.40) }
+    var toolbarActiveBg: Color { isDark ? .white : Color(red: 0.11, green: 0.11, blue: 0.12) }
+    var toolbarActiveFg: Color { isDark ? .black : .white }
+
+    var tabSelectedBg: Color { isDark ? Color(red: 0.49, green: 0.42, blue: 0.94) : Color(red: 0.11, green: 0.11, blue: 0.12) }
+    var tabSelectedFg: Color { .white }
+    var tabBg: Color { isDark ? Color(red: 0.12, green: 0.15, blue: 0.25) : Color(red: 0.90, green: 0.90, blue: 0.93) }
+    var tabFg: Color { isDark ? .white.opacity(0.54) : Color(red: 0.39, green: 0.39, blue: 0.40) }
+    var tabBorder: Color { isDark ? .white.opacity(0.06) : Color(red: 0.82, green: 0.82, blue: 0.84) }
+
+    var digitBg: Color { isDark ? Color(red: 0.10, green: 0.13, blue: 0.22) : .white }
+    var digitFg: Color { isDark ? .white : Color(red: 0.11, green: 0.11, blue: 0.12) }
+    var funcBg: Color { isDark ? Color(red: 0.12, green: 0.15, blue: 0.25) : Color(red: 0.91, green: 0.91, blue: 0.93) }
+    var funcFg: Color { isDark ? Color(red: 0.69, green: 0.75, blue: 0.88) : Color(red: 0.24, green: 0.24, blue: 0.26) }
+    var operatorBg: Color { isDark ? Color(red: 0.16, green: 0.14, blue: 0.38) : Color(red: 0.91, green: 0.91, blue: 0.93) }
+    var operatorFg: Color { isDark ? Color(red: 0.71, green: 0.65, blue: 1.0) : Color(red: 0.0, green: 0.48, blue: 1.0) }
+    var accentBg: Color { isDark ? Color(red: 0.49, green: 0.42, blue: 0.94) : Color(red: 0.0, green: 0.48, blue: 1.0) }
+    var accentFg: Color { .white }
+
+    var popupBg: Color { isDark ? Color(red: 0.16, green: 0.20, blue: 0.31) : .white }
+    var redDot: Color { Color(red: 1.0, green: 0.23, blue: 0.19) }
+    var solveGrad1: Color { isDark ? Color(red: 0.49, green: 0.42, blue: 0.94) : Color(red: 0.0, green: 0.48, blue: 1.0) }
+    var solveGrad2: Color { isDark ? Color(red: 0.36, green: 0.29, blue: 0.81) : Color(red: 0.0, green: 0.34, blue: 0.84) }
+    var solveDisabled: Color { isDark ? Color(red: 0.10, green: 0.13, blue: 0.21) : Color(red: 0.82, green: 0.82, blue: 0.84) }
+}
+
+// MARK: - Button data
+
+private let tabLabels = ["+\u{2212}\u{00D7}\u{00F7}", "f(x) e\nlog ln", "sin cos\ntan cot", "lim dx\n\u{222B} \u{03A3} \u{221E}"]
+
+private let tab0: [[String]] = [
+    ["( )", ">", "7", "8", "9", "\u{00F7}"],
+    ["a/b", "\u{221A}", "4", "5", "6", "\u{00D7}"],
+    ["x\u{207F}", "x", "1", "2", "3", "\u{2212}"],
+    ["\u{03C0}", "%", "0", ".", "=", "+"],
+]
+
+private let tab1: [[String]] = [
+    ["|x|", "n!", "log", "log\u{2082}", "log\u{2081}\u{2080}", "ln"],
+    ["\u{230A}x\u{230B}", "\u{2308}x\u{2309}", "exp", "e\u{02E3}", "10\u{02E3}", "x\u{207B}\u{00B9}"],
+    ["nPr", "nCr", "GCD", "LCM", "mod", "\u{00B1}"],
+    ["min", "max", "sign", "\u{221E}", "i", "e"],
+]
+
+private let tab2: [[String]] = [
+    ["rad", "sin", "cos", "tan", "cot", "sec", "csc"],
+    ["\u{00B0}", "arcsin", "arccos", "arctan", "arccot", "arcsec", "arccsc"],
+    ["\u{00B0}\u{2032}", "sinh", "cosh", "tanh", "coth", "sech", "csch"],
+    ["\u{00B0}\u{2032}\u{2033}", "arsinh", "arcosh", "artanh", "arcoth", "arsech", "arcsch"],
+]
+
+private let tab3: [[String]] = [
+    ["lim", "d/dx", "\u{222B}", "dy/dx", "a\u{2099}"],
+    ["lim\u{207A}", "\u{2202}/\u{2202}x", "\u{222B}\u{222B}", "dx", "\u{03A3}"],
+    ["lim\u{207B}", "d\u{00B2}/dx\u{00B2}", "\u{222E}", "dy", "\u{220F}"],
+    ["\u{221E}", "\u{2207}", "\u{2202}", "y\u{2032}", "\u{2192}"],
+]
+
+private let abcGrid: [[String]] = [
+    ["a", "b", "c", "d", "e", "f", "g", "h"],
+    ["i", "j", "k", "l", "m", "n", "o", "p"],
+    ["q", "r", "s", "t", "u", "v", "w", "x"],
+    ["y", "z", "\u{03B1}", "\u{03B2}", "\u{03B8}", "\u{03B3}", "\u{03B4}", "\u{03C6}"],
+]
+
+private let longPressVariants: [String: [String]] = [
+    "( )": ["(", ")", "[", "]", "{", "}"],
+    ">": ["<", "\u{2265}", "\u{2264}", "\u{2260}", "\u{2248}", "\u{2261}"],
+    "\u{221A}": ["\u{221A}", "\u{00B3}\u{221A}", "\u{2074}\u{221A}", "\u{207F}\u{221A}"],
+    "x\u{207F}": ["^", "\u{00B2}", "\u{00B3}", "\u{2074}", "\u{207B}\u{00B9}"],
+    "x": ["x", "y", "z", "t", "n", "k"],
+    "\u{03C0}": ["\u{03C0}", "\u{03C4}", "\u{03C9}", "\u{03BB}", "\u{03BC}", "\u{03C3}"],
+    "%": ["%", "mod"],
+]
+
+// MARK: - Insert-text mapping
+
+private func mapInsert(_ label: String) -> String {
+    switch label {
+    case "( )": return "("
+    case "\u{00F7}": return "\u{00F7}"
+    case "\u{00D7}": return "\u{00D7}"
+    case "\u{2212}": return "-"
+    case "a/b": return "/"
+    case "x\u{207F}": return "^"
+    case "x\u{207B}\u{00B9}": return "\u{207B}\u{00B9}"
+    case "\u{00B2}", "\u{00B3}", "\u{2074}", "\u{207B}\u{00B9}": return label
+    case "\u{221A}": return "\u{221A}("
+    case "\u{00B3}\u{221A}": return "\u{00B3}\u{221A}("
+    case "\u{2074}\u{221A}": return "\u{2074}\u{221A}("
+    case "\u{207F}\u{221A}": return "\u{207F}\u{221A}("
+    case "sin", "cos", "tan", "cot", "sec", "csc",
+         "arcsin", "arccos", "arctan", "arccot", "arcsec", "arccsc",
+         "sinh", "cosh", "tanh", "coth", "sech", "csch",
+         "arsinh", "arcosh", "artanh", "arcoth", "arsech", "arcsch",
+         "log", "ln", "exp", "GCD", "LCM", "min", "max", "sign", "nPr", "nCr":
+        return "\(label)("
+    case "log\u{2082}": return "log\u{2082}("
+    case "log\u{2081}\u{2080}": return "log\u{2081}\u{2080}("
+    case "e\u{02E3}": return "e^("
+    case "10\u{02E3}": return "10^("
+    case "n!": return "!"
+    case "|x|": return "|"
+    case "\u{230A}x\u{230B}": return "\u{230A}"
+    case "\u{2308}x\u{2309}": return "\u{2308}"
+    case "mod": return " mod "
+    case "\u{00B1}": return "\u{00B1}"
+    case "lim": return "lim("
+    case "lim\u{207A}": return "lim\u{207A}("
+    case "lim\u{207B}": return "lim\u{207B}("
+    case "d/dx": return "d/dx("
+    case "\u{2202}/\u{2202}x": return "\u{2202}/\u{2202}x("
+    case "d\u{00B2}/dx\u{00B2}": return "d\u{00B2}/dx\u{00B2}("
+    case "\u{222B}": return "\u{222B}("
+    case "\u{222B}\u{222B}": return "\u{222B}\u{222B}("
+    case "\u{222E}": return "\u{222E}("
+    case "\u{03A3}": return "\u{03A3}("
+    case "\u{220F}": return "\u{220F}("
+    case "a\u{2099}": return "a\u{2099}"
+    case "dy/dx": return "dy/dx"
+    case "y\u{2032}": return "y'"
+    case "\u{2207}": return "\u{2207}"
+    case "\u{2202}": return "\u{2202}"
+    case "rad": return "rad"
+    case "\u{00B0}": return "\u{00B0}"
+    case "\u{00B0}\u{2032}": return "\u{00B0}\u{2032}"
+    case "\u{00B0}\u{2032}\u{2033}": return "\u{00B0}\u{2032}\u{2033}"
+    default: return label
+    }
+}
+
+// MARK: - Main View
 
 struct ScientificCalculatorView: View {
     @ObservedObject var viewModel: CameraViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+
     @State private var expression = ""
+    @State private var cursorPos = 0
     @State private var isSolving = false
     @State private var errorMessage: String?
-    @State private var funcPage = 0 // 0=Basic, 1=Adv, 2=Sym
+    @State private var selectedTab = 0
+    @State private var abcMode = false
+    @State private var showingLongPress = false
+    @State private var longPressLabel = ""
+    @State private var longPressAnchor = CGPoint.zero
 
-    private let appPurple = Color(red: 0.42, green: 0.36, blue: 0.91)
-    private let pageTitles = ["Basic", "Adv", "Sym"]
+    // Undo stack: each entry is (expression, cursorPos) before an edit
+    @State private var undoStack: [(String, Int)] = []
 
-    // MARK: - Button data
-
-    private let funcPages: [[[CalcBtn]]] = [
-        // Page 0 – Basic
-        [
-            [.fn("sin"), .fn("cos"), .fn("tan"), .op("("), .op(")")],
-            [.fn("log"), .fn("ln"), .fn("\u{221A}"), .op("^"), .fn("n!")],
-            [.op("\u{03C0}"), .op("e"), .fn("x\u{00B2}"), .fn("x\u{00B3}"), .fn("|x|")],
-        ],
-        // Page 1 – Advanced
-        [
-            [.fn("sin\u{207B}\u{00B9}"), .fn("cos\u{207B}\u{00B9}"), .fn("tan\u{207B}\u{00B9}"), .op("("), .op(")")],
-            [.fn("sinh"), .fn("cosh"), .fn("tanh"), .fn("log\u{2082}"), .fn("10\u{02E3}")],
-            [.fn("e\u{02E3}"), .fn("x\u{207B}\u{00B9}"), .fn("\u{00B3}\u{221A}"), .fn("\u{207F}\u{221A}"), .op("%")],
-        ],
-        // Page 2 – Symbols
-        [
-            [.op("\u{222B}"), .op("\u{03A3}"), .fn("lim"), .fn("d/dx"), .op("\u{2202}")],
-            [.op("\u{221E}"), .op("\u{2264}"), .op("\u{2265}"), .op("\u{2260}"), .op("\u{2248}")],
-            [.op("\u{00B1}"), .op("\u{00B0}"), .op("mod"), .op("\u{2192}"), .op("=")],
-        ],
-    ]
-
-    private let digitRows: [[CalcBtn]] = [
-        [.digit("7"), .digit("8"), .digit("9"), .op("\u{00F7}"), .backspace],
-        [.digit("4"), .digit("5"), .digit("6"), .op("\u{00D7}"), .clear],
-        [.digit("1"), .digit("2"), .digit("3"), .op("-"), .parens],
-        [.digit("0"), .op("."), .op(","), .op("+"), .op("=")],
-    ]
-
-    // MARK: - Body
+    private var colors: CalcColors { CalcColors(isDark: colorScheme == .dark) }
 
     var body: some View {
         NavigationStack {
-            GeometryReader { proxy in
-                let compact = proxy.size.height < 760 || proxy.size.width < 370
-                calcContent(compact: compact)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                    .background(Color(red: 0.04, green: 0.07, blue: 0.13))
-                    .navigationTitle("Scientific Calculator")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button("Close") { dismiss() }
-                        }
-                    }
-                    .onChange(of: viewModel.state) { _, newState in
-                        guard case .success = newState else { return }
-                        isSolving = false
-                        dismiss()
-                    }
+            VStack(spacing: 0) {
+                expressionArea
+                statusArea
+                toolbar
+                    .padding(.top, 4)
+                if !abcMode {
+                    categoryTabs
+                        .padding(.top, 6)
+                }
+                buttonGrid
+                    .padding(.top, 6)
+                solveButton
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(colors.background)
+            .navigationTitle("Calculator")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button { dismiss() } label: {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .semibold))
+                    }
+                }
+            }
+            .toolbarColorScheme(colorScheme == .dark ? .dark : .light, for: .navigationBar)
+            .onChange(of: viewModel.state) { _, newState in
+                guard case .success = newState else { return }
+                isSolving = false
+                dismiss()
+            }
+            .overlay { if showingLongPress { longPressOverlay } }
         }
     }
 
-    // MARK: - Calculator content
+    // MARK: - Expression area
 
-    private func calcContent(compact: Bool) -> some View {
-        VStack(spacing: 0) {
-            expressionDisplay(compact: compact)
-            statusArea(compact: compact)
-            pageSelector(compact: compact)
-            funcButtonGrid(compact: compact)
-            Spacer().frame(height: compact ? 1 : 2)
-            digitButtonGrid(compact: compact)
-            solveButton(compact: compact)
-        }
-    }
-
-    // MARK: - Sub-views
-
-    private func expressionDisplay(compact: Bool) -> some View {
-        VStack(alignment: .trailing) {
-            Spacer()
+    private var expressionArea: some View {
+        VStack(alignment: .trailing, spacing: 0) {
+            Spacer(minLength: 0)
             ScrollView(.horizontal, showsIndicators: false) {
-                Text(expression.isEmpty ? "0" : expression)
-                    .font(.system(size: compact ? 26 : 30, weight: .light, design: .monospaced))
-                    .foregroundColor(expression.isEmpty ? .gray : .white)
+                Text(expression.isEmpty ? "Type a math problem..." : expression)
+                    .font(.system(size: 24, weight: .light))
+                    .foregroundColor(expression.isEmpty ? colors.hint : colors.onSurface)
+                    .lineLimit(nil)
                     .frame(maxWidth: .infinity, alignment: .trailing)
             }
             .defaultScrollAnchor(.trailing)
         }
-        .padding(.horizontal, compact ? 12 : 16)
-        .frame(height: compact ? 70 : 80)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
+        .frame(minHeight: 80)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(colors.surface)
+                .overlay(RoundedRectangle(cornerRadius: 16).stroke(colors.divider, lineWidth: 0.5))
+        )
+        .padding(.horizontal, 16)
+        .padding(.vertical, 4)
     }
 
-    private func statusArea(compact: Bool) -> some View {
-        VStack(spacing: compact ? 3 : 4) {
+    // MARK: - Status
+
+    private var statusArea: some View {
+        VStack(spacing: 4) {
             if isSolving {
-                ProgressView().tint(.white).scaleEffect(0.8)
+                ProgressView().tint(colors.accentBg).scaleEffect(0.8)
+                    .padding(.bottom, 6)
             }
             if let errorMessage {
                 Text(errorMessage)
                     .font(.caption)
                     .foregroundColor(.red)
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 24)
+                    .padding(.bottom, 4)
             }
         }
-        .frame(minHeight: isSolving || errorMessage != nil ? (compact ? 20 : 24) : 0)
     }
 
-    private func pageSelector(compact: Bool) -> some View {
-        HStack(spacing: compact ? 4 : 6) {
-            ForEach(0..<pageTitles.count, id: \.self) { i in
+    // MARK: - Toolbar
+
+    private var toolbar: some View {
+        HStack(spacing: 0) {
+            // ABC toggle
+            Button {
+                withAnimation(.easeInOut(duration: 0.15)) { abcMode.toggle() }
+                haptic(.light)
+            } label: {
+                Text("abc")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(abcMode ? colors.toolbarActiveFg : colors.toolbarFg)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 36)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(abcMode ? colors.toolbarActiveBg : .clear)
+                    )
+            }
+            .buttonStyle(.plain)
+
+            toolbarButton(icon: "clock.arrow.circlepath") { undo(); haptic(.light) }
+            toolbarButton(icon: "arrow.left") { cursorLeft(); haptic(.light) }
+            toolbarButton(icon: "arrow.right") { cursorRight(); haptic(.light) }
+            toolbarButton(icon: "return", tint: colors.accentBg) { solve() }
+            toolbarButton(icon: "delete.backward") { backspace(); haptic(.light) }
+        }
+        .padding(.horizontal, 4)
+        .padding(.vertical, 2)
+        .background(RoundedRectangle(cornerRadius: 12).fill(colors.toolbarBg))
+        .padding(.horizontal, 12)
+    }
+
+    private func toolbarButton(icon: String, tint: Color? = nil, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(tint ?? colors.toolbarFg)
+                .frame(maxWidth: .infinity)
+                .frame(height: 40)
+        }
+        .buttonStyle(.plain)
+    }
+
+    // MARK: - Category tabs
+
+    private var categoryTabs: some View {
+        HStack(spacing: 6) {
+            ForEach(0..<4, id: \.self) { i in
+                let sel = selectedTab == i
                 Button {
-                    withAnimation(.easeInOut(duration: 0.15)) { funcPage = i }
+                    withAnimation(.easeInOut(duration: 0.15)) { selectedTab = i }
+                    haptic(.light)
                 } label: {
-                    Text(pageTitles[i])
-                        .font(.system(size: compact ? 12 : 13, weight: funcPage == i ? .semibold : .regular))
-                        .foregroundColor(.white)
+                    Text(tabLabels[i])
+                        .font(.system(size: 11, weight: sel ? .bold : .medium))
+                        .foregroundColor(sel ? colors.tabSelectedFg : colors.tabFg)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, compact ? 6 : 7)
+                        .frame(height: 42)
                         .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(funcPage == i ? appPurple : Color(red: 0.1, green: 0.14, blue: 0.22))
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(sel ? colors.tabSelectedBg : colors.tabBg)
+                        )
+                        .overlay(
+                            sel ? nil : RoundedRectangle(cornerRadius: 10)
+                                .stroke(colors.tabBorder, lineWidth: 0.5)
                         )
                 }
                 .buttonStyle(.plain)
             }
         }
-        .padding(.horizontal, compact ? 6 : 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, 12)
     }
 
-    private func funcButtonGrid(compact: Bool) -> some View {
-        VStack(spacing: compact ? 3 : 4) {
-            ForEach(Array(funcPages[funcPage].enumerated()), id: \.offset) { _, row in
-                buttonRow(row, isFunc: true, compact: compact)
+    // MARK: - Button grid
+
+    @ViewBuilder
+    private var buttonGrid: some View {
+        if abcMode {
+            standardGrid(abcGrid, type: .digit)
+        } else {
+            switch selectedTab {
+            case 0: standardGrid(tab0, tabIndex: 0)
+            case 1: standardGrid(tab1, type: .func)
+            case 2: trigGrid
+            case 3: standardGrid(tab3, type: .func)
+            default: EmptyView()
             }
         }
-        .padding(.horizontal, compact ? 4 : 6)
     }
 
-    private func digitButtonGrid(compact: Bool) -> some View {
-        VStack(spacing: compact ? 3 : 4) {
-            ForEach(Array(digitRows.enumerated()), id: \.offset) { _, row in
-                buttonRow(row, isFunc: false, compact: compact)
-            }
-        }
-        .padding(.horizontal, compact ? 4 : 6)
-    }
-
-    private func buttonRow(_ buttons: [CalcBtn], isFunc: Bool, compact: Bool) -> some View {
-        HStack(spacing: compact ? 3 : 4) {
-            ForEach(buttons, id: \.id) { btn in
-                CalcBtnView(button: btn, isFunc: isFunc, compact: compact, appPurple: appPurple) {
-                    handleTap(btn)
+    private func standardGrid(_ rows: [[String]], type: BtnType? = nil, tabIndex: Int = -1) -> some View {
+        VStack(spacing: 6) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                HStack(spacing: 6) {
+                    ForEach(row, id: \.self) { label in
+                        let t = type ?? btnType(label, tab: tabIndex)
+                        gridButton(label: label, type: t)
+                    }
                 }
             }
         }
+        .padding(.horizontal, 8)
     }
 
-    private func solveButton(compact: Bool) -> some View {
-        Button { solve() } label: {
-            HStack(spacing: compact ? 6 : 8) {
+    private var trigGrid: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            VStack(spacing: 6) {
+                ForEach(Array(tab2.enumerated()), id: \.offset) { _, row in
+                    HStack(spacing: 6) {
+                        ForEach(row, id: \.self) { label in
+                            gridButton(label: label, type: .func)
+                                .frame(width: 78)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 8)
+        }
+        .padding(.top, 4)
+        .frame(height: CGFloat(tab2.count) * 50 + 4)
+    }
+
+    private func gridButton(label: String, type: BtnType) -> some View {
+        let hasLP = longPressVariants[label] != nil
+        return GeometryReader { geo in
+            Button {
+                handleTap(label)
+            } label: {
+                ZStack {
+                    Text(label)
+                        .font(.system(size: fontSize(label: label, type: type), weight: .medium))
+                        .foregroundColor(fgColor(type))
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.65)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(RoundedRectangle(cornerRadius: 10).fill(bgColor(type)))
+
+                    if hasLP {
+                        VStack {
+                            Spacer()
+                            HStack {
+                                Circle()
+                                    .fill(colors.redDot)
+                                    .frame(width: 5, height: 5)
+                                    .padding(.leading, 5)
+                                    .padding(.bottom, 5)
+                                Spacer()
+                            }
+                        }
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+            .frame(height: 48)
+            .simultaneousGesture(
+                LongPressGesture(minimumDuration: 0.4)
+                    .onEnded { _ in
+                        guard hasLP else { return }
+                        let pos = geo.frame(in: .global)
+                        longPressLabel = label
+                        longPressAnchor = CGPoint(x: pos.midX, y: pos.minY)
+                        showingLongPress = true
+                        haptic(.medium)
+                    }
+            )
+        }
+        .frame(height: 48)
+    }
+
+    // MARK: - Solve button
+
+    private var solveButton: some View {
+        let enabled = !expression.trimmingCharacters(in: .whitespaces).isEmpty && !isSolving
+        return Button { solve() } label: {
+            HStack(spacing: 8) {
                 if isSolving { ProgressView().tint(.white).scaleEffect(0.8) }
                 Text("Solve").font(.body.weight(.semibold))
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, compact ? 11 : 13)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 14)
+                    .fill(
+                        enabled
+                            ? LinearGradient(colors: [colors.solveGrad1, colors.solveGrad2], startPoint: .topLeading, endPoint: .bottomTrailing)
+                            : LinearGradient(colors: [colors.solveDisabled], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    )
+            )
+            .foregroundColor(enabled ? .white : colors.hint)
         }
-        .buttonStyle(.borderedProminent)
-        .tint(appPurple)
-        .clipShape(RoundedRectangle(cornerRadius: compact ? 12 : 14))
-        .disabled(expression.trimmingCharacters(in: .whitespaces).isEmpty || isSolving)
-        .padding(.horizontal, compact ? 10 : 12)
-        .padding(.top, compact ? 4 : 6)
-        .padding(.bottom, compact ? 14 : 20)
+        .disabled(!enabled)
+        .padding(.horizontal, 16)
+        .padding(.top, 8)
+        .padding(.bottom, 12)
+    }
+
+    // MARK: - Long-press overlay
+
+    @ViewBuilder
+    private var longPressOverlay: some View {
+        let variants = longPressVariants[longPressLabel] ?? []
+        let popupWidth = CGFloat(variants.count) * 50 + 8
+        let screenWidth = UIScreen.main.bounds.width
+        let clampedX = min(max(longPressAnchor.x - popupWidth / 2, 8), screenWidth - popupWidth - 8)
+
+        ZStack {
+            Color.black.opacity(0.1)
+                .ignoresSafeArea()
+                .onTapGesture { showingLongPress = false }
+
+            VStack(spacing: 0) {
+                HStack(spacing: 2) {
+                    ForEach(variants, id: \.self) { v in
+                        Button {
+                            showingLongPress = false
+                            handleTap(v)
+                        } label: {
+                            Text(v)
+                                .font(.system(size: 17, weight: .medium))
+                                .foregroundColor(colors.onSurface)
+                                .frame(width: 48, height: 44)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(4)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(colors.popupBg)
+                        .shadow(color: .black.opacity(0.2), radius: 12, y: 4)
+                )
+            }
+            .position(x: clampedX + popupWidth / 2, y: longPressAnchor.y - 32)
+        }
     }
 
     // MARK: - Input handling
 
-    private func handleTap(_ btn: CalcBtn) {
-        switch btn {
-        case .clear:
-            expression = ""
-            errorMessage = nil
-        case .backspace:
-            if !expression.isEmpty { expression.removeLast() }
-        case .parens:
-            let opens = expression.filter { $0 == "(" }.count
-            let closes = expression.filter { $0 == ")" }.count
-            expression += opens > closes ? ")" : "("
-        case .fn(let name):
-            expression += mapFunction(name)
-        case .op(let op):
-            if op == "=" { solve() } else { expression += op }
-        case .digit(let d):
-            expression += d
+    private func handleTap(_ label: String) {
+        haptic(.light)
+        if label == "( )" {
+            insertParens()
+        } else if label == "=" {
+            solve()
+        } else {
+            insert(mapInsert(label))
         }
     }
 
-    private func mapFunction(_ name: String) -> String {
-        switch name {
-        case "sin", "cos", "tan", "sinh", "cosh", "tanh", "log", "ln":
-            return "\(name)("
-        case "sin\u{207B}\u{00B9}": return "arcsin("
-        case "cos\u{207B}\u{00B9}": return "arccos("
-        case "tan\u{207B}\u{00B9}": return "arctan("
-        case "log\u{2082}": return "log\u{2082}("
-        case "10\u{02E3}": return "10^("
-        case "e\u{02E3}": return "e^("
-        case "x\u{207B}\u{00B9}": return "\u{207B}\u{00B9}"
-        case "\u{221A}": return "\u{221A}("
-        case "\u{00B3}\u{221A}": return "\u{00B3}\u{221A}("
-        case "\u{207F}\u{221A}": return "\u{207F}\u{221A}("
-        case "x\u{00B2}": return "\u{00B2}"
-        case "x\u{00B3}": return "\u{00B3}"
-        case "n!": return "!"
-        case "|x|": return "|"
-        case "d/dx": return "d/dx("
-        case "lim": return "lim("
-        default: return name
-        }
+    private func pushUndo() {
+        undoStack.append((expression, cursorPos))
+        if undoStack.count > 100 { undoStack.removeFirst() }
+    }
+
+    private func undo() {
+        guard let (prevExpr, prevPos) = undoStack.popLast() else { return }
+        expression = prevExpr
+        cursorPos = min(prevPos, prevExpr.count)
+    }
+
+    private func insert(_ text: String) {
+        pushUndo()
+        let pos = min(cursorPos, expression.count)
+        let idx = expression.index(expression.startIndex, offsetBy: pos)
+        expression.insert(contentsOf: text, at: idx)
+        cursorPos = pos + text.count
+    }
+
+    private func backspace() {
+        pushUndo()
+        let pos = min(cursorPos, expression.count)
+        guard pos > 0 else { return }
+        let idx = expression.index(expression.startIndex, offsetBy: pos - 1)
+        expression.remove(at: idx)
+        cursorPos = pos - 1
+    }
+
+    private func cursorLeft() {
+        if cursorPos > 0 { cursorPos -= 1 }
+    }
+
+    private func cursorRight() {
+        if cursorPos < expression.count { cursorPos += 1 }
+    }
+
+    private func insertParens() {
+        let opens = expression.filter { $0 == "(" }.count
+        let closes = expression.filter { $0 == ")" }.count
+        insert(opens > closes ? ")" : "(")
     }
 
     private func solve() {
         let trimmed = expression.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty, !isSolving else { return }
+        haptic(.medium)
         isSolving = true
         errorMessage = nil
         Task {
@@ -242,99 +558,49 @@ struct ScientificCalculatorView: View {
             }
         }
     }
+
+    // MARK: - Helpers
+
+    private func btnType(_ label: String, tab: Int) -> BtnType {
+        if label.count == 1, label.first?.isNumber == true || label == "." { return .digit }
+        if tab == 0 && ["+", "\u{2212}", "\u{00D7}", "\u{00F7}"].contains(label) { return .operator_ }
+        if label == "=" { return .accent }
+        return .func
+    }
+
+    private func bgColor(_ type: BtnType) -> Color {
+        switch type {
+        case .digit: return colors.digitBg
+        case .operator_: return colors.operatorBg
+        case .func: return colors.funcBg
+        case .accent: return colors.accentBg
+        }
+    }
+
+    private func fgColor(_ type: BtnType) -> Color {
+        switch type {
+        case .digit: return colors.digitFg
+        case .operator_: return colors.operatorFg
+        case .func: return colors.funcFg
+        case .accent: return colors.accentFg
+        }
+    }
+
+    private func fontSize(label: String, type: BtnType) -> CGFloat {
+        switch type {
+        case .digit, .operator_, .accent: return 22
+        case .func: return label.count > 5 ? 12 : 15
+        }
+    }
+
+    private func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        UIImpactFeedbackGenerator(style: style).impactOccurred()
+    }
+
 }
 
-// MARK: - Button model
+// MARK: - Button type
 
-private enum CalcBtn: Identifiable {
-    case digit(String)
-    case op(String)
-    case fn(String)
-    case clear
-    case backspace
-    case parens
-
-    var id: String {
-        switch self {
-        case .digit(let d): return "d_\(d)"
-        case .op(let o): return "o_\(o)"
-        case .fn(let f): return "f_\(f)"
-        case .clear: return "clear"
-        case .backspace: return "backspace"
-        case .parens: return "parens"
-        }
-    }
-
-    var label: String {
-        switch self {
-        case .digit(let d): return d
-        case .op(let o): return o
-        case .fn(let f): return f
-        case .clear: return "AC"
-        case .backspace: return "\u{232B}"
-        case .parens: return "( )"
-        }
-    }
-
-    var isOperator: Bool {
-        if case .op = self { return true }
-        return false
-    }
-
-    var isDeleteAction: Bool {
-        switch self {
-        case .clear, .backspace: return true
-        default: return false
-        }
-    }
-}
-
-// MARK: - Button view
-
-private struct CalcBtnView: View {
-    let button: CalcBtn
-    let isFunc: Bool
-    let compact: Bool
-    let appPurple: Color
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(button.label)
-                .font(.system(size: fontSize, weight: .medium))
-                .foregroundColor(fgColor)
-                .lineLimit(1)
-                .minimumScaleFactor(0.72)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(bgColor)
-                .clipShape(RoundedRectangle(cornerRadius: compact ? 8 : 10))
-        }
-        .buttonStyle(.plain)
-        .frame(height: compact ? 36 : 42)
-    }
-
-    private var fontSize: CGFloat {
-        let scale: CGFloat = compact ? 0.9 : 1
-        if button.isDeleteAction { return 14 * scale }
-        if isFunc { return 13 * scale }
-        return 18 * scale
-    }
-
-    private var bgColor: Color {
-        if button.isDeleteAction {
-            return Color(red: 0.18, green: 0.12, blue: 0.12)
-        }
-        if button.label == "=" || (!isFunc && button.isOperator && ![".", ",", "%"].contains(button.label)) {
-            return appPurple
-        }
-        if isFunc {
-            return Color(red: 0.1, green: 0.14, blue: 0.22)
-        }
-        return Color(red: 0.08, green: 0.12, blue: 0.21)
-    }
-
-    private var fgColor: Color {
-        if button.isDeleteAction { return Color.red.opacity(0.85) }
-        return .white
-    }
+private enum BtnType {
+    case digit, operator_, `func`, accent
 }

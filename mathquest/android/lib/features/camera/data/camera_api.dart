@@ -41,6 +41,18 @@ class CameraApi {
     return SolveResponse.fromJson(response.data);
   }
 
+  Future<SolveResponse> solveText(String problemText) async {
+    final opts = await _cameraOptions();
+    final response = await _client.dio.post(
+      'camera/solve',
+      data: {
+        'problem_text': problemText,
+      },
+      options: opts,
+    );
+    return SolveResponse.fromJson(response.data);
+  }
+
   Future<List<HistoryItem>> getHistory() async {
     final opts = await _cameraOptions();
     final response = await _client.dio.get(

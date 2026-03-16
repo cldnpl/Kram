@@ -120,6 +120,21 @@ final class CameraService: NSObject, ObservableObject {
         }
     }
 
+    func toggleTorch(_ on: Bool) {
+        guard let device = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back),
+              device.hasTorch else {
+            return
+        }
+
+        do {
+            try device.lockForConfiguration()
+            device.torchMode = on ? .on : .off
+            device.unlockForConfiguration()
+        } catch {
+            print("Failed to toggle torch: \(error)")
+        }
+    }
+
     func stopSession() {
         if let continuation = photoContinuation {
             continuation.resume(throwing: CameraError.sessionStopped)

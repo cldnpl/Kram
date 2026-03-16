@@ -122,6 +122,38 @@ class CameraProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> solveFromText(String problemText) async {
+    if (!hasUnlimitedAccess && _usesRemaining <= 0) {
+      _state = CameraState.error;
+      _errorMessage = 'Daily limit reached. Come back tomorrow!';
+      notifyListeners();
+      return;
+    }
+
+    try {
+      _state = CameraState.processing;
+      notifyListeners();
+
+      final response = await _api.solveText(problemText);
+
+      _solution = response;
+      if (response.usesRemainingToday < 0) {
+        _dailyLimit = -1;
+        _usesRemaining = -1;
+      } else {
+        _usesRemaining = response.usesRemainingToday;
+      }
+      _state = CameraState.success;
+      notifyListeners();
+
+      await _animateSteps(response.steps.length);
+    } catch (e) {
+      _state = CameraState.error;
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
+  }
+
   Future<void> _animateSteps(int count) async {
     _visibleSteps = {};
     notifyListeners();

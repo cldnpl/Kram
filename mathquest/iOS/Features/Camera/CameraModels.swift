@@ -88,6 +88,14 @@ struct SolveRequest: Encodable {
     }
 }
 
+struct SolveTextRequest: Encodable {
+    let problemText: String
+
+    enum CodingKeys: String, CodingKey {
+        case problemText = "problem_text"
+    }
+}
+
 struct TranslateSolutionRequest: Encodable {
     let problem: String
     let solution: String

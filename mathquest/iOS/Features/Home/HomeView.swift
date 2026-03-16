@@ -294,11 +294,7 @@ struct CategorySubtopicsView: View {
     }
 
     private func handleLessonTap(_ lesson: LessonItem) {
-        if isLoggedIn {
-            selectedLesson = lesson
-        } else {
-            showLoginPrompt = true
-        }
+        selectedLesson = lesson
     }
 }
 

@@ -272,6 +272,89 @@ func (s *Service) SolveMathProblem(imageBase64, mediaType string) (*MathSolution
 	return solution, nil
 }
 
+const solveMathFromTextPrompt = `You are a careful math tutor helping students solve problems step by step.
+
+Analyze the following math problem and provide a complete solution.
+
+Rules you MUST follow:
+- Use ONLY Italian language in all prose fields ("solution" and explanations). English tokens are forbidden in prose.
+- Do not invent missing numbers, symbols, or words.
+- Keep reasoning efficient: do not repeat already completed transformations and avoid redundant recalculations.
+- If the full derivation is very long, provide a concise but complete sequence of essential steps to avoid timeout.
+- If you cannot compute a required determinant with certainty (especially 4x4), set "solution" to exactly "Errore di Capacità" and do not invent numeric results.
+- If the input defines a function (for example f(x)=...), start "solution" with a compact graph-style summary in Italian: Cartesian axes behavior, intercepts, and curve trend.
+- Keep "problem" as the exact transcription of the input text.
+- Set "detected_language" to one of: en, it, fr, es, uz, unknown.
+- Set "should_save_to_history" to true.
+- Each item in "steps" MUST use this exact format: "LATEX_STEP || DETAILED_EXPLANATION".
+- In each step:
+  - The part before "||" MUST contain only mathematical content in LaTeX (no prose words, no plain-language commentary).
+  - The LaTeX part MUST be wrapped in double dollars and start with \displaystyle, for example: $$\displaystyle \frac{1}{2}x=3$$
+  - Every mathematical expression must be pure LaTeX display style only; no orphan symbols, no broken fragments, no loose commas/numbers.
+  - Use professional LaTeX only. Never use linear notation like a/b or integral(f(x)); use \frac{a}{b}, \int, \sin^n(x), greek symbols, etc.
+  - In step LaTeX, never use "/" for fractions; always use \frac{...}{...}.
+  - If matrices/determinants are used, render with proper environments such as \begin{cases}...\end{cases} and \begin{vmatrix}...\end{vmatrix}.
+  - Keep the full equation or transformation centered-ready and complete.
+  - If the expression is long, structure LaTeX using multiline formatting (for example \begin{aligned} line_1 \\ line_2 \end{aligned}).
+- The part after "||" MUST be a complete, detailed explanation in Italian.
+- The explanation language must be fully Italian; do not mix English words.
+  - Inside the explanation, write only literal logical reasoning in prose.
+  - Do not place equations or LaTeX formulas inside the explanation text.
+  - Explanations must clearly state what transformation/property/rule is used and why it is valid.
+  - Explanation quality: at least 2 complete sentences per step, not short phrases.
+  - Structure explanations into short paragraphs (2-3 lines each) separated by a blank line ("\n\n") inside the same step string.
+  - For each step explanation, explicitly include these three labels in this exact order: **Titolo Step**, **Logica**, **Proprietà**.
+
+IMPORTANT: Respond ONLY with valid JSON in this exact format (no markdown, no code blocks):
+{
+  "problem": "exact text of the problem",
+  "solution": "final answer",
+  "steps": ["$$\\displaystyle <latex step 1>$$ || <detailed explanation 1>", "$$\\displaystyle <latex step 2>$$ || <detailed explanation 2>"],
+  "raw_latex": "the problem and solution in LaTeX format",
+  "difficulty_level": "elementary|middle_school|high_school|college",
+  "detected_language": "en|it|fr|es|uz|unknown",
+  "should_save_to_history": true
+}
+
+Here is the math problem to solve:
+`
+
+func (s *Service) SolveMathProblemFromText(problemText string) (*MathSolution, error) {
+	if s.apiKey == "" {
+		return nil, fmt.Errorf("Claude API key not configured")
+	}
+
+	reqBody := ClaudeRequest{
+		Model:     claudeModel,
+		MaxTokens: 1536,
+		Messages: []Message{
+			{
+				Role: "user",
+				Content: []ContentBlock{
+					{
+						Type: "text",
+						Text: solveMathFromTextPrompt + problemText,
+					},
+				},
+			},
+		},
+	}
+
+	responseText, err := s.runJSONRequest(reqBody)
+	if err != nil {
+		return nil, fmt.Errorf("Claude API call failed: %w", err)
+	}
+
+	solution, err := parseSolutionFromText(responseText)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse solution: %w", err)
+	}
+
+	normalizeSolutionPayload(solution)
+
+	return solution, nil
+}
+
 func (s *Service) TranslateMathSolution(solution *MathSolution, targetLanguage string) (*MathSolution, error) {
 	if s.apiKey == "" {
 		return nil, fmt.Errorf("Claude API key not configured")

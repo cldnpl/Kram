@@ -230,6 +230,37 @@ final class CameraViewModel: ObservableObject {
         )
     }
 
+    func solveFromText(_ problemText: String) async {
+        guard canStartSolve() else {
+            return
+        }
+
+        state = .processing
+
+        do {
+            let request = SolveTextRequest(problemText: problemText)
+            let body = try JSONEncoder().encode(request)
+            await syncClientToken()
+            let response: SolveResponse = try await client.request("camera/solve", method: "POST", body: body)
+
+            persistSolvedHistory(response)
+            state = .success(response)
+            if isGuest {
+                recordGuestUse()
+            } else if response.usesRemainingToday < 0 {
+                usesRemaining = Self.unlimitedValue
+                dailyLimit = Self.unlimitedValue
+            } else {
+                usesRemaining = response.usesRemainingToday
+            }
+            Task {
+                await fetchHistory()
+            }
+        } catch {
+            state = .error(error.localizedDescription)
+        }
+    }
+
     func translateSolution(_ response: SolveResponse, to targetLanguage: String) async throws -> SolveResponse {
         await syncClientToken()
         let request = TranslateSolutionRequest(

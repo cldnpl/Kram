@@ -77,26 +77,7 @@ class _CategorySubtopicsPageState extends State<CategorySubtopicsPage> {
     }
   }
 
-  Future<void> _handleLessonTap(String lessonId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final hasSession = prefs.getBool(_sessionLoggedInKey) ?? false;
-    final isAuthenticated = FirebaseAuth.instance.currentUser != null || hasSession;
-    if (isAuthenticated) {
-      if (!mounted) return;
-      context.push('/lesson/$lessonId');
-      return;
-    }
-
-    final openedCount = prefs.getInt(_guestLessonsOpenedCountKey) ?? 0;
-
-    if (openedCount >= 1) {
-      if (!mounted) return;
-      _showLoginRequiredDialog();
-      return;
-    }
-
-    await prefs.setInt(_guestLessonsOpenedCountKey, openedCount + 1);
-    if (!mounted) return;
+  void _handleLessonTap(String lessonId) {
     context.push('/lesson/$lessonId');
   }
 

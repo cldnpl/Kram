@@ -26,20 +26,178 @@ struct CameraView: View {
     @State private var reviewSolveId: Int = 0
     @State private var pendingLanguageChoice: PendingSolutionLanguageChoice?
     @State private var isPreparingLocalizedSolution = false
+    @State private var isFlashOn = false
+    @State private var showCalculator = false
     @EnvironmentObject private var authManager: AuthManager
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
+        cameraContentWithSheets
+            .fullScreenCover(isPresented: $showGalleryCropper) {
+                if let selectedGalleryImage {
+                    GalleryCropSheet(
+                        image: selectedGalleryImage,
+                        onCancel: {
+                            showGalleryCropper = false
+                            self.selectedGalleryImage = nil
+                        },
+                        onUseCrop: { croppedImage in
+                            showGalleryCropper = false
+                            self.selectedGalleryImage = nil
+                            Task {
+                                await viewModel.solveFromGalleryImage(croppedImage)
+                            }
+                        }
+                    )
+                }
+            }
+            .onChange(of: selectedPhotoItem) { _, newItem in
+                guard let newItem else { return }
+                Task {
+                    do {
+                        let data = try await newItem.loadTransferable(type: Data.self)
+                        guard let data,
+                              let image = UIImage(data: data) else {
+                            viewModel.setError(L10n.failedLoadImage)
+                            return
+                        }
+                        await MainActor.run {
+                            selectedGalleryImage = image
+                            showGalleryCropper = true
+                        }
+                    } catch {
+                        viewModel.setError(L10n.failedLoadImage)
+                    }
+                    await MainActor.run {
+                        selectedPhotoItem = nil
+                    }
+                }
+            }
+            .fullScreenCover(isPresented: $showLoginFromPrompt) {
+                LoginView(
+                    showCloseButton: true,
+                    onUsernameLoginSuccess: {
+                        showLoginFromPrompt = false
+                        Task {
+                            await viewModel.refreshAfterLogin()
+                        }
+                    }
+                )
+            }
+            .onChange(of: authManager.isAuthenticated) { _, isAuth in
+                if isAuth {
+                    showLoginFromPrompt = false
+                    Task {
+                        await viewModel.refreshAfterLogin()
+                    }
+                }
+            }
+            .navigationDestination(isPresented: $showSolutionPage) {
+                if let response = selectedSolution {
+                    CameraSolutionPage(
+                        response: response,
+                        capturedImage: viewModel.lastCapturedImage,
+                        shareLinkAction: {
+                            await viewModel.shareURL(forSolution: response)
+                        },
+                        deleteAction: response.id != 0
+                            ? {
+                                await viewModel.deleteHistoryItem(id: response.id)
+                            }
+                            : nil
+                    )
+                        .onDisappear {
+                            let solveId = response.id
+                            showSolutionPage = false
+                            selectedSolution = nil
+                            viewModel.reset()
+                            Task {
+                                await viewModel.resumeCameraIfNeeded()
+                            }
+                            if SolveReviewSheet.shouldShowReview(for: solveId) {
+                                reviewSolveId = solveId
+                                showReviewSheet = true
+                            }
+                        }
+                }
+            }
+            .sheet(isPresented: $showReviewSheet) {
+                SolveReviewSheet(solveId: reviewSolveId, isPresented: $showReviewSheet)
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.hidden)
+                    .presentationCornerRadius(28)
+            }
+    }
+
+    // MARK: - Content + Sheets (split to reduce type-check complexity)
+
+    private var cameraContentWithSheets: some View {
+        cameraContentWithToolbar
+            .sheet(isPresented: $viewModel.showHistory) {
+                CameraHistoryView(
+                    history: viewModel.history,
+                    loadDetailAction: { id in
+                        await viewModel.loadHistoryDetail(id: id)
+                    },
+                    shareLinkAction: { detail in
+                        await viewModel.shareURL(forDetail: detail)
+                    },
+                    deleteAction: { id in
+                        await viewModel.deleteHistoryItem(id: id)
+                    }
+                )
+                    .task {
+                        await viewModel.fetchHistory()
+                    }
+            }
+            .sheet(isPresented: $viewModel.showCameraPermissionSheet) {
+                cameraPermissionSheet
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.hidden)
+                    .presentationCornerRadius(28)
+                    .interactiveDismissDisabled()
+            }
+            .sheet(isPresented: $viewModel.showLoginPrompt) {
+                loginPromptSheet
+                    .presentationDetents([.medium])
+                    .presentationDragIndicator(.hidden)
+                    .presentationCornerRadius(28)
+            }
+            .sheet(isPresented: $viewModel.showUpgradePrompt) {
+                StoreView()
+            }
+            .sheet(isPresented: $showCalculator) {
+                ScientificCalculatorView(viewModel: viewModel)
+            }
+            .sheet(item: $pendingLanguageChoice) { choice in
+                SolutionLanguageSheet(
+                    appLanguageName: localizedLanguageName(for: choice.appLanguage),
+                    problemLanguageName: localizedLanguageName(for: choice.problemLanguage),
+                    subtitle: L10n.solutionLanguageSubtitle(localizedLanguageName(for: choice.problemLanguage)),
+                    onChooseAppLanguage: {
+                        chooseSolutionLanguage(choice, targetLanguage: choice.appLanguage)
+                    },
+                    onChooseProblemLanguage: {
+                        chooseSolutionLanguage(choice, targetLanguage: choice.problemLanguage)
+                    }
+                )
+                .presentationDetents([.medium])
+                .presentationDragIndicator(.hidden)
+                .presentationCornerRadius(28)
+                .interactiveDismissDisabled()
+            }
+    }
+
+    // MARK: - Core Layout (extracted to reduce type-check complexity)
+
+    private var cameraContentWithToolbar: some View {
         ZStack {
-            // Camera Preview
             cameraPreview
                 .ignoresSafeArea(.container, edges: [.top, .bottom])
 
-            // Overlays based on state
             overlayForState
                 .ignoresSafeArea(.container, edges: [.top, .bottom])
 
-            // Bottom controls
             VStack {
                 Spacer()
                 bottomControls
@@ -51,6 +209,19 @@ struct CameraView: View {
         .toolbarColorScheme(.dark, for: .tabBar)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    isFlashOn.toggle()
+                    viewModel.cameraService.toggleTorch(isFlashOn)
+                } label: {
+                    Image(systemName: isFlashOn ? "bolt.fill" : "bolt.slash.fill")
+                        .font(.headline)
+                        .foregroundColor(isFlashOn ? .yellow : .white)
+                        .padding(8)
+                        .background(Color.black.opacity(0.5))
+                        .clipShape(Circle())
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     viewModel.showHistory = true
@@ -85,153 +256,6 @@ struct CameraView: View {
         }
         .onDisappear {
             viewModel.stopCamera()
-        }
-        .sheet(isPresented: $viewModel.showHistory) {
-            CameraHistoryView(
-                history: viewModel.history,
-                loadDetailAction: { id in
-                    await viewModel.loadHistoryDetail(id: id)
-                },
-                shareLinkAction: { detail in
-                    await viewModel.shareURL(forDetail: detail)
-                },
-                deleteAction: { id in
-                    await viewModel.deleteHistoryItem(id: id)
-                }
-            )
-                .task {
-                    await viewModel.fetchHistory()
-                }
-        }
-        .sheet(isPresented: $viewModel.showCameraPermissionSheet) {
-            cameraPermissionSheet
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.hidden)
-                .presentationCornerRadius(28)
-                .interactiveDismissDisabled()
-        }
-        .sheet(isPresented: $viewModel.showLoginPrompt) {
-            loginPromptSheet
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.hidden)
-                .presentationCornerRadius(28)
-        }
-        .sheet(isPresented: $viewModel.showUpgradePrompt) {
-            StoreView()
-        }
-        .sheet(item: $pendingLanguageChoice) { choice in
-            SolutionLanguageSheet(
-                appLanguageName: localizedLanguageName(for: choice.appLanguage),
-                problemLanguageName: localizedLanguageName(for: choice.problemLanguage),
-                subtitle: L10n.solutionLanguageSubtitle(localizedLanguageName(for: choice.problemLanguage)),
-                onChooseAppLanguage: {
-                    chooseSolutionLanguage(choice, targetLanguage: choice.appLanguage)
-                },
-                onChooseProblemLanguage: {
-                    chooseSolutionLanguage(choice, targetLanguage: choice.problemLanguage)
-                }
-            )
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.hidden)
-            .presentationCornerRadius(28)
-            .interactiveDismissDisabled()
-        }
-        .fullScreenCover(isPresented: $showGalleryCropper) {
-            if let selectedGalleryImage {
-                GalleryCropSheet(
-                    image: selectedGalleryImage,
-                    onCancel: {
-                        showGalleryCropper = false
-                        self.selectedGalleryImage = nil
-                    },
-                    onUseCrop: { croppedImage in
-                        showGalleryCropper = false
-                        self.selectedGalleryImage = nil
-                        Task {
-                            await viewModel.solveFromGalleryImage(croppedImage)
-                        }
-                    }
-                )
-            }
-        }
-        .onChange(of: selectedPhotoItem) { _, newItem in
-            guard let newItem else { return }
-
-            Task {
-                do {
-                    let data = try await newItem.loadTransferable(type: Data.self)
-                    guard let data,
-                          let image = UIImage(data: data) else {
-                        viewModel.setError(L10n.failedLoadImage)
-                        return
-                    }
-
-                    await MainActor.run {
-                        selectedGalleryImage = image
-                        showGalleryCropper = true
-                    }
-                } catch {
-                    viewModel.setError(L10n.failedLoadImage)
-                }
-
-                await MainActor.run {
-                    selectedPhotoItem = nil
-                }
-            }
-        }
-        .fullScreenCover(isPresented: $showLoginFromPrompt) {
-            LoginView(
-                showCloseButton: true,
-                onUsernameLoginSuccess: {
-                    showLoginFromPrompt = false
-                    Task {
-                        await viewModel.refreshAfterLogin()
-                    }
-                }
-            )
-        }
-        .onChange(of: authManager.isAuthenticated) { _, isAuth in
-            if isAuth {
-                showLoginFromPrompt = false
-                Task {
-                    await viewModel.refreshAfterLogin()
-                }
-            }
-        }
-        .navigationDestination(isPresented: $showSolutionPage) {
-            if let response = selectedSolution {
-                CameraSolutionPage(
-                    response: response,
-                    capturedImage: viewModel.lastCapturedImage,
-                    shareLinkAction: {
-                        await viewModel.shareURL(forSolution: response)
-                    },
-                    deleteAction: response.id != 0
-                        ? {
-                            await viewModel.deleteHistoryItem(id: response.id)
-                        }
-                        : nil
-                )
-                    .onDisappear {
-                        let solveId = response.id
-                        showSolutionPage = false
-                        selectedSolution = nil
-                        viewModel.reset()
-                        Task {
-                            await viewModel.resumeCameraIfNeeded()
-                        }
-                        if SolveReviewSheet.shouldShowReview(for: solveId) {
-                            reviewSolveId = solveId
-                            showReviewSheet = true
-                        }
-                    }
-            }
-        }
-        .sheet(isPresented: $showReviewSheet) {
-            SolveReviewSheet(solveId: reviewSolveId, isPresented: $showReviewSheet)
-                .presentationDetents([.medium])
-                .presentationDragIndicator(.hidden)
-                .presentationCornerRadius(28)
         }
     }
 
@@ -378,7 +402,7 @@ struct CameraView: View {
                                 .font(.caption2)
                         }
                         .foregroundColor(.white)
-                        .frame(width: 72, height: 72)
+                        .frame(width: 56, height: 56)
                         .background(Color.black.opacity(0.55))
                         .clipShape(Circle())
                     }
@@ -404,6 +428,21 @@ struct CameraView: View {
                     }
                     .disabled(!viewModel.cameraService.isAuthorized)
                     .opacity(viewModel.cameraService.isAuthorized ? 1 : 0.5)
+
+                    Button {
+                        showCalculator = true
+                    } label: {
+                        VStack(spacing: 6) {
+                            Image(systemName: "function")
+                                .font(.title2)
+                            Text("Calc")
+                                .font(.caption2)
+                        }
+                        .foregroundColor(.white)
+                        .frame(width: 56, height: 56)
+                        .background(Color.black.opacity(0.55))
+                        .clipShape(Circle())
+                    }
                 }
             }
         }

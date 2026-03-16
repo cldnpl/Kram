@@ -26,6 +26,7 @@ type SolveRequest struct {
 	ImageBase64       string `json:"image_base64"`
 	MediaType         string `json:"media_type"`
 	PreferredLanguage string `json:"preferred_language,omitempty"`
+	ProblemText       string `json:"problem_text,omitempty"`
 }
 
 type GraphDataResponse struct {
