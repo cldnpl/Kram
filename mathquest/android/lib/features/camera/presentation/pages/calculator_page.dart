@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_math_fork/flutter_math.dart';
 import '../../data/camera_models.dart';
 import '../providers/camera_provider.dart';
 import '../widgets/solution_panel.dart';
@@ -111,6 +112,47 @@ const _longPress = <String, List<String>>{
   'x': ['x', 'y', 'z', 't', 'n', 'k'],
   'π': ['π', 'τ', 'ω', 'λ', 'μ', 'σ'],
   '%': ['%', 'mod'],
+};
+
+// LaTeX display strings for beautiful button labels
+const _latexDisplay = <String, String>{
+  // ── Tab 0: Numbers & Operators ──
+  '( )': r'(\,)',
+  'a/b': r'\frac{a}{b}',
+  '√': r'\sqrt{\,}',
+  'xⁿ': r'x^n',
+  'π': r'\pi',
+  // ── Tab 1: Functions ──
+  '|x|': r'|x|',
+  'log₂': r'\log_2',
+  'log₁₀': r'\log_{10}',
+  '⌊x⌋': r'\lfloor x \rfloor',
+  '⌈x⌉': r'\lceil x \rceil',
+  'eˣ': r'e^x',
+  '10ˣ': r'10^x',
+  'x⁻¹': r'x^{-1}',
+  'nPr': r'{}_nP_r',
+  'nCr': r'{}_nC_r',
+  '±': r'\pm',
+  '∞': r'\infty',
+  // ── Tab 3: Calculus ──
+  'lim': r'\lim_{\square\to\square}',
+  'lim⁺': r'\lim_{\square\to\square^+}',
+  'lim⁻': r'\lim_{\square\to\square^-}',
+  'd/dx': r'\frac{d}{dx}',
+  '∂/∂x': r'\frac{\partial}{\partial x}',
+  'd²/dx²': r'\frac{d^2}{dx^2}',
+  '∫': r'\int dx',
+  '∫∫': r'\iint',
+  '∮': r'\oint',
+  'dy/dx': r'\frac{dy}{dx}',
+  'aₙ': r'a_n',
+  'Σ': r'\sum',
+  '∏': r'\prod',
+  'y′': r"y'",
+  '∇': r'\nabla',
+  '∂': r'\partial',
+  '→': r'\rightarrow',
 };
 
 // Insert-text mapping (label → text to insert)
@@ -888,16 +930,7 @@ class _GridButton extends StatelessWidget {
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: _fg,
-                    fontSize: _fontSize,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+                _buildLabel(),
                 // Red dot indicator for long-press buttons
                 if (hasLongPress)
                   Positioned(
@@ -917,6 +950,38 @@ class _GridButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildLabel() {
+    final latex = _latexDisplay[label];
+    if (latex != null) {
+      final needsDisplay = label.startsWith('lim') ||
+          label == 'Σ' || label == '∏';
+      final mathSize = needsDisplay ? 11.0 : 14.0;
+      return Math.tex(
+        latex,
+        textStyle: TextStyle(color: _fg, fontSize: mathSize),
+        mathStyle: needsDisplay ? MathStyle.display : MathStyle.text,
+        onErrorFallback: (_) => Text(
+          label,
+          style: TextStyle(
+            color: _fg,
+            fontSize: _fontSize,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }
+    return Text(
+      label,
+      style: TextStyle(
+        color: _fg,
+        fontSize: _fontSize,
+        fontWeight: FontWeight.w500,
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 

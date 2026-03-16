@@ -380,9 +380,7 @@ struct ScientificCalculatorView: View {
                 handleTap(label)
             } label: {
                 ZStack {
-                    Text(label)
-                        .font(.system(size: fontSize(label: label, type: type), weight: .medium))
-                        .foregroundColor(fgColor(type))
+                    mathLabel(label, fg: fgColor(type), size: fontSize(label: label, type: type))
                         .lineLimit(1)
                         .minimumScaleFactor(0.65)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -591,6 +589,103 @@ struct ScientificCalculatorView: View {
         case .digit, .operator_, .accent: return 22
         case .func: return label.count > 5 ? 12 : 15
         }
+    }
+
+    // MARK: - Math label rendering
+
+    @ViewBuilder
+    private func mathLabel(_ label: String, fg: Color, size: CGFloat) -> some View {
+        switch label {
+        // Fractions
+        case "a/b": fracLabel("a", "b", fg: fg, size: size)
+        case "d/dx": fracLabel("d", "dx", fg: fg, size: size)
+        case "\u{2202}/\u{2202}x": fracLabel("\u{2202}", "\u{2202}x", fg: fg, size: size)
+        case "d\u{00B2}/dx\u{00B2}": fracLabel("d\u{00B2}", "dx\u{00B2}", fg: fg, size: size)
+        case "dy/dx": fracLabel("dy", "dx", fg: fg, size: size)
+        // Limits
+        case "lim": limLabel("\u{25A1}\u{2192}\u{25A1}", fg: fg, size: size)
+        case "lim\u{207A}": limLabel("\u{25A1}\u{2192}\u{25A1}\u{207A}", fg: fg, size: size)
+        case "lim\u{207B}": limLabel("\u{25A1}\u{2192}\u{25A1}\u{207B}", fg: fg, size: size)
+        // Subscripts
+        case "log\u{2082}": subLabel("log", "2", fg: fg, size: size)
+        case "log\u{2081}\u{2080}": subLabel("log", "10", fg: fg, size: size)
+        case "a\u{2099}": subLabel("a", "n", fg: fg, size: size)
+        case "nPr": nprLabel("n", "P", "r", fg: fg, size: size)
+        case "nCr": nprLabel("n", "C", "r", fg: fg, size: size)
+        // Superscripts
+        case "x\u{207F}": supLabel("x", "n", fg: fg, size: size)
+        case "e\u{02E3}": supLabel("e", "x", fg: fg, size: size)
+        case "10\u{02E3}": supLabel("10", "x", fg: fg, size: size)
+        case "x\u{207B}\u{00B9}": supLabel("x", "-1", fg: fg, size: size)
+        // Integral with dx
+        case "\u{222B}":
+            HStack(spacing: 1) {
+                Text("\u{222B}").font(.system(size: size * 0.95, weight: .regular))
+                Text("dx").font(.system(size: size * 0.55, weight: .medium))
+            }.foregroundColor(fg)
+        // Square root with placeholder
+        case "\u{221A}":
+            HStack(spacing: 0) {
+                Text("\u{221A}").font(.system(size: size * 0.9, weight: .regular))
+                RoundedRectangle(cornerRadius: 1)
+                    .stroke(fg.opacity(0.5), style: StrokeStyle(lineWidth: 0.8, dash: [2]))
+                    .frame(width: size * 0.45, height: size * 0.45)
+            }.foregroundColor(fg)
+        // Floor / Ceil
+        case "\u{230A}x\u{230B}":
+            Text("\u{230A}x\u{230B}").font(.system(size: size * 0.85, weight: .medium)).foregroundColor(fg)
+        case "\u{2308}x\u{2309}":
+            Text("\u{2308}x\u{2309}").font(.system(size: size * 0.85, weight: .medium)).foregroundColor(fg)
+        // Default
+        default:
+            Text(label)
+                .font(.system(size: size, weight: .medium))
+                .foregroundColor(fg)
+        }
+    }
+
+    private func fracLabel(_ num: String, _ den: String, fg: Color, size: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            Text(num).font(.system(size: size * 0.6, weight: .medium))
+            Rectangle().frame(height: 0.8).padding(.horizontal, 4)
+            Text(den).font(.system(size: size * 0.6, weight: .medium))
+        }
+        .foregroundColor(fg)
+    }
+
+    private func limLabel(_ sub: String, fg: Color, size: CGFloat) -> some View {
+        VStack(spacing: 0) {
+            Text("lim").font(.system(size: size * 0.75, weight: .medium))
+            Text(sub).font(.system(size: size * 0.45, weight: .regular))
+        }
+        .foregroundColor(fg)
+    }
+
+    private func subLabel(_ base: String, _ sub: String, fg: Color, size: CGFloat) -> some View {
+        HStack(alignment: .bottom, spacing: 0) {
+            Text(base).font(.system(size: size * 0.8, weight: .medium))
+            Text(sub).font(.system(size: size * 0.5, weight: .medium))
+                .offset(y: 2)
+        }
+        .foregroundColor(fg)
+    }
+
+    private func supLabel(_ base: String, _ sup: String, fg: Color, size: CGFloat) -> some View {
+        HStack(alignment: .top, spacing: 0) {
+            Text(base).font(.system(size: size * 0.8, weight: .medium))
+            Text(sup).font(.system(size: size * 0.5, weight: .medium))
+                .offset(y: -2)
+        }
+        .foregroundColor(fg)
+    }
+
+    private func nprLabel(_ n: String, _ op: String, _ r: String, fg: Color, size: CGFloat) -> some View {
+        HStack(alignment: .center, spacing: 0) {
+            Text(n).font(.system(size: size * 0.5, weight: .medium)).offset(y: 3)
+            Text(op).font(.system(size: size * 0.75, weight: .medium))
+            Text(r).font(.system(size: size * 0.5, weight: .medium)).offset(y: 3)
+        }
+        .foregroundColor(fg)
     }
 
     private func haptic(_ style: UIImpactFeedbackGenerator.FeedbackStyle) {
