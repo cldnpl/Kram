@@ -939,6 +939,9 @@ private func normalizeLessonLatex(_ raw: String) -> String {
     value = value.replacingOccurrences(of: "∫", with: "\\int")
 
     value = value.replacingOccurrences(of: #"\bpi\b"#, with: "\\pi", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(?<!\\)\bint\b"#, with: "\\int", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(?<!\\)\bleft\s*([\[\(\{])"#, with: "\\left$1", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(?<!\\)\bright\s*([\]\)\}])"#, with: "\\right$1", options: .regularExpression)
     value = value.replacingOccurrences(of: #"√\s*([A-Za-z0-9\(\)\+\-]+)"#, with: "\\sqrt{$1}", options: .regularExpression)
     value = replacingLessonLatexFractions(in: value)
     value = value.replacingOccurrences(of: #"\\int_([^\s\^=]+)\^([^\s=]+)"#, with: "\\int_{$1}^{$2}", options: .regularExpression)
@@ -946,7 +949,12 @@ private func normalizeLessonLatex(_ raw: String) -> String {
     value = value.replacingOccurrences(of: #"(?<!\\)\b([A-Za-z])\s*\^\s*\(([^()]+)\)"#, with: "$1^{$2}", options: .regularExpression)
     value = value.replacingOccurrences(of: #"(?<!\\)\b([A-Za-z])\s*\^\s*([0-9A-Za-z\+\-]+)\b"#, with: "$1^{$2}", options: .regularExpression)
     value = value.replacingOccurrences(of: #"(?<!\\)\b(e)\^([A-Za-z0-9\(\)\+\-]+)"#, with: "$1^{$2}", options: .regularExpression)
-    value = value.replacingOccurrences(of: #"\\([A-Za-z]+)(?=[A-Za-z])"#, with: "\\$1 ", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"\\pi(?=[A-Za-z0-9])"#, with: "\\pi ", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"\\sin(?=[A-Za-z0-9])"#, with: "\\sin ", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"\\cos(?=[A-Za-z0-9])"#, with: "\\cos ", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"\\tan(?=[A-Za-z0-9])"#, with: "\\tan ", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"\\ln(?=[A-Za-z0-9])"#, with: "\\ln ", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"\\log(?=[A-Za-z0-9])"#, with: "\\log ", options: .regularExpression)
     value = value.replacingOccurrences(of: #"\s{2,}"#, with: " ", options: .regularExpression)
     value = value.trimmingCharacters(in: .whitespacesAndNewlines)
 

@@ -1205,6 +1205,16 @@ String _normalizeLessonLatex(String raw) {
       .replaceAll('∫', r'\int');
 
   value = value.replaceAllMapped(RegExp(r'\bpi\b'), (_) => r'\pi');
+  value =
+      value.replaceAllMapped(RegExp(r'(?<!\\)\bint\b'), (_) => r'\int');
+  value = value.replaceAllMapped(
+    RegExp(r'(?<!\\)\bleft\s*([\[\(\{])'),
+    (match) => r'\left' + match.group(1)!,
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'(?<!\\)\bright\s*([\]\)\}])'),
+    (match) => r'\right' + match.group(1)!,
+  );
   value = value.replaceAllMapped(RegExp(r'√\s*([A-Za-z0-9\(\)\+\-]+)'),
       (match) => r'\sqrt{${match.group(1)!}}');
   value = _replaceLessonLatexFractions(value);
@@ -1236,8 +1246,28 @@ String _normalizeLessonLatex(String raw) {
     (match) => '${match.group(1)!}^{${match.group(2)!}}',
   );
   value = value.replaceAllMapped(
-    RegExp(r'\\([A-Za-z]+)(?=[A-Za-z])'),
-    (match) => '\\${match.group(1)!} ',
+    RegExp(r'\\pi(?=[A-Za-z0-9])'),
+    (_) => r'\pi ',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'\\sin(?=[A-Za-z0-9])'),
+    (_) => r'\sin ',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'\\cos(?=[A-Za-z0-9])'),
+    (_) => r'\cos ',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'\\tan(?=[A-Za-z0-9])'),
+    (_) => r'\tan ',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'\\ln(?=[A-Za-z0-9])'),
+    (_) => r'\ln ',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'\\log(?=[A-Za-z0-9])'),
+    (_) => r'\log ',
   );
   value = value.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
 

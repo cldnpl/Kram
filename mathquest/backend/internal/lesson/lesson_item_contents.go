@@ -2174,40 +2174,43 @@ u = g(x),  du = g'(x) dx  ⇒  ∫ f(g(x))·g'(x) dx = ∫ f(u) du
 	"26-0": {
 		Title:    "Calculating the area under a curve",
 		Category: "Integral Calculus",
-		Intro: `The **definite integral** **∫_a^b f(x) dx** is the **signed** (net) area between the graph of **y = f(x)** and the **x-axis** over the interval [a, b]: area above the axis counts **positive**, below counts **negative**. If **f(x) ≥ 0** on [a, b], then ∫_a^b f(x) dx equals the **geometric** area of the region under the curve. If f takes both signs, the integral is the **difference** (area above minus area below).
+		Intro: `The **definite integral** **\int_a^b f(x)\,dx** is the **signed** (net) area between the graph of **y = f(x)** and the **x-axis** over the interval [a, b]: area above the axis counts **positive**, below counts **negative**. If **f(x) ≥ 0** on [a, b], then **\int_a^b f(x)\,dx** equals the **geometric** area of the region under the curve. If f takes both signs, the integral is the **difference** (area above minus area below).
 
 [IMAGE:areaUnderACurve.jpg]
 
-**Computation:** By the **FTC**, ∫_a^b f(x) dx = **F(b) − F(a)** where F is any antiderivative of f. So find F (indefinite integral), then plug in b and a and subtract. **Example:** ∫_0^1 x² dx = [x³/3]_0^1 = 1/3 − 0 = 1/3 (area under y = x² from 0 to 1).
+**Computation:** By the **FTC**, **\int_a^b f(x)\,dx = F(b) - F(a)** where F is any antiderivative of f. So find F (indefinite integral), then plug in b and a and subtract. **Example:** **\int_0^1 x^2\,dx = \left[\frac{x^3}{3}\right]_0^1 = \frac{1}{3} - 0 = \frac{1}{3}**.
 
 [BOX]
 **Meaning**
-∫_a^b f(x) dx = signed area between graph and x-axis on [a,b].
+If **f(x) \ge 0** on **[a,b]**, then **\int_a^b f(x)\,dx** is the area under the curve.
 If f ≥ 0: geometric area.  FTC: = F(b) − F(a).
 [/BOX]
 
 [BOX]
 **Example**
-∫_0^1 x² dx = [x³/3]_0^1 = 1/3
+\int_0^1 x^2\,dx = \left[\frac{x^3}{3}\right]_0^1 = \frac{1}{3}
 [/BOX]`,
 	},
 	"26-1": {
 		Title:    "The Fundamental Theorem of Calculus",
 		Category: "Integral Calculus",
-		Intro: `The **Fundamental Theorem of Calculus (FTC)** has two parts. **Part 1:** If f is continuous on [a,b] and we define **F(x) = ∫_a^x f(t) dt**, then **F'(x) = f(x)** (so F is an antiderivative of f). **Part 2:** If f is continuous on [a,b] and **F** is **any** antiderivative of f (i.e. F' = f), then **∫_a^b f(x) dx = F(b) − F(a)**. We often write **F(b) − F(a) = [F(x)]_a^b**.
+		Intro: `The **Fundamental Theorem of Calculus (FTC)** has two complementary parts: the first explains how an integral with a variable upper limit produces a derivative, and the second explains how a definite integral is computed from an antiderivative.
 
-So to compute a definite integral: (1) find **any** primitive F of f (indefinite integral), (2) evaluate **F(b) − F(a)**. This is the main tool for calculating areas and many applied quantities.
+So to compute a definite integral, you first find an antiderivative **F** of **f**, and then evaluate it at the endpoints. The two statements below are the core of the theorem.
 
 [BOX]
-**FTC (Part 1)**
-F(x) = ∫_a^x f(t) dt
-F'(x) = f(x)
+**FTC 1**
+If **f** is continuous on **[a,b]** and
+F(x) = \int_a^x f(t)\,dt
+then
+\frac{d}{dx}F(x) = f(x)
 [/BOX]
 
 [BOX]
-**FTC (Part 2)**
-∫_a^b f(x) dx = F(b) − F(a)
-F(b) − F(a) = [F(x)]_a^b
+**FTC 2**
+If **F'(x) = f(x)** on **[a,b]**, then
+\int_a^b f(x)\,dx = F(b) - F(a)
+\int_a^b f(x)\,dx = \left[F(x)\right]_a^b
 [/BOX]
 
 [IMAGE:fundamentalTheoremsofCalculus.png]`,
