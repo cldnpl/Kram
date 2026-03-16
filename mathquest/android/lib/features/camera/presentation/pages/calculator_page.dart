@@ -249,6 +249,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
   void initState() {
     super.initState();
     _provider.addListener(_onProviderChanged);
+    _controller.addListener(_onTextChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _focusNode.requestFocus();
     });
@@ -257,6 +258,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
   @override
   void dispose() {
     _provider.removeListener(_onProviderChanged);
+    _controller.removeListener(_onTextChanged);
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
@@ -264,6 +266,32 @@ class _CalculatorPageState extends State<CalculatorPage> {
 
   void _onProviderChanged() {
     if (mounted) setState(() {});
+  }
+
+  void _onTextChanged() {
+    if (mounted) setState(() {});
+  }
+
+  double? _computeCursorHeight() {
+    final text = _controller.text;
+    if (text.isEmpty) return null;
+    final sel = _controller.selection;
+    final pos = (sel.isValid && sel.baseOffset >= 0)
+        ? sel.baseOffset
+        : text.length;
+    if (pos > 0 && _isSmallChar(text.codeUnitAt(pos - 1))) return 18;
+    if (pos < text.length && _isSmallChar(text.codeUnitAt(pos))) return 18;
+    return null;
+  }
+
+  static bool _isSmallChar(int code) {
+    if (code >= 0x2070 && code <= 0x207F) return true; // superscript block
+    if (code >= 0x2080 && code <= 0x209F) return true; // subscript block
+    if (code == 0x00B2 || code == 0x00B3 || code == 0x00B9) return true; // ¹²³
+    if (code == 0x2032 || code == 0x2033) return true; // prime ′ ″
+    if (code == 0x00B0) return true; // degree °
+    if (code >= 0x02B0 && code <= 0x02FF) return true; // modifier letters ˣ
+    return false;
   }
 
   // ── Text manipulation ──────────────────────────────────────────────
@@ -535,6 +563,7 @@ class _CalculatorPageState extends State<CalculatorPage> {
         readOnly: true,
         showCursor: true,
         cursorColor: c.accentBg,
+        cursorHeight: _computeCursorHeight(),
         maxLines: null,
         style: TextStyle(
           color: c.onSurface,

@@ -224,11 +224,14 @@ struct ScientificCalculatorView: View {
                     let pos = min(cursorPos, expression.count)
                     let before = String(expression.prefix(pos))
                     let after = String(expression.suffix(expression.count - pos))
+                    let charBefore: Character? = pos > 0 ? expression[expression.index(expression.startIndex, offsetBy: pos - 1)] : nil
+                    let charAfter: Character? = pos < expression.count ? expression[expression.index(expression.startIndex, offsetBy: pos)] : nil
+                    let small = (charBefore.map(isSmallChar) ?? false) || (charAfter.map(isSmallChar) ?? false)
                     HStack(spacing: 0) {
                         Text(before)
                             .font(.system(size: 24, weight: .light))
                             .foregroundColor(colors.onSurface)
-                        CursorView(color: colors.accentBg, visible: cursorVisible)
+                        CursorView(color: colors.accentBg, visible: cursorVisible, small: small)
                         Text(after)
                             .font(.system(size: 24, weight: .light))
                             .foregroundColor(colors.onSurface)
@@ -723,13 +726,25 @@ struct ScientificCalculatorView: View {
 private struct CursorView: View {
     let color: Color
     let visible: Bool
+    var small: Bool = false
 
     var body: some View {
         Rectangle()
             .fill(color)
-            .frame(width: 2, height: 26)
+            .frame(width: 2, height: small ? 16 : 26)
             .opacity(visible ? 1 : 0)
     }
+}
+
+private func isSmallChar(_ c: Character) -> Bool {
+    guard let v = c.unicodeScalars.first?.value else { return false }
+    if v >= 0x2070 && v <= 0x207F { return true } // superscript block
+    if v >= 0x2080 && v <= 0x209F { return true } // subscript block
+    if v == 0x00B2 || v == 0x00B3 || v == 0x00B9 { return true } // ¹²³
+    if v == 0x2032 || v == 0x2033 { return true } // prime ′ ″
+    if v == 0x00B0 { return true } // degree °
+    if v >= 0x02B0 && v <= 0x02FF { return true } // modifier letters (ˣ etc.)
+    return false
 }
 
 // MARK: - Button type
