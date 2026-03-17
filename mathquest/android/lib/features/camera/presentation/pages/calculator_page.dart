@@ -155,28 +155,6 @@ const _latexDisplay = <String, String>{
   '→': r'\rightarrow',
 };
 
-// Tokens that cursor/backspace should skip as a unit (longest first)
-const _cursorTokens = <String>[
-  // 7 chars
-  'arcsin(', 'arccos(', 'arctan(', 'arccot(', 'arcsec(', 'arccsc(',
-  'arsinh(', 'arcosh(', 'artanh(', 'arcoth(', 'arsech(', 'arcsch(',
-  'd²/dx²(',
-  // 6 chars
-  'log₁₀(',
-  // 5 chars
-  'sinh(', 'cosh(', 'tanh(', 'coth(', 'sech(', 'csch(',
-  'sign(', 'lim⁺(', 'lim⁻(', 'd/dx(',
-  '∂/∂x(', 'dy/dx', ' mod ', 'log₂(',
-  // 4 chars
-  'sin(', 'cos(', 'tan(', 'cot(', 'sec(', 'csc(',
-  'log(', 'exp(', 'GCD(', 'LCM(', 'min(', 'max(',
-  'nPr(', 'nCr(', 'lim(', '10^(',
-  // 3 chars
-  'ln(', 'e^(', '∫∫(', '³√(', '⁴√(', 'ⁿ√(', '°′″', 'rad',
-  // 2 chars
-  '∫(', '∮(', 'Σ(', '∏(', '√(', '°′', '⁻¹', 'aₙ', "y'",
-];
-
 // Insert-text mapping (label → text to insert)
 String _mapInsert(String label) {
   switch (label) {
@@ -352,6 +330,9 @@ class _CalculatorPageState extends State<CalculatorPage> {
     _focusNode.requestFocus();
   }
 
+  static bool _isAsciiLetter(int c) =>
+      (c >= 0x41 && c <= 0x5A) || (c >= 0x61 && c <= 0x7A);
+
   void _backspace() {
     _pushUndo();
     final sel = _controller.selection;
@@ -359,12 +340,13 @@ class _CalculatorPageState extends State<CalculatorPage> {
         ? sel.baseOffset
         : _controller.text.length;
     if (pos > 0) {
-      final textBefore = _controller.text.substring(0, pos);
-      int count = 1;
-      for (final token in _cursorTokens) {
-        if (textBefore.endsWith(token)) { count = token.length; break; }
-      }
       final cur = _controller.text;
+      int count = 1;
+      if (_isAsciiLetter(cur.codeUnitAt(pos - 1))) {
+        while (count < pos && _isAsciiLetter(cur.codeUnitAt(pos - count - 1))) {
+          count++;
+        }
+      }
       _controller.value = TextEditingValue(
         text: cur.substring(0, pos - count) + cur.substring(pos),
         selection: TextSelection.collapsed(offset: pos - count),
@@ -378,10 +360,12 @@ class _CalculatorPageState extends State<CalculatorPage> {
         ? _controller.selection.baseOffset
         : _controller.text.length;
     if (pos > 0) {
-      final textBefore = _controller.text.substring(0, pos);
+      final text = _controller.text;
       int skip = 1;
-      for (final token in _cursorTokens) {
-        if (textBefore.endsWith(token)) { skip = token.length; break; }
+      if (_isAsciiLetter(text.codeUnitAt(pos - 1))) {
+        while (skip < pos && _isAsciiLetter(text.codeUnitAt(pos - skip - 1))) {
+          skip++;
+        }
       }
       _controller.selection = TextSelection.collapsed(offset: pos - skip);
     }
@@ -393,10 +377,12 @@ class _CalculatorPageState extends State<CalculatorPage> {
         ? _controller.selection.baseOffset
         : _controller.text.length;
     if (pos < _controller.text.length) {
-      final textAfter = _controller.text.substring(pos);
+      final text = _controller.text;
       int skip = 1;
-      for (final token in _cursorTokens) {
-        if (textAfter.startsWith(token)) { skip = token.length; break; }
+      if (_isAsciiLetter(text.codeUnitAt(pos))) {
+        while (pos + skip < text.length && _isAsciiLetter(text.codeUnitAt(pos + skip))) {
+          skip++;
+        }
       }
       _controller.selection = TextSelection.collapsed(offset: pos + skip);
     }
