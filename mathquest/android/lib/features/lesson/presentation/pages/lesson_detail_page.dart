@@ -447,7 +447,19 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
                             text: line,
                             accentColor: textColor,
                           )
-                        : _LessonParagraph(text: line, baseStyle: baseStyle),
+                        : _practiceContentNeedsMathRendering(line)
+                            ? _PracticeRichContent(
+                                text: line,
+                                centered: true,
+                                fontSize: (baseStyle.fontSize ?? 18),
+                                fontWeight:
+                                    baseStyle.fontWeight ?? FontWeight.w400,
+                                color: baseStyle.color,
+                              )
+                            : _LessonParagraph(
+                                text: line,
+                                baseStyle: baseStyle,
+                              ),
                   );
                 }).toList(),
               ),
@@ -600,10 +612,21 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
         s.contains('±') ||
         s.contains('√') ||
         s.contains('∫') ||
+        s.contains(r'\int') ||
+        s.contains(r'\frac') ||
+        s.contains(r'\sqrt') ||
+        s.contains(r'\left') ||
+        s.contains(r'\right') ||
         s.contains('Δ') ||
         s.contains('^')) return true;
     final lower = s.toLowerCase();
     if (lower.contains('lim') ||
+        lower.contains('int_') ||
+        lower.contains('int ') ||
+        lower.contains('frac') ||
+        lower.contains('sqrt') ||
+        lower.contains('left') ||
+        lower.contains('right') ||
         lower.contains('sin') ||
         lower.contains('cos') ||
         lower.contains('tan') ||
@@ -826,7 +849,43 @@ class _LessonFormulaLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final split = _splitLessonFormulaLine(text);
+    final split = _splitLessonFormulaLineWithEquationFallback(text);
+
+    if (split.formula == null && split.label == null && split.note != null) {
+      final note = split.note!;
+
+      if (_isLessonFormulaHeading(note)) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 2),
+          child: _BoldText(
+            text: note,
+            baseStyle: Theme.of(context).textTheme.titleMedium!.copyWith(
+                  color: _LessonDetailPageState._lessonAccentColor,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        );
+      }
+
+      if (_practiceContentNeedsMathRendering(note)) {
+        return _PracticeRichContent(
+          text: note,
+          centered: true,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Colors.black,
+        );
+      }
+
+      return Text(
+        note,
+        textAlign: TextAlign.center,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: _LessonDetailPageState._exampleBoxColor,
+              fontSize: 14,
+            ),
+      );
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -856,7 +915,10 @@ class _LessonFormulaLine extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .bodySmall
-                  ?.copyWith(color: Colors.grey[700]),
+                  ?.copyWith(
+                    color: _LessonDetailPageState._exampleBoxColor,
+                    fontSize: 14,
+                  ),
             ),
           ),
       ],
@@ -954,11 +1016,17 @@ class _LessonFormulaSplit {
 bool _looksLikeInlineMath(String text) {
   final candidate = text.trim();
   if (candidate.isEmpty) return false;
-  if (RegExp(r'[=+\-*/^(){}\[\]≤≥≠±√∫π∞]').hasMatch(candidate)) {
+  if (RegExp(r'[=+\-*/^(){}\[\]≤≥≠±√∫π∞\\]').hasMatch(candidate)) {
     return true;
   }
   final lower = candidate.toLowerCase();
   return lower.contains('lim') ||
+      lower.contains('int_') ||
+      lower.contains(r'\int') ||
+      lower.contains('frac') ||
+      lower.contains('sqrt') ||
+      lower.contains('left') ||
+      lower.contains('right') ||
       lower.contains('sin') ||
       lower.contains('cos') ||
       lower.contains('tan') ||
@@ -1009,6 +1077,37 @@ _LessonFormulaSplit _splitLessonFormulaLine(String text) {
       label: '$left:', formula: right, note: sanitized.note);
 }
 
+_LessonFormulaSplit _splitLessonFormulaLineWithEquationFallback(String text) {
+  final base = _splitLessonFormulaLine(text);
+  if (base.formula != null || base.label != null) {
+    return base;
+  }
+
+  final trimmed = text.trim();
+  final eqIndex = trimmed.indexOf('=');
+  if (eqIndex <= 0 || eqIndex >= trimmed.length - 1) {
+    return base;
+  }
+
+  final left = trimmed.substring(0, eqIndex).trim();
+  final right = trimmed.substring(eqIndex + 1).trim();
+  if (left.isEmpty || right.isEmpty) {
+    return base;
+  }
+
+  if (_containsProseWords(left) && _looksLikeInlineMath(right)) {
+    return _LessonFormulaSplit(label: left, formula: right, note: null);
+  }
+
+  return base;
+}
+
+bool _isLessonFormulaHeading(String text) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty || !trimmed.endsWith(':')) return false;
+  return trimmed.length <= 48;
+}
+
 _LessonFormulaSplit _sanitizeLessonFormulaContent(String text) {
   var formula = text.trim();
   final notes = <String>[];
@@ -1037,7 +1136,21 @@ bool _containsProseWords(String text) {
   final matches = RegExp(r'\b[a-z]{3,}\b', caseSensitive: false)
       .allMatches(text)
       .map((match) => match.group(0)!.toLowerCase());
-  const allowed = {'sin', 'cos', 'tan', 'log', 'lim', 'mod', 'gcd', 'lcm'};
+  const allowed = {
+    'sin',
+    'cos',
+    'tan',
+    'log',
+    'lim',
+    'mod',
+    'gcd',
+    'lcm',
+    'int',
+    'frac',
+    'left',
+    'right',
+    'sqrt',
+  };
   return matches.any((word) => !allowed.contains(word));
 }
 
@@ -1076,11 +1189,51 @@ String _prettifyLessonInlineMath(String text) {
 }
 
 String _prettifyLessonTextContent(String text) {
-  var value = text.replaceAll(r'\pi', 'π').replaceAll('∫_', '∫');
+  var value = text
+      .replaceAll(r'\pi', 'π')
+      .replaceAll(r'\infty', '∞')
+      .replaceAll(r'\int', '∫')
+      .replaceAll(r'\left(', '(')
+      .replaceAll(r'\left[', '[')
+      .replaceAll(r'\left\{', '{')
+      .replaceAll(r'\right)', ')')
+      .replaceAll(r'\right]', ']')
+      .replaceAll(r'\right\}', '}')
+      .replaceAll(r'\,', ' ')
+      .replaceAll(r'\;', ' ')
+      .replaceAll(r'\cdot', '·')
+      .replaceAll(r'\times', '×')
+      .replaceAll(r'\pm', '±')
+      .replaceAll('∫_', '∫');
+
+  // Use regex for \le, \ge, \ne to avoid matching \left, \leftarrow, etc.
+  value = value.replaceAllMapped(RegExp(r'\\le(?![a-z])'), (_) => '≤');
+  value = value.replaceAllMapped(RegExp(r'\\ge(?![a-z])'), (_) => '≥');
+  value = value.replaceAllMapped(RegExp(r'\\ne(?![a-z])'), (_) => '≠');
+
+  // \frac{a}{b} → (a/b)
+  value = value.replaceAllMapped(
+    RegExp(r'\\frac\{([^}]+)\}\{([^}]+)\}'),
+    (match) => '(${match.group(1)!}/${match.group(2)!})',
+  );
 
   value = value.replaceAllMapped(
     RegExp(r'\bpi\b'),
     (_) => 'π',
+  );
+  // Plain text "int" → ∫ (only when followed by _, ^, whitespace, or end)
+  value = value.replaceAllMapped(
+    RegExp(r'\bint(?=_|\^|\s|$)'),
+    (_) => '∫',
+  );
+  // Plain text sqrt(X) → √(X) and sqrt → √
+  value = value.replaceAllMapped(
+    RegExp(r'\bsqrt\(([^)]*)\)'),
+    (match) => '√(${match.group(1)!})',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'\bsqrt\b'),
+    (_) => '√',
   );
 
   value = value.replaceAllMapped(
@@ -1181,13 +1334,36 @@ String _normalizeLessonLatex(String raw) {
   var value = raw.trim();
   if (value.isEmpty) return '';
 
+  // Handle n-th root FIRST (before ²→^{2}, ³→^{3}, ⁿ→^{n} replacements)
+  value = value.replaceAllMapped(
+    RegExp(r'([⁰¹²³⁴⁵⁶⁷⁸⁹ⁿ]+)√\s*(\([^)]*\)|[A-Za-z0-9\+\-]+)'),
+    (match) {
+      final index = match.group(1)!.split('').map((c) => const {
+        '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
+        '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9', 'ⁿ': 'n',
+      }[c] ?? c).join();
+      return r'\sqrt[' + index + ']{' + match.group(2)! + '}';
+    },
+  );
+  // Plain square root: √X → \sqrt{X}
+  value = value.replaceAllMapped(
+    RegExp(r'√\s*(\([^)]*\)|[A-Za-z0-9\+\-]+)'),
+    (match) => r'\sqrt{' + match.group(1)! + '}',
+  );
+
+  // Normalize both Unicode ∫ and LaTeX \int to Unicode ∫ first.
+  // MathJax 3 natively supports Unicode math operators, so we keep ∫
+  // as-is in the LaTeX output (avoids backslash-escaping issues in WebView).
+  value = value.replaceAll(r'\int', '∫');
+
   value = value
       .replaceAll('−', '-')
       .replaceAll('×', r' \times ')
       .replaceAll('÷', r' \div ')
       .replaceAll('π', r'\pi')
-      .replaceAll('²', '^2')
-      .replaceAll('³', '^3')
+      .replaceAll('²', '^{2}')
+      .replaceAll('³', '^{3}')
+      .replaceAll('ⁿ', '^{n}')
       .replaceAll('≤', r'\le')
       .replaceAll('≥', r'\ge')
       .replaceAll('≠', r'\ne')
@@ -1201,12 +1377,24 @@ String _normalizeLessonLatex(String raw) {
       .replaceAll('⇒', r'\Rightarrow')
       .replaceAll('→', r'\to')
       .replaceAll('∈', r'\in')
-      .replaceAll('∉', r'\notin')
-      .replaceAll('∫', r'\int');
+      .replaceAll('∉', r'\notin');
 
-  value = value.replaceAllMapped(RegExp(r'\bpi\b'), (_) => r'\pi');
-  value =
-      value.replaceAllMapped(RegExp(r'(?<!\\)\bint\b'), (_) => r'\int');
+  value = value.replaceAllMapped(RegExp(r'(?<!\\)\bpi\b'), (_) => r'\pi');
+  // Plain text "int" → Unicode ∫
+  value = value.replaceAllMapped(
+    RegExp(r'(?<!\\)\bint(?=_|\^|\s|$)'),
+    (_) => '∫',
+  );
+  // Plain text sqrt(X) → \sqrt{X}
+  value = value.replaceAllMapped(
+    RegExp(r'(?<!\\)\bsqrt\(([^)]*)\)'),
+    (match) => r'\sqrt{' + match.group(1)! + '}',
+  );
+  // Plain text sqrt followed by a single token (no parens)
+  value = value.replaceAllMapped(
+    RegExp(r'(?<!\\)\bsqrt\s*([A-Za-z0-9])'),
+    (match) => r'\sqrt{' + match.group(1)! + '}',
+  );
   value = value.replaceAllMapped(
     RegExp(r'(?<!\\)\bleft\s*([\[\(\{])'),
     (match) => r'\left' + match.group(1)!,
@@ -1215,15 +1403,21 @@ String _normalizeLessonLatex(String raw) {
     RegExp(r'(?<!\\)\bright\s*([\]\)\}])'),
     (match) => r'\right' + match.group(1)!,
   );
-  value = value.replaceAllMapped(RegExp(r'√\s*([A-Za-z0-9\(\)\+\-]+)'),
-      (match) => r'\sqrt{${match.group(1)!}}');
   value = _replaceLessonLatexFractions(value);
+  // Handle integral subscript/superscript: ∫_a^b → ∫_{a}^{b}
   value = value.replaceAllMapped(
-    RegExp(r'\\int_([^\s\^=]+)\^([^\s=]+)'),
-    (match) => r'\int_{' + match.group(1)! + '}^{' + match.group(2)! + '}',
+    RegExp(r'∫_([^\s\^=]+)\^([^\s=]+)'),
+    (match) => '∫_{' + match.group(1)! + '}^{' + match.group(2)! + '}',
   );
+  // \right]_a^b → \right]_{a}^{b} (already has \left/\right, just add braces)
   value = value.replaceAllMapped(
-    RegExp(r'\[([^\[\]]+)\]_([^\s\^=]+)\^([^\s=]+)'),
+    RegExp(r'\\right\]_([^\s\^=]+)\^([^\s=]+)'),
+    (match) =>
+        r'\right]_{' + match.group(1)! + '}^{' + match.group(2)! + '}',
+  );
+  // [...]_a^b → \left[...\right]_{a}^{b} — only when \left/\right NOT already present
+  value = value.replaceAllMapped(
+    RegExp(r'(?<!\\left)\[([^\[\]]+)(?<!\\right)\]_([^\s\^=]+)\^([^\s=]+)'),
     (match) =>
         r'\left[' +
         match.group(1)! +
@@ -1268,6 +1462,10 @@ String _normalizeLessonLatex(String raw) {
   value = value.replaceAllMapped(
     RegExp(r'\\log(?=[A-Za-z0-9])'),
     (_) => r'\log ',
+  );
+  value = value.replaceAllMapped(
+    RegExp(r'(\\[A-Za-z]+)(?=\\[A-Za-z])'),
+    (match) => '${match.group(1)!} ',
   );
   value = value.replaceAll(RegExp(r'\s{2,}'), ' ').trim();
 
@@ -2205,7 +2403,7 @@ List<(String, String)> _practiceSegmentsForLine(String line) {
   }
 
   final regex = RegExp(
-    r"(∫[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)",
+    r"((?:∫|\\int|int(?=[_\^\s]|$))[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\\\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)",
   );
   final matches = regex.allMatches(line).toList(growable: false);
   if (matches.isEmpty) {
@@ -2240,7 +2438,7 @@ bool _practiceLineContainsRenderableMath(String line) {
   }
 
   final regex = RegExp(
-    r"(∫[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)",
+    r"((?:∫|\\int|int(?=[_\^\s]|$))[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\\\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)",
   );
   for (final match in regex.allMatches(line)) {
     final candidate = line.substring(match.start, match.end);
