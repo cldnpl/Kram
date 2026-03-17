@@ -155,6 +155,28 @@ const _latexDisplay = <String, String>{
   '→': r'\rightarrow',
 };
 
+// Tokens that cursor/backspace should skip as a unit (longest first)
+const _cursorTokens = <String>[
+  // 7 chars
+  'arcsin(', 'arccos(', 'arctan(', 'arccot(', 'arcsec(', 'arccsc(',
+  'arsinh(', 'arcosh(', 'artanh(', 'arcoth(', 'arsech(', 'arcsch(',
+  'd²/dx²(',
+  // 6 chars
+  'log₁₀(',
+  // 5 chars
+  'sinh(', 'cosh(', 'tanh(', 'coth(', 'sech(', 'csch(',
+  'sign(', 'lim⁺(', 'lim⁻(', 'd/dx(',
+  '∂/∂x(', 'dy/dx', ' mod ', 'log₂(',
+  // 4 chars
+  'sin(', 'cos(', 'tan(', 'cot(', 'sec(', 'csc(',
+  'log(', 'exp(', 'GCD(', 'LCM(', 'min(', 'max(',
+  'nPr(', 'nCr(', 'lim(', '10^(',
+  // 3 chars
+  'ln(', 'e^(', '∫∫(', '³√(', '⁴√(', 'ⁿ√(', '°′″', 'rad',
+  // 2 chars
+  '∫(', '∮(', 'Σ(', '∏(', '√(', '°′', '⁻¹', 'aₙ', "y'",
+];
+
 // Insert-text mapping (label → text to insert)
 String _mapInsert(String label) {
   switch (label) {
@@ -337,10 +359,15 @@ class _CalculatorPageState extends State<CalculatorPage> {
         ? sel.baseOffset
         : _controller.text.length;
     if (pos > 0) {
+      final textBefore = _controller.text.substring(0, pos);
+      int count = 1;
+      for (final token in _cursorTokens) {
+        if (textBefore.endsWith(token)) { count = token.length; break; }
+      }
       final cur = _controller.text;
       _controller.value = TextEditingValue(
-        text: cur.substring(0, pos - 1) + cur.substring(pos),
-        selection: TextSelection.collapsed(offset: pos - 1),
+        text: cur.substring(0, pos - count) + cur.substring(pos),
+        selection: TextSelection.collapsed(offset: pos - count),
       );
     }
     _focusNode.requestFocus();
@@ -351,7 +378,12 @@ class _CalculatorPageState extends State<CalculatorPage> {
         ? _controller.selection.baseOffset
         : _controller.text.length;
     if (pos > 0) {
-      _controller.selection = TextSelection.collapsed(offset: pos - 1);
+      final textBefore = _controller.text.substring(0, pos);
+      int skip = 1;
+      for (final token in _cursorTokens) {
+        if (textBefore.endsWith(token)) { skip = token.length; break; }
+      }
+      _controller.selection = TextSelection.collapsed(offset: pos - skip);
     }
     _focusNode.requestFocus();
   }
@@ -361,7 +393,12 @@ class _CalculatorPageState extends State<CalculatorPage> {
         ? _controller.selection.baseOffset
         : _controller.text.length;
     if (pos < _controller.text.length) {
-      _controller.selection = TextSelection.collapsed(offset: pos + 1);
+      final textAfter = _controller.text.substring(pos);
+      int skip = 1;
+      for (final token in _cursorTokens) {
+        if (textAfter.startsWith(token)) { skip = token.length; break; }
+      }
+      _controller.selection = TextSelection.collapsed(offset: pos + skip);
     }
     _focusNode.requestFocus();
   }

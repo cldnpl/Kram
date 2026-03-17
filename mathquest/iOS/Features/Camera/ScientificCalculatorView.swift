@@ -89,6 +89,32 @@ private let longPressVariants: [String: [String]] = [
     "%": ["%", "mod"],
 ]
 
+// Tokens that cursor/backspace should skip as a unit (longest first)
+private let cursorTokens: [String] = [
+    // 7 chars
+    "arcsin(", "arccos(", "arctan(", "arccot(", "arcsec(", "arccsc(",
+    "arsinh(", "arcosh(", "artanh(", "arcoth(", "arsech(", "arcsch(",
+    "d\u{00B2}/dx\u{00B2}(",
+    // 6 chars
+    "log\u{2081}\u{2080}(",
+    // 5 chars
+    "sinh(", "cosh(", "tanh(", "coth(", "sech(", "csch(",
+    "sign(", "lim\u{207A}(", "lim\u{207B}(", "d/dx(",
+    "\u{2202}/\u{2202}x(", "dy/dx", " mod ", "log\u{2082}(",
+    // 4 chars
+    "sin(", "cos(", "tan(", "cot(", "sec(", "csc(",
+    "log(", "exp(", "GCD(", "LCM(", "min(", "max(",
+    "nPr(", "nCr(", "lim(", "10^(",
+    // 3 chars
+    "ln(", "e^(", "\u{222B}\u{222B}(",
+    "\u{00B3}\u{221A}(", "\u{2074}\u{221A}(", "\u{207F}\u{221A}(",
+    "\u{00B0}\u{2032}\u{2033}", "rad",
+    // 2 chars
+    "\u{222B}(", "\u{222E}(", "\u{03A3}(", "\u{220F}(",
+    "\u{221A}(", "\u{00B0}\u{2032}", "\u{207B}\u{00B9}",
+    "a\u{2099}", "y'",
+]
+
 // MARK: - Insert-text mapping
 
 private func mapInsert(_ label: String) -> String {
@@ -548,17 +574,39 @@ struct ScientificCalculatorView: View {
         pushUndo()
         let pos = min(cursorPos, expression.count)
         guard pos > 0 else { return }
-        let idx = expression.index(expression.startIndex, offsetBy: pos - 1)
-        expression.remove(at: idx)
-        cursorPos = pos - 1
+        let textBefore = String(expression.prefix(pos))
+        var count = 1
+        for token in cursorTokens {
+            if textBefore.hasSuffix(token) { count = token.count; break }
+        }
+        let start = expression.index(expression.startIndex, offsetBy: pos - count)
+        let end = expression.index(expression.startIndex, offsetBy: pos)
+        expression.removeSubrange(start..<end)
+        cursorPos = pos - count
     }
 
     private func cursorLeft() {
-        if cursorPos > 0 { cursorPos -= 1 }
+        guard cursorPos > 0 else { return }
+        let textBefore = String(expression.prefix(cursorPos))
+        for token in cursorTokens {
+            if textBefore.hasSuffix(token) {
+                cursorPos -= token.count
+                return
+            }
+        }
+        cursorPos -= 1
     }
 
     private func cursorRight() {
-        if cursorPos < expression.count { cursorPos += 1 }
+        guard cursorPos < expression.count else { return }
+        let textAfter = String(expression.suffix(expression.count - cursorPos))
+        for token in cursorTokens {
+            if textAfter.hasPrefix(token) {
+                cursorPos += token.count
+                return
+            }
+        }
+        cursorPos += 1
     }
 
     private func insertParens() {
