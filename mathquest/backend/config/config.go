@@ -17,6 +17,11 @@ type Config struct {
 	Env              string
 	ClaudeAPIKey     string
 	CameraDailyLimit int
+	AppStoreIssuerID string
+	AppStoreKeyID    string
+	AppStoreBundleID string
+	AppStoreKeyPath  string
+	AppStoreEnv      string
 	APNSTeamID       string
 	APNSKeyID        string
 	APNSBundleID     string
@@ -42,6 +47,11 @@ func Load() (*Config, error) {
 		Env:              getEnv("ENV", "development"),
 		ClaudeAPIKey:     getEnv("CLAUDE_API_KEY", ""),
 		CameraDailyLimit: dailyLimit,
+		AppStoreIssuerID: getEnv("APPSTORE_ISSUER_ID", ""),
+		AppStoreKeyID:    getEnv("APPSTORE_KEY_ID", ""),
+		AppStoreBundleID: getEnv("APPSTORE_BUNDLE_ID", "com.kram.math"),
+		AppStoreKeyPath:  getEnv("APPSTORE_PRIVATE_KEY_PATH", ""),
+		AppStoreEnv:      getEnv("APPSTORE_ENV", "production"),
 		APNSTeamID:       getEnv("APNS_TEAM_ID", ""),
 		APNSKeyID:        getEnv("APNS_KEY_ID", ""),
 		APNSBundleID:     getEnv("APNS_BUNDLE_ID", "com.kram.math"),

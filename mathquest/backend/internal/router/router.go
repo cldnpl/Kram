@@ -17,6 +17,7 @@ import (
 	"mathquest/backend/internal/rewards"
 	"mathquest/backend/internal/store"
 	"mathquest/backend/internal/streak"
+	"mathquest/backend/internal/subscription"
 	"mathquest/backend/internal/user"
 	"mathquest/backend/static"
 
@@ -58,6 +59,7 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	// Streak handler
 	streakHandler := streak.NewHandler(db, redisClient, cfg)
 	cameraHandler := camera.NewHandler(db, redisClient, cfg)
+	subscriptionHandler := subscription.NewHandler(db, cfg)
 
 	// Public shared-solution routes.
 	app.Get("/s/:token", cameraHandler.SharedLandingPage)
@@ -120,6 +122,10 @@ func Setup(app *fiber.App, cfg *config.Config, db *gorm.DB, redisClient *redis.C
 	// Store
 	protected.Get("/store/items", store.ListItems)
 	protected.Post("/store/buy/:itemId", store.Buy)
+
+	// Subscriptions (server-side verification)
+	protected.Post("/subscriptions/verify", subscriptionHandler.VerifyApple)
+	protected.Get("/subscriptions/status", subscriptionHandler.Status)
 
 	// Rewards / Tasks
 	protected.Get("/rewards/tasks", rewards.ListTasks)

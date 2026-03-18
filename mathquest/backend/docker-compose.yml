@@ -11,6 +11,16 @@ services:
       PORT: 8080
       DATABASE_URL: postgres://postgres:postgres@db:5432/mathquest?sslmode=disable
       REDIS_URL: redis://redis:6379
+      APPSTORE_ISSUER_ID: 5ae45c43-7e86-4afb-a8df-7af0a5183acb
+      APPSTORE_KEY_ID: F8JCZ4JD6Y
+      APPSTORE_BUNDLE_ID: com.kram.math
+      APPSTORE_PRIVATE_KEY_PATH: /app/AuthKey_F8JCZ4JD6Y.p8
+      APPSTORE_ENV: production
+      APNS_TEAM_ID: H4M7KJL5DT
+      APNS_KEY_ID: 764G76LB8V
+      APNS_BUNDLE_ID: com.kram.math
+      APNS_PRIVATE_KEY_PATH: /app/AuthKey_764G76LB8V.p8
+      APNS_ENV: development
     depends_on:
       - db
       - redis
