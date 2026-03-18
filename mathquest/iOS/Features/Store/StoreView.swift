@@ -96,41 +96,72 @@ struct StoreView: View {
     }
 
     private var featureComparison: some View {
-        VStack(spacing: 0) {
+        VStack(alignment: .leading, spacing: 12) {
             Text(L10n.storeWhatsIncluded)
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 12)
 
-            VStack(spacing: 0) {
-                FeatureRow(
-                    feature: L10n.storeFeatureCameraScans,
-                    free: L10n.storeValue3Day,
-                    premium: L10n.storeValueUnlimited
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(appPurple.opacity(0.14))
+                            .frame(width: 36, height: 36)
+
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 17, weight: .semibold))
+                            .foregroundStyle(appPurple)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L10n.storePremium)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(.primary)
+                        Text(L10n.storeSummaryPremium)
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+
+                    Spacer(minLength: 8)
+
+                    Text(L10n.storeValueUnlimited)
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(appPurple)
+                        .padding(.horizontal, 9)
+                        .padding(.vertical, 6)
+                        .background(appPurple.opacity(0.12))
+                        .clipShape(Capsule())
+                }
+
+                Divider()
+
+                IncludedFeatureRow(
+                    icon: "camera.viewfinder",
+                    label: L10n.storeFeatureCameraScans,
+                    value: L10n.storeValueUnlimited,
+                    tint: appPurple
                 )
 
-                Divider().padding(.horizontal, 16)
-
-                FeatureRow(
-                    feature: L10n.storeFeatureLessonRewards,
-                    free: "25%",
-                    premium: "100%"
-                )
-
-                Divider().padding(.horizontal, 16)
-
-                FeatureRow(
-                    feature: L10n.storeFeatureLessonRefunds,
-                    free: nil,
-                    premium: L10n.storeValueFull
-                )
+                HStack(spacing: 8) {
+                    Image(systemName: "leaf.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.green)
+                    Text("\(L10n.storeFree): \(L10n.storeValue3Day)")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
             }
+            .padding(16)
             .background(Color(.systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .padding(.horizontal, 20)
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .stroke(appPurple.opacity(0.18), lineWidth: 1)
+            )
         }
+        .padding(.horizontal, 20)
     }
 
     private var subscribeButton: some View {
@@ -285,37 +316,32 @@ private struct PlanCard: View {
     }
 }
 
-private struct FeatureRow: View {
-    let feature: String
-    let free: String?
-    let premium: String?
+private struct IncludedFeatureRow: View {
+    let icon: String
+    let label: String
+    let value: String
+    let tint: Color
 
     var body: some View {
-        HStack {
-            Text(feature)
-                .font(.system(size: 14))
+        HStack(spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 16)
+
+            Text(label)
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(.primary)
-                .frame(maxWidth: .infinity, alignment: .leading)
 
-            tierValue(free, color: .primary)
-                .frame(width: 60)
-            tierValue(premium, color: appPurple)
-                .frame(width: 84)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-    }
+            Spacer(minLength: 8)
 
-    @ViewBuilder
-    private func tierValue(_ value: String?, color: Color) -> some View {
-        if let value {
             Text(value)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(color)
-        } else {
-            Image(systemName: "minus")
-                .font(.system(size: 12))
-                .foregroundStyle(.quaternary)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(tint)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(tint.opacity(0.12))
+                .clipShape(Capsule())
         }
     }
 }

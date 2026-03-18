@@ -34,24 +34,6 @@ class _ShopPageState extends State<ShopPage> {
         ),
       ];
 
-  List<_ComparisonRow> get _comparisonFeatures => [
-        _ComparisonRow(
-          feature: AppLocale.tr('store_feature_camera_scans'),
-          free: AppLocale.tr('store_value_3_day'),
-          premium: AppLocale.tr('store_value_unlimited'),
-        ),
-        _ComparisonRow(
-          feature: AppLocale.tr('store_feature_lesson_rewards'),
-          free: '25%',
-          premium: '100%',
-        ),
-        _ComparisonRow(
-          feature: AppLocale.tr('store_feature_lesson_refunds'),
-          free: '-',
-          premium: AppLocale.tr('store_value_full'),
-        ),
-      ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -154,35 +136,96 @@ class _ShopPageState extends State<ShopPage> {
           ),
           const SizedBox(height: 12),
           Container(
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: _appPurple.withValues(alpha: 0.18)),
             ),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: Row(
-                    children: [
-                      const Expanded(child: SizedBox()),
-                      _comparisonHeader(
-                          AppLocale.tr('store_free'), Colors.green),
-                      _comparisonHeader(
-                          AppLocale.tr('store_premium'), AppColors.appPurple,
-                          width: 84),
-                    ],
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: _appPurple.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.workspace_premium,
+                        size: 18,
+                        color: _appPurple,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocale.tr('store_premium'),
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            AppLocale.tr('store_summary_premium'),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 9, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _appPurple.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        AppLocale.tr('store_value_unlimited'),
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: _appPurple,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const Divider(height: 1, indent: 16, endIndent: 16),
-                ...List.generate(_comparisonFeatures.length, (i) {
-                  return Column(
-                    children: [
-                      _buildComparisonRow(_comparisonFeatures[i]),
-                      if (i < _comparisonFeatures.length - 1)
-                        const Divider(height: 1, indent: 16, endIndent: 16),
-                    ],
-                  );
-                }),
+                const SizedBox(height: 14),
+                Divider(height: 1, color: Colors.grey.shade200),
+                const SizedBox(height: 14),
+                _includedRow(
+                  icon: Icons.camera_alt_outlined,
+                  label: AppLocale.tr('store_feature_camera_scans'),
+                  value: AppLocale.tr('store_value_unlimited'),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    const Icon(Icons.eco, size: 14, color: Colors.green),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${AppLocale.tr('store_free')}: ${AppLocale.tr('store_value_3_day')}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -191,57 +234,38 @@ class _ShopPageState extends State<ShopPage> {
     );
   }
 
-  Widget _comparisonHeader(String label, Color color, {double width = 60}) {
-    return SizedBox(
-      width: width,
-      child: Text(
-        label,
-        style:
-            TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color),
-        textAlign: TextAlign.center,
-      ),
-    );
-  }
-
-  Widget _buildComparisonRow(_ComparisonRow row) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              row.feature,
-              style: const TextStyle(fontSize: 14),
+  Widget _includedRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: _appPurple),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: _appPurple.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(999),
+          ),
+          child: Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: _appPurple,
             ),
           ),
-          SizedBox(
-            width: 60,
-            child: Text(
-              row.free,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: row.free == '-' ? Colors.grey.shade300 : Colors.black87,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          SizedBox(
-            width: 84,
-            child: Text(
-              row.premium,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: row.premium == '-'
-                    ? Colors.grey.shade300
-                    : AppColors.appPurple,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -317,18 +341,6 @@ class _Plan {
     required this.icon,
     required this.iconColor,
     required this.summary,
-  });
-}
-
-class _ComparisonRow {
-  final String feature;
-  final String free;
-  final String premium;
-
-  const _ComparisonRow({
-    required this.feature,
-    required this.free,
-    required this.premium,
   });
 }
 

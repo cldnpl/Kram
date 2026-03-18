@@ -148,10 +148,8 @@ class _LessonDetailPageState extends State<LessonDetailPage> {
     );
   }
 
-  int _lessonCostForId(String lessonId) {
-    final sectionId = int.tryParse(lessonId.split('-').first) ?? 1;
-    final increment = (sectionId - 1) % 4;
-    return 20 + (increment * 5);
+  int _lessonCostForId(String _) {
+    return 0;
   }
 
   List<_LessonExercise> _lessonExercisesFromDetail() {

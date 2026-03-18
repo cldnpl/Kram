@@ -40,6 +40,11 @@ type appUser struct {
 	Name        string `gorm:"column:name"`
 }
 
+type userSubscriptionSnapshot struct {
+	SubscriptionTier      string     `gorm:"column:subscription_tier"`
+	SubscriptionExpiresAt *time.Time `gorm:"column:subscription_expires_at"`
+}
+
 func (appUser) TableName() string {
 	return "users"
 }
@@ -102,6 +107,27 @@ func (h *Handler) dailyLimitForRequest(c *fiber.Ctx, tier string) int {
 		return 1
 	}
 	return h.dailyLimitForTier(tier)
+}
+
+func (h *Handler) effectiveSubscriptionTier(c *fiber.Ctx, userID uint) string {
+	if h.db != nil && userID > 0 {
+		var snapshot userSubscriptionSnapshot
+		err := h.db.Table("users").
+			Select("subscription_tier, subscription_expires_at").
+			Where("id = ?", userID).
+			First(&snapshot).Error
+		if err == nil {
+			tier := normalizeSubscriptionTier(snapshot.SubscriptionTier)
+			if tier == "premium" && snapshot.SubscriptionExpiresAt != nil && snapshot.SubscriptionExpiresAt.Before(time.Now().UTC()) {
+				return "free"
+			}
+			return tier
+		}
+	}
+
+	// Backward-compatible fallback during rollout: rely on client header only when
+	// no server subscription state can be loaded.
+	return normalizeSubscriptionTier(c.Get("X-Subscription-Tier"))
 }
 
 func (h *Handler) getDailyUsage(ctx context.Context, userID uint) (int, error) {
@@ -317,7 +343,7 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 // Solve handles POST /api/camera/solve
 func (h *Handler) Solve(c *fiber.Ctx) error {
 	userID := h.resolveUserID(c)
-	tier := normalizeSubscriptionTier(c.Get("X-Subscription-Tier"))
+	tier := h.effectiveSubscriptionTier(c, userID)
 	effectiveDailyLimit := h.dailyLimitForRequest(c, tier)
 
 	ctx := context.Background()
@@ -845,7 +871,7 @@ func (h *Handler) DeleteHistoryDetail(c *fiber.Ctx) error {
 // Status handles GET /api/camera/status
 func (h *Handler) Status(c *fiber.Ctx) error {
 	userID := h.resolveUserID(c)
-	tier := normalizeSubscriptionTier(c.Get("X-Subscription-Tier"))
+	tier := h.effectiveSubscriptionTier(c, userID)
 	effectiveDailyLimit := h.dailyLimitForRequest(c, tier)
 
 	ctx := context.Background()

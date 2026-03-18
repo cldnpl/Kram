@@ -18,9 +18,6 @@ struct LessonDetailView: View {
                 ProgressView(L10n.loading)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let detail = viewModel.lessonDetail {
-                let currentTier = SubscriptionTier.current
-                let projectedReward = currentTier.rewardForLesson(cost: lesson.coinCost)
-
                 ScrollView {
                     VStack(alignment: .leading, spacing: 16) {
                         let normalizedIntro = normalizeLegacyDiagramReplacements(
@@ -69,15 +66,6 @@ struct LessonDetailView: View {
                             }
                         }
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(L10n.lessonCost(lesson.coinCost))
-                            Text("\(L10n.planLabel): \(currentTier.displayName)")
-                            Text(L10n.completionReward(projectedReward))
-                        }
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 12)
-
                         NavigationLink {
                             LessonPracticeView(
                                 lesson: lesson,
@@ -85,7 +73,7 @@ struct LessonDetailView: View {
                                 completeLessonAction: {
                                     try await viewModel.completeLesson(
                                         lessonId: lesson.id,
-                                        lessonCost: lesson.coinCost
+                                        lessonCost: 0
                                     )
                                 }
                             )

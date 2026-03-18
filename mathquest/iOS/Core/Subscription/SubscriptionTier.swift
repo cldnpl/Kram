@@ -94,50 +94,32 @@ enum SubscriptionTier: String, CaseIterable, Codable {
         }
     }
 
-    var lessonRewardRate: Double {
-        switch self {
-        case .free:
-            return 0.25
-        case .premium:
-            return 1.0
-        }
-    }
-
     var featureSummary: String {
         let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
         switch self {
         case .free:
             switch lang {
-            case "it": return "3 scansioni camera/giorno e ricompense standard"
-            case "fr": return "3 scans caméra/jour et récompenses standard"
-            case "es": return "3 escaneos de cámara/día y recompensas estándar"
-            case "uz": return "Kuniga 3 ta kamera skani va standart mukofotlar"
-            default: return "3 camera scans/day and standard lesson rewards"
+            case "it": return "3 scansioni camera/giorno. Lezioni sempre gratuite"
+            case "fr": return "3 scans caméra/jour. Leçons toujours gratuites"
+            case "es": return "3 escaneos de cámara/día. Lecciones siempre gratis"
+            case "uz": return "Kuniga 3 ta kamera skani. Darslar doim bepul"
+            default: return "3 camera scans/day. Lessons always free"
             }
         case .premium:
             switch lang {
-            case "it": return "Scansioni camera illimitate e rimborso completo lezioni"
-            case "fr": return "Scans caméra illimités et remboursement complet"
-            case "es": return "Escaneos ilimitados y reembolso completo"
-            case "uz": return "Cheksiz kamera skanlari va to'liq qaytarim"
-            default: return "Unlimited camera scans and full lesson refunds"
+            case "it": return "Scansioni camera illimitate. Lezioni sempre gratuite"
+            case "fr": return "Scans caméra illimités. Leçons toujours gratuites"
+            case "es": return "Escaneos ilimitados. Lecciones siempre gratis"
+            case "uz": return "Cheksiz kamera skanlari. Darslar doim bepul"
+            default: return "Unlimited camera scans. Lessons always free"
             }
         }
     }
 
     func rewardForLesson(cost lessonCost: Int) -> Int {
         let normalizedCost = Swift.max(0, lessonCost)
-        guard normalizedCost > 0 else {
-            return 0
-        }
-
-        if self == .premium {
-            // Premium always gives full refund, but never more than the lesson cost.
-            return normalizedCost
-        }
-
-        let calculated = Int((Double(normalizedCost) * lessonRewardRate).rounded(.down))
-        return Swift.max(0, Swift.min(normalizedCost, calculated))
+        // Lessons are always free: everyone gets full refund on completion.
+        return normalizedCost
     }
 
     func persistAsCurrent() {

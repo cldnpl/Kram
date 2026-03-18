@@ -2,7 +2,6 @@ package lesson
 
 import (
 	"log"
-	"math"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -53,18 +52,17 @@ func Complete(c *fiber.Ctx) error {
 		}
 	}
 
-	if req.LessonCost < 0 {
-		req.LessonCost = 0
-	}
+	// Lessons are always free; ignore any client-provided lesson cost.
+	req.LessonCost = 0
 
-	coinsEarned := coinsEarnedForCompletion(req.LessonCost, tier)
+	coinsEarned := coinsEarnedForCompletion(req.LessonCost)
 
 	return c.JSON(fiber.Map{
 		"ok":                true,
 		"coins_earned":      coinsEarned,
 		"lesson_cost":       req.LessonCost,
 		"subscription_tier": tier,
-		"full_refund":       tier == "premium" && req.LessonCost > 0,
+		"full_refund":       req.LessonCost > 0,
 	})
 }
 
@@ -77,36 +75,7 @@ func normalizeSubscriptionTier(raw string) string {
 	}
 }
 
-func lessonRewardRateForTier(tier string) float64 {
-	switch tier {
-	case "premium":
-		return 1.0
-	default:
-		return 0.25
-	}
-}
-
-func coinsEarnedForCompletion(lessonCost int, tier string) int {
-	normalizedCost := lessonCost
-	if normalizedCost < 0 {
-		normalizedCost = 0
-	}
-	if normalizedCost == 0 {
-		return 0
-	}
-
-	if tier == "premium" {
-		// Premium gets full refund of the completed lesson.
-		return normalizedCost
-	}
-
-	rawReward := int(math.Floor(float64(normalizedCost) * lessonRewardRateForTier(tier)))
-	if rawReward < 0 {
-		rawReward = 0
-	}
-	if rawReward > normalizedCost {
-		rawReward = normalizedCost
-	}
-
-	return rawReward
+func coinsEarnedForCompletion(lessonCost int) int {
+	_ = lessonCost
+	return 0
 }

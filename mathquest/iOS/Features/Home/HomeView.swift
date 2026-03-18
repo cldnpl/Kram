@@ -288,9 +288,8 @@ struct CategorySubtopicsView: View {
     }
 
     private func lessonCostForSection(_ lessonId: String) -> Int {
-        let base = 20
-        let increment = ((Int(lessonId) ?? 1) - 1) % 4
-        return base + (increment * 5)
+        _ = lessonId
+        return 0
     }
 
     private func handleLessonTap(_ lesson: LessonItem) {

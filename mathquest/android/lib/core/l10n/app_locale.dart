@@ -803,18 +803,18 @@ class AppLocale {
       'uz': 'Premium'
     },
     'store_summary_free': {
-      'it': '3 scansioni camera/giorno e ricompense standard',
-      'en': '3 camera scans/day and standard lesson rewards',
-      'fr': '3 scans caméra/jour et récompenses standard',
-      'es': '3 escaneos de cámara/día y recompensas estándar',
-      'uz': "Kuniga 3 ta kamera skani va standart mukofotlar"
+      'it': '3 scansioni camera/giorno. Lezioni sempre gratuite',
+      'en': '3 camera scans/day. Lessons always free',
+      'fr': '3 scans caméra/jour. Leçons toujours gratuites',
+      'es': '3 escaneos de cámara/día. Lecciones siempre gratis',
+      'uz': "Kuniga 3 ta kamera skani. Darslar doim bepul"
     },
     'store_summary_premium': {
-      'it': 'Scansioni camera illimitate e rimborso completo lezioni',
-      'en': 'Unlimited camera scans and full lesson refunds',
-      'fr': 'Scans caméra illimités et remboursement complet',
-      'es': 'Escaneos ilimitados y reembolso completo',
-      'uz': "Cheksiz kamera skanlari va to'liq qaytarim"
+      'it': 'Scansioni camera illimitate. Lezioni sempre gratuite',
+      'en': 'Unlimited camera scans. Lessons always free',
+      'fr': 'Scans caméra illimités. Leçons toujours gratuites',
+      'es': 'Escaneos ilimitados. Lecciones siempre gratis',
+      'uz': "Cheksiz kamera skanlari. Darslar doim bepul"
     },
     'setup_profile_title': {
       'it': 'Configura il tuo profilo',
