@@ -3,30 +3,38 @@ import FirebaseAuth
 
 enum SubscriptionTier: String, CaseIterable, Codable {
     case free
-    case pro
-    case max
+    case premium
 
     static let userDefaultsKey = "subscription_tier"
 
-    static let proProductID = "com.kram.mathquest.subscription.pro.monthly"
-    static let maxProductID = "com.kram.mathquest.subscription.max.monthly"
+    static let premiumProductID = "com.kram.mathquest.subscription.premium.monthly"
+
+    // Legacy product IDs kept for migration of existing subscribers.
+    static let legacyProProductID = "com.kram.mathquest.subscription.pro.monthly"
+    static let legacyMaxProductID = "com.kram.mathquest.subscription.max.monthly"
+
     private static let developerAppleEmails: Set<String> = [
         "napolitano.claudia@icloud.com",
     ]
 
     static var paidProductIDs: [String] {
-        [proProductID, maxProductID]
+        [premiumProductID, legacyProProductID, legacyMaxProductID]
     }
 
     static var current: SubscriptionTier {
         if isDeveloperOverrideActive {
-            return .max
+            return .premium
         }
-        guard let raw = UserDefaults.standard.string(forKey: userDefaultsKey),
-              let tier = SubscriptionTier(rawValue: raw) else {
+        guard let raw = UserDefaults.standard.string(forKey: userDefaultsKey) else {
             return .free
         }
-        return tier
+        // Migrate persisted legacy values on read.
+        switch raw {
+        case "pro", "max", "premium":
+            return .premium
+        default:
+            return .free
+        }
     }
 
     static var isDeveloperOverrideActive: Bool {
@@ -59,10 +67,8 @@ enum SubscriptionTier: String, CaseIterable, Codable {
             case "uz": return "Bepul"
             default: return "Free"
             }
-        case .pro:
-            return "Pro"
-        case .max:
-            return "Max"
+        case .premium:
+            return "Premium"
         }
     }
 
@@ -70,10 +76,8 @@ enum SubscriptionTier: String, CaseIterable, Codable {
         switch self {
         case .free:
             return nil
-        case .pro:
-            return Self.proProductID
-        case .max:
-            return Self.maxProductID
+        case .premium:
+            return Self.premiumProductID
         }
     }
 
@@ -85,9 +89,7 @@ enum SubscriptionTier: String, CaseIterable, Codable {
         switch self {
         case .free:
             return 3
-        case .pro:
-            return 10
-        case .max:
+        case .premium:
             return nil
         }
     }
@@ -96,9 +98,7 @@ enum SubscriptionTier: String, CaseIterable, Codable {
         switch self {
         case .free:
             return 0.25
-        case .pro:
-            return 0.60
-        case .max:
+        case .premium:
             return 1.0
         }
     }
@@ -114,15 +114,7 @@ enum SubscriptionTier: String, CaseIterable, Codable {
             case "uz": return "Kuniga 3 ta kamera skani va standart mukofotlar"
             default: return "3 camera scans/day and standard lesson rewards"
             }
-        case .pro:
-            switch lang {
-            case "it": return "10 scansioni camera/giorno e ricompense aumentate"
-            case "fr": return "10 scans caméra/jour et récompenses augmentées"
-            case "es": return "10 escaneos de cámara/día y recompensas mejoradas"
-            case "uz": return "Kuniga 10 ta kamera skani va oshirilgan mukofotlar"
-            default: return "10 camera scans/day and boosted lesson rewards"
-            }
-        case .max:
+        case .premium:
             switch lang {
             case "it": return "Scansioni camera illimitate e rimborso completo lezioni"
             case "fr": return "Scans caméra illimités et remboursement complet"
@@ -139,8 +131,8 @@ enum SubscriptionTier: String, CaseIterable, Codable {
             return 0
         }
 
-        if self == .max {
-            // Max always gives full refund, but never more than the lesson cost.
+        if self == .premium {
+            // Premium always gives full refund, but never more than the lesson cost.
             return normalizedCost
         }
 

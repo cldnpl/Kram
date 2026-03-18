@@ -25,12 +25,12 @@ class SubscriptionAccess {
 
   static Future<String> currentTierRaw() async {
     if (await isDeveloperOverrideActive()) {
-      return 'max';
+      return 'premium';
     }
 
     final prefs = await SharedPreferences.getInstance();
     final raw = (prefs.getString(_keyTier) ?? '').trim().toLowerCase();
-    if (raw == 'pro' || raw == 'max') return raw;
+    if (raw == 'premium' || raw == 'pro' || raw == 'max') return 'premium';
     return 'free';
   }
 }

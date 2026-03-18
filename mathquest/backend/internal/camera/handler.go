@@ -28,7 +28,10 @@ type Handler struct {
 	dailyLimit int
 }
 
-const unlimitedDailyLimit = -1
+const (
+	freeDailyLimit      = 3
+	unlimitedDailyLimit = -1
+)
 
 type appUser struct {
 	ID          uint   `gorm:"column:id"`
@@ -52,10 +55,8 @@ func NewHandler(db *gorm.DB, redisClient *redis.Client, cfg *config.Config) *Han
 
 func normalizeSubscriptionTier(raw string) string {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "pro":
-		return "pro"
-	case "max":
-		return "max"
+	case "premium", "pro", "max":
+		return "premium"
 	default:
 		return "free"
 	}
@@ -80,12 +81,10 @@ func normalizeSolutionLanguage(raw string) string {
 
 func (h *Handler) dailyLimitForTier(tier string) int {
 	switch tier {
-	case "pro":
-		return 10
-	case "max":
+	case "premium":
 		return unlimitedDailyLimit
 	default:
-		return h.dailyLimit
+		return freeDailyLimit
 	}
 }
 

@@ -455,7 +455,7 @@ final class CameraViewModel: ObservableObject {
         guard usesRemaining == Self.unlimitedValue || usesRemaining > 0 else {
             if isGuest {
                 showLoginPrompt = true
-            } else if SubscriptionTier.current != .max {
+            } else if SubscriptionTier.current != .premium {
                 showUpgradePrompt = true
             } else {
                 state = .error("Daily limit reached. Come back tomorrow!")
@@ -468,7 +468,7 @@ final class CameraViewModel: ObservableObject {
 
     private func applyStatus(_ response: StatusResponse) {
         let tier = SubscriptionTier.current
-        if tier == .max || response.dailyLimit < 0 || response.remaining < 0 {
+        if tier == .premium || response.dailyLimit < 0 || response.remaining < 0 {
             dailyLimit = Self.unlimitedValue
             usesRemaining = Self.unlimitedValue
             return

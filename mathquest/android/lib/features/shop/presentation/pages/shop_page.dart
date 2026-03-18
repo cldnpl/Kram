@@ -13,53 +13,44 @@ class ShopPage extends StatefulWidget {
 }
 
 class _ShopPageState extends State<ShopPage> {
-  int _selectedIndex = 1; // Default to Pro
+  int _selectedIndex = 1; // Default to Premium
 
   List<_Plan> get _plans => [
-    _Plan(
-      name: AppLocale.tr('store_free'),
-      price: null,
-      priceLabel: AppLocale.tr('store_free'),
-      icon: Icons.eco,
-      iconColor: Colors.green,
-      badge: null,
-      summary: AppLocale.tr('store_summary_free'),
-    ),
-    _Plan(
-      name: AppLocale.tr('store_pro'),
-      price: 3.99,
-      priceLabel: '\$3.99',
-      icon: Icons.bolt,
-      iconColor: AppColors.appPurple,
-      badge: null,
-      summary: AppLocale.tr('store_summary_pro'),
-    ),
-    _Plan(
-      name: AppLocale.tr('store_max'),
-      price: 8.99,
-      priceLabel: '\$8.99',
-      icon: Icons.workspace_premium,
-      iconColor: Colors.orange,
-      badge: AppLocale.tr('store_badge_best'),
-      summary: AppLocale.tr('store_summary_max'),
-    ),
-  ];
+        _Plan(
+          name: AppLocale.tr('store_free'),
+          price: null,
+          priceLabel: AppLocale.tr('store_free'),
+          icon: Icons.eco,
+          iconColor: Colors.green,
+          summary: AppLocale.tr('store_summary_free'),
+        ),
+        _Plan(
+          name: AppLocale.tr('store_premium'),
+          price: 6.99,
+          priceLabel: '\$6.99',
+          icon: Icons.workspace_premium,
+          iconColor: AppColors.appPurple,
+          summary: AppLocale.tr('store_summary_premium'),
+        ),
+      ];
 
   List<_ComparisonRow> get _comparisonFeatures => [
-    _ComparisonRow(
-      feature: AppLocale.tr('store_feature_camera_scans'),
-      free: AppLocale.tr('store_value_5_day'),
-      pro: AppLocale.tr('store_value_10_day'),
-      max: AppLocale.tr('store_value_unlimited'),
-    ),
-    _ComparisonRow(feature: AppLocale.tr('store_feature_lesson_rewards'), free: '25%', pro: '60%', max: '100%'),
-    _ComparisonRow(
-      feature: AppLocale.tr('store_feature_lesson_refunds'),
-      free: '-',
-      pro: '-',
-      max: AppLocale.tr('store_value_full'),
-    ),
-  ];
+        _ComparisonRow(
+          feature: AppLocale.tr('store_feature_camera_scans'),
+          free: AppLocale.tr('store_value_3_day'),
+          premium: AppLocale.tr('store_value_unlimited'),
+        ),
+        _ComparisonRow(
+          feature: AppLocale.tr('store_feature_lesson_rewards'),
+          free: '25%',
+          premium: '100%',
+        ),
+        _ComparisonRow(
+          feature: AppLocale.tr('store_feature_lesson_refunds'),
+          free: '-',
+          premium: AppLocale.tr('store_value_full'),
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +97,8 @@ class _ShopPageState extends State<ShopPage> {
               end: Alignment.bottomRight,
             ),
           ),
-          child: const Icon(Icons.workspace_premium, size: 36, color: Colors.white),
+          child: const Icon(Icons.workspace_premium,
+              size: 36, color: Colors.white),
         ),
         const SizedBox(height: 12),
         Text(
@@ -173,9 +165,11 @@ class _ShopPageState extends State<ShopPage> {
                   child: Row(
                     children: [
                       const Expanded(child: SizedBox()),
-                      _comparisonHeader(AppLocale.tr('store_free'), Colors.green),
-                      _comparisonHeader(AppLocale.tr('store_pro'), AppColors.appPurple),
-                      _comparisonHeader(AppLocale.tr('store_max'), Colors.orange, width: 70),
+                      _comparisonHeader(
+                          AppLocale.tr('store_free'), Colors.green),
+                      _comparisonHeader(
+                          AppLocale.tr('store_premium'), AppColors.appPurple,
+                          width: 84),
                     ],
                   ),
                 ),
@@ -202,7 +196,8 @@ class _ShopPageState extends State<ShopPage> {
       width: width,
       child: Text(
         label,
-        style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color),
+        style:
+            TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color),
         textAlign: TextAlign.center,
       ),
     );
@@ -232,25 +227,15 @@ class _ShopPageState extends State<ShopPage> {
             ),
           ),
           SizedBox(
-            width: 60,
+            width: 84,
             child: Text(
-              row.pro,
+              row.premium,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: row.pro == '-' ? Colors.grey.shade300 : AppColors.appPurple,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ),
-          SizedBox(
-            width: 70,
-            child: Text(
-              row.max,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: row.max == '-' ? Colors.grey.shade300 : Colors.orange,
+                color: row.premium == '-'
+                    ? Colors.grey.shade300
+                    : AppColors.appPurple,
               ),
               textAlign: TextAlign.center,
             ),
@@ -285,7 +270,8 @@ class _ShopPageState extends State<ShopPage> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
-            textStyle: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+            textStyle:
+                const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
           ),
           child: Text(label),
         ),
@@ -302,7 +288,7 @@ class _ShopPageState extends State<ShopPage> {
           },
           child: Text(
             AppLocale.tr('store_restore'),
-            style: TextStyle(fontSize: 14, color: _appPurple),
+            style: const TextStyle(fontSize: 14, color: _appPurple),
           ),
         ),
         const SizedBox(height: 4),
@@ -322,7 +308,6 @@ class _Plan {
   final String priceLabel;
   final IconData icon;
   final Color iconColor;
-  final String? badge;
   final String summary;
 
   const _Plan({
@@ -331,7 +316,6 @@ class _Plan {
     required this.priceLabel,
     required this.icon,
     required this.iconColor,
-    required this.badge,
     required this.summary,
   });
 }
@@ -339,14 +323,12 @@ class _Plan {
 class _ComparisonRow {
   final String feature;
   final String free;
-  final String pro;
-  final String max;
+  final String premium;
 
   const _ComparisonRow({
     required this.feature,
     required this.free,
-    required this.pro,
-    required this.max,
+    required this.premium,
   });
 }
 
@@ -397,12 +379,14 @@ class _PlanCard extends StatelessWidget {
                     children: [
                       Text(
                         plan.name,
-                        style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            fontSize: 17, fontWeight: FontWeight.w600),
                       ),
                       if (isCurrent) ...[
                         const SizedBox(width: 6),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: Colors.green.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(10),
@@ -413,24 +397,6 @@ class _PlanCard extends StatelessWidget {
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
                               color: Colors.green,
-                            ),
-                          ),
-                        ),
-                      ],
-                      if (plan.badge != null) ...[
-                        const SizedBox(width: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            plan.badge!,
-                            style: const TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.orange,
                             ),
                           ),
                         ),

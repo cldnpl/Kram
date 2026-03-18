@@ -64,16 +64,14 @@ func Complete(c *fiber.Ctx) error {
 		"coins_earned":      coinsEarned,
 		"lesson_cost":       req.LessonCost,
 		"subscription_tier": tier,
-		"full_refund":       tier == "max" && req.LessonCost > 0,
+		"full_refund":       tier == "premium" && req.LessonCost > 0,
 	})
 }
 
 func normalizeSubscriptionTier(raw string) string {
 	switch strings.ToLower(strings.TrimSpace(raw)) {
-	case "pro":
-		return "pro"
-	case "max":
-		return "max"
+	case "premium", "pro", "max":
+		return "premium"
 	default:
 		return "free"
 	}
@@ -81,9 +79,7 @@ func normalizeSubscriptionTier(raw string) string {
 
 func lessonRewardRateForTier(tier string) float64 {
 	switch tier {
-	case "pro":
-		return 0.60
-	case "max":
+	case "premium":
 		return 1.0
 	default:
 		return 0.25
@@ -99,8 +95,8 @@ func coinsEarnedForCompletion(lessonCost int, tier string) int {
 		return 0
 	}
 
-	if tier == "max" {
-		// Max gets full refund of the completed lesson.
+	if tier == "premium" {
+		// Premium gets full refund of the completed lesson.
 		return normalizedCost
 	}
 

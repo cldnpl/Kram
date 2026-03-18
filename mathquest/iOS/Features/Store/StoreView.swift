@@ -6,16 +6,14 @@ private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 struct StoreView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @Environment(\.dismiss) private var dismiss
-    @State private var selectedTier: SubscriptionTier = .pro
+    @State private var selectedTier: SubscriptionTier = .premium
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Hero header
                     headerSection
 
-                    // Plan cards
                     VStack(spacing: 12) {
                         PlanCard(
                             tier: .free,
@@ -25,32 +23,22 @@ struct StoreView: View {
                         ) { selectedTier = .free }
 
                         PlanCard(
-                            tier: .pro,
-                            isSelected: selectedTier == .pro,
-                            isCurrent: subscriptionManager.currentTier == .pro,
-                            price: subscriptionManager.product(for: .pro)?.displayPrice
-                        ) { selectedTier = .pro }
-
-                        PlanCard(
-                            tier: .max,
-                            isSelected: selectedTier == .max,
-                            isCurrent: subscriptionManager.currentTier == .max,
-                            price: subscriptionManager.product(for: .max)?.displayPrice
-                        ) { selectedTier = .max }
+                            tier: .premium,
+                            isSelected: selectedTier == .premium,
+                            isCurrent: subscriptionManager.currentTier == .premium,
+                            price: subscriptionManager.product(for: .premium)?.displayPrice ?? "$6.99"
+                        ) { selectedTier = .premium }
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 24)
 
-                    // Feature comparison
                     featureComparison
                         .padding(.top, 24)
 
-                    // Subscribe button
                     subscribeButton
                         .padding(.horizontal, 20)
                         .padding(.top, 24)
 
-                    // Restore + status
                     footer
                         .padding(.top, 16)
                         .padding(.bottom, 40)
@@ -75,8 +63,6 @@ struct StoreView: View {
             }
         }
     }
-
-    // MARK: - Header
 
     private var headerSection: some View {
         VStack(spacing: 12) {
@@ -109,8 +95,6 @@ struct StoreView: View {
         .padding(.horizontal, 20)
     }
 
-    // MARK: - Feature Comparison
-
     private var featureComparison: some View {
         VStack(spacing: 0) {
             Text(L10n.storeWhatsIncluded)
@@ -123,9 +107,8 @@ struct StoreView: View {
             VStack(spacing: 0) {
                 FeatureRow(
                     feature: L10n.storeFeatureCameraScans,
-                    free: L10n.storeValue5Day,
-                    pro: L10n.storeValue10Day,
-                    max: L10n.storeValueUnlimited
+                    free: L10n.storeValue3Day,
+                    premium: L10n.storeValueUnlimited
                 )
 
                 Divider().padding(.horizontal, 16)
@@ -133,8 +116,7 @@ struct StoreView: View {
                 FeatureRow(
                     feature: L10n.storeFeatureLessonRewards,
                     free: "25%",
-                    pro: "60%",
-                    max: "100%"
+                    premium: "100%"
                 )
 
                 Divider().padding(.horizontal, 16)
@@ -142,8 +124,7 @@ struct StoreView: View {
                 FeatureRow(
                     feature: L10n.storeFeatureLessonRefunds,
                     free: nil,
-                    pro: nil,
-                    max: L10n.storeValueFull
+                    premium: L10n.storeValueFull
                 )
             }
             .background(Color(.systemBackground))
@@ -151,8 +132,6 @@ struct StoreView: View {
             .padding(.horizontal, 20)
         }
     }
-
-    // MARK: - Subscribe Button
 
     private var subscribeButton: some View {
         Button {
@@ -190,8 +169,6 @@ struct StoreView: View {
         )
     }
 
-    // MARK: - Footer
-
     private var footer: some View {
         VStack(spacing: 8) {
             Button(L10n.storeRestorePurchases) {
@@ -218,8 +195,6 @@ struct StoreView: View {
     }
 }
 
-// MARK: - Plan Card
-
 private struct PlanCard: View {
     let tier: SubscriptionTier
     let isSelected: Bool
@@ -234,23 +209,20 @@ private struct PlanCard: View {
     private var tierIcon: String {
         switch tier {
         case .free: return "leaf.fill"
-        case .pro: return "bolt.fill"
-        case .max: return "crown.fill"
+        case .premium: return "crown.fill"
         }
     }
 
     private var tierColor: Color {
         switch tier {
         case .free: return .green
-        case .pro: return appPurple
-        case .max: return .orange
+        case .premium: return appPurple
         }
     }
 
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 14) {
-                // Icon
                 ZStack {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(tierColor.opacity(0.15))
@@ -261,7 +233,6 @@ private struct PlanCard: View {
                         .foregroundStyle(tierColor)
                 }
 
-                // Info
                 VStack(alignment: .leading, spacing: 3) {
                     HStack(spacing: 6) {
                         Text(tier.displayName)
@@ -277,16 +248,6 @@ private struct PlanCard: View {
                                 .background(Color.green.opacity(0.15))
                                 .clipShape(Capsule())
                         }
-
-                        if tier == .max {
-                            Text(L10n.storeBadgeBest)
-                                .font(.system(size: 9, weight: .bold))
-                                .foregroundStyle(.orange)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color.orange.opacity(0.15))
-                                .clipShape(Capsule())
-                        }
                     }
 
                     Text(tier.featureSummary)
@@ -297,7 +258,6 @@ private struct PlanCard: View {
 
                 Spacer()
 
-                // Price
                 VStack(alignment: .trailing, spacing: 2) {
                     if let price {
                         Text(price)
@@ -325,13 +285,10 @@ private struct PlanCard: View {
     }
 }
 
-// MARK: - Feature Row
-
 private struct FeatureRow: View {
     let feature: String
     let free: String?
-    let pro: String?
-    let max: String?
+    let premium: String?
 
     var body: some View {
         HStack {
@@ -342,10 +299,8 @@ private struct FeatureRow: View {
 
             tierValue(free, color: .primary)
                 .frame(width: 60)
-            tierValue(pro, color: appPurple)
-                .frame(width: 60)
-            tierValue(max, color: .orange)
-                .frame(width: 70)
+            tierValue(premium, color: appPurple)
+                .frame(width: 84)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)

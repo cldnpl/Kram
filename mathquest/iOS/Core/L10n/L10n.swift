@@ -173,21 +173,17 @@ enum L10n {
             "store_restore": ["it": "Ripristina acquisti", "en": "Restore Purchases", "fr": "Restaurer les achats", "es": "Restaurar compras", "uz": "Xaridlarni tiklash"],
             "store_note": ["it": "Gli abbonamenti si rinnovano mensilmente. Annulla in qualsiasi momento in Impostazioni.", "en": "Subscriptions renew monthly. Cancel anytime in Settings.", "fr": "Les abonnements se renouvellent chaque mois. Annulez à tout moment dans Réglages.", "es": "Las suscripciones se renuevan mensualmente. Cancela cuando quieras en Ajustes.", "uz": "Obunalar har oy yangilanadi. Istalgan payt sozlamalarda bekor qilishingiz mumkin."],
             "store_badge_current": ["it": "ATTUALE", "en": "CURRENT", "fr": "ACTUEL", "es": "ACTUAL", "uz": "JORIY"],
-            "store_badge_best": ["it": "MIGLIORE", "en": "BEST", "fr": "MEILLEUR", "es": "MEJOR", "uz": "ENG YAXSHI"],
             "store_per_month": ["it": "/mese", "en": "/month", "fr": "/mois", "es": "/mes", "uz": "/oy"],
             "store_feature_camera_scans": ["it": "Scansioni camera", "en": "Camera Scans", "fr": "Scans caméra", "es": "Escaneos de cámara", "uz": "Kamera skanlari"],
             "store_feature_lesson_rewards": ["it": "Ricompense lezioni", "en": "Lesson Rewards", "fr": "Récompenses des leçons", "es": "Recompensas de lecciones", "uz": "Dars mukofotlari"],
             "store_feature_lesson_refunds": ["it": "Rimborso lezioni", "en": "Lesson Refunds", "fr": "Remboursements des leçons", "es": "Reembolso de lecciones", "uz": "Dars qaytarimlari"],
-            "store_value_5_day": ["it": "5/giorno", "en": "5/day", "fr": "5/jour", "es": "5/día", "uz": "5/kun"],
-            "store_value_10_day": ["it": "10/giorno", "en": "10/day", "fr": "10/jour", "es": "10/día", "uz": "10/kun"],
+            "store_value_3_day": ["it": "3/giorno", "en": "3/day", "fr": "3/jour", "es": "3/día", "uz": "3/kun"],
             "store_value_unlimited": ["it": "Illimitate", "en": "Unlimited", "fr": "Illimité", "es": "Ilimitado", "uz": "Cheksiz"],
             "store_value_full": ["it": "Completo", "en": "Full", "fr": "Complet", "es": "Completo", "uz": "To'liq"],
             "store_free": ["it": "Gratis", "en": "Free", "fr": "Gratuit", "es": "Gratis", "uz": "Bepul"],
-            "store_pro": ["it": "Pro", "en": "Pro", "fr": "Pro", "es": "Pro", "uz": "Pro"],
-            "store_max": ["it": "Max", "en": "Max", "fr": "Max", "es": "Max", "uz": "Max"],
+            "store_premium": ["it": "Premium", "en": "Premium", "fr": "Premium", "es": "Premium", "uz": "Premium"],
             "store_summary_free": ["it": "3 scansioni camera/giorno e ricompense standard", "en": "3 camera scans/day and standard lesson rewards", "fr": "3 scans caméra/jour et récompenses standard", "es": "3 escaneos de cámara/día y recompensas estándar", "uz": "Kuniga 3 ta kamera skani va standart mukofotlar"],
-            "store_summary_pro": ["it": "10 scansioni camera/giorno e ricompense aumentate", "en": "10 camera scans/day and boosted lesson rewards", "fr": "10 scans caméra/jour et récompenses augmentées", "es": "10 escaneos de cámara/día y recompensas mejoradas", "uz": "Kuniga 10 ta kamera skani va oshirilgan mukofotlar"],
-            "store_summary_max": ["it": "Scansioni camera illimitate e rimborso completo lezioni", "en": "Unlimited camera scans and full lesson refunds", "fr": "Scans caméra illimités et remboursement complet", "es": "Escaneos ilimitados y reembolso completo", "uz": "Cheksiz kamera skanlari va to'liq qaytarim"],
+            "store_summary_premium": ["it": "Scansioni camera illimitate e rimborso completo lezioni", "en": "Unlimited camera scans and full lesson refunds", "fr": "Scans caméra illimités et remboursement complet", "es": "Escaneos ilimitados y reembolso completo", "uz": "Cheksiz kamera skanlari va to'liq qaytarim"],
             "setup_profile_title": ["it": "Configura il tuo profilo", "en": "Set up your profile", "fr": "Configurez votre profil", "es": "Configura tu perfil", "uz": "Profilingizni sozlang"],
             "setup_profile_subtitle": ["it": "Dicci qualcosa su di te per personalizzare l'esperienza", "en": "Tell us a bit about yourself so we can personalize your learning experience", "fr": "Parlez-nous de vous pour personnaliser l'expérience", "es": "Cuéntanos sobre ti para personalizar tu experiencia", "uz": "Tajriba shaxsiylashishi uchun o'zingiz haqida ayting"],
             "your_name": ["it": "Il tuo nome", "en": "Your Name", "fr": "Votre nom", "es": "Tu nombre", "uz": "Ismingiz"],
@@ -434,21 +430,17 @@ enum L10n {
     static var storeRestorePurchases: String { string("store_restore") }
     static var storeRenewNote: String { string("store_note") }
     static var storeBadgeCurrent: String { string("store_badge_current") }
-    static var storeBadgeBest: String { string("store_badge_best") }
     static var storePerMonth: String { string("store_per_month") }
     static var storeFeatureCameraScans: String { string("store_feature_camera_scans") }
     static var storeFeatureLessonRewards: String { string("store_feature_lesson_rewards") }
     static var storeFeatureLessonRefunds: String { string("store_feature_lesson_refunds") }
-    static var storeValue5Day: String { string("store_value_5_day") }
-    static var storeValue10Day: String { string("store_value_10_day") }
+    static var storeValue3Day: String { string("store_value_3_day") }
     static var storeValueUnlimited: String { string("store_value_unlimited") }
     static var storeValueFull: String { string("store_value_full") }
     static var storeFree: String { string("store_free") }
-    static var storePro: String { string("store_pro") }
-    static var storeMax: String { string("store_max") }
+    static var storePremium: String { string("store_premium") }
     static var storeSummaryFree: String { string("store_summary_free") }
-    static var storeSummaryPro: String { string("store_summary_pro") }
-    static var storeSummaryMax: String { string("store_summary_max") }
+    static var storeSummaryPremium: String { string("store_summary_premium") }
     static var setupProfileTitle: String { string("setup_profile_title") }
     static var setupProfileSubtitle: String { string("setup_profile_subtitle") }
     static var yourName: String { string("your_name") }

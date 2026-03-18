@@ -739,13 +739,6 @@ class AppLocale {
       'es': 'ACTUAL',
       'uz': 'JORIY'
     },
-    'store_badge_best': {
-      'it': 'MIGLIORE',
-      'en': 'BEST',
-      'fr': 'MEILLEUR',
-      'es': 'MEJOR',
-      'uz': 'ENG YAXSHI'
-    },
     'store_per_month': {
       'it': '/mese',
       'en': '/month',
@@ -774,19 +767,12 @@ class AppLocale {
       'es': 'Reembolso de lecciones',
       'uz': 'Dars qaytarimlari'
     },
-    'store_value_5_day': {
-      'it': '5/giorno',
-      'en': '5/day',
-      'fr': '5/jour',
-      'es': '5/día',
-      'uz': '5/kun'
-    },
-    'store_value_10_day': {
-      'it': '10/giorno',
-      'en': '10/day',
-      'fr': '10/jour',
-      'es': '10/día',
-      'uz': '10/kun'
+    'store_value_3_day': {
+      'it': '3/giorno',
+      'en': '3/day',
+      'fr': '3/jour',
+      'es': '3/día',
+      'uz': '3/kun'
     },
     'store_value_unlimited': {
       'it': 'Illimitate',
@@ -809,35 +795,21 @@ class AppLocale {
       'es': 'Gratis',
       'uz': 'Bepul'
     },
-    'store_pro': {
-      'it': 'Pro',
-      'en': 'Pro',
-      'fr': 'Pro',
-      'es': 'Pro',
-      'uz': 'Pro'
-    },
-    'store_max': {
-      'it': 'Max',
-      'en': 'Max',
-      'fr': 'Max',
-      'es': 'Max',
-      'uz': 'Max'
+    'store_premium': {
+      'it': 'Premium',
+      'en': 'Premium',
+      'fr': 'Premium',
+      'es': 'Premium',
+      'uz': 'Premium'
     },
     'store_summary_free': {
-      'it': '5 scansioni camera/giorno e ricompense standard',
-      'en': '5 camera scans/day and standard lesson rewards',
-      'fr': '5 scans caméra/jour et récompenses standard',
-      'es': '5 escaneos de cámara/día y recompensas estándar',
-      'uz': "Kuniga 5 ta kamera skani va standart mukofotlar"
+      'it': '3 scansioni camera/giorno e ricompense standard',
+      'en': '3 camera scans/day and standard lesson rewards',
+      'fr': '3 scans caméra/jour et récompenses standard',
+      'es': '3 escaneos de cámara/día y recompensas estándar',
+      'uz': "Kuniga 3 ta kamera skani va standart mukofotlar"
     },
-    'store_summary_pro': {
-      'it': '10 scansioni camera/giorno e ricompense aumentate',
-      'en': '10 camera scans/day and boosted lesson rewards',
-      'fr': '10 scans caméra/jour et récompenses augmentées',
-      'es': '10 escaneos de cámara/día y recompensas mejoradas',
-      'uz': "Kuniga 10 ta kamera skani va oshirilgan mukofotlar"
-    },
-    'store_summary_max': {
+    'store_summary_premium': {
       'it': 'Scansioni camera illimitate e rimborso completo lezioni',
       'en': 'Unlimited camera scans and full lesson refunds',
       'fr': 'Scans caméra illimités et remboursement complet',

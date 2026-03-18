@@ -51,18 +51,25 @@ final class SubscriptionManager: ObservableObject {
             let products = try await Product.products(for: SubscriptionTier.paidProductIDs)
             var mapped: [SubscriptionTier: Product] = [:]
             let fetchedIDs = Set(products.map(\.id))
-            let requestedIDs = Set(SubscriptionTier.paidProductIDs)
-            missingProductIDs = Array(requestedIDs.subtracting(fetchedIDs)).sorted()
+            let missingRequiredIDs = Set([SubscriptionTier.premiumProductID]).subtracting(fetchedIDs)
+            missingProductIDs = Array(missingRequiredIDs).sorted()
 
+            var premiumProduct: Product?
             for product in products {
                 switch product.id {
-                case SubscriptionTier.proProductID:
-                    mapped[.pro] = product
-                case SubscriptionTier.maxProductID:
-                    mapped[.max] = product
+                case SubscriptionTier.premiumProductID:
+                    premiumProduct = product
+                case SubscriptionTier.legacyProProductID, SubscriptionTier.legacyMaxProductID:
+                    // Legacy products still unlock Premium for existing subscribers.
+                    if premiumProduct == nil {
+                        premiumProduct = product
+                    }
                 default:
                     break
                 }
+            }
+            if let premiumProduct {
+                mapped[.premium] = premiumProduct
             }
 
             productsByTier = mapped
@@ -132,7 +139,7 @@ final class SubscriptionManager: ObservableObject {
 
     func syncEntitlements() async {
         if SubscriptionTier.isDeveloperOverrideActive {
-            updateTier(.max)
+            updateTier(.premium)
             return
         }
 
@@ -144,10 +151,10 @@ final class SubscriptionManager: ObservableObject {
             }
 
             switch transaction.productID {
-            case SubscriptionTier.maxProductID:
-                resolvedTier = .max
-            case SubscriptionTier.proProductID where resolvedTier != .max:
-                resolvedTier = .pro
+            case SubscriptionTier.premiumProductID,
+                 SubscriptionTier.legacyProProductID,
+                 SubscriptionTier.legacyMaxProductID:
+                resolvedTier = .premium
             default:
                 break
             }
