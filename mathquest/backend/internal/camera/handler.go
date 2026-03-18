@@ -261,6 +261,7 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 
 	var user appUser
 	if err := h.db.Where("firebase_uid = ?", firebaseUID).First(&user).Error; err == nil {
+		c.Locals(middleware.UserIDKey, user.ID)
 		return user.ID
 	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
 		fmt.Printf("failed to resolve user by firebase_uid: %v\n", err)
@@ -278,6 +279,7 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 					Where("id = ?", user.ID).
 					Update("firebase_uid", firebaseUID).Error
 			}
+			c.Locals(middleware.UserIDKey, user.ID)
 			return user.ID
 		}
 	}
@@ -289,10 +291,12 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 	if err := h.db.Table("users").Create(createValues).Error; err != nil {
 		// If another request created the same user concurrently, fetch it.
 		if err := h.db.Where("firebase_uid = ?", firebaseUID).First(&user).Error; err == nil {
+			c.Locals(middleware.UserIDKey, user.ID)
 			return user.ID
 		}
 		if usernameHint != "" {
 			if err := h.db.Where("LOWER(username) = ?", usernameHint).First(&user).Error; err == nil {
+				c.Locals(middleware.UserIDKey, user.ID)
 				return user.ID
 			}
 		}
@@ -306,6 +310,7 @@ func (h *Handler) resolveUserID(c *fiber.Ctx) uint {
 		return 0
 	}
 
+	c.Locals(middleware.UserIDKey, user.ID)
 	return user.ID
 }
 
