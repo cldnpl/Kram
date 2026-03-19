@@ -48,7 +48,7 @@ User privacy is our priority. You can view our full policy here: [Privacy Policy
 
 ## ✍️ Authors
 
-Developed with passion by **Claudia** and **[@elbek](https://github.com/elbek)**.
+Developed with passion by **Claudia** and **[@elbeekk]([https://github.com/elbek](https://github.com/elbeekk))**.
 
 ---
 *This project was developed for educational purposes and study support.*
