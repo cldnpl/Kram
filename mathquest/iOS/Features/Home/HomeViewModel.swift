@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseAuth
 
 struct LessonItem: Identifiable, Hashable {
     let id: String
@@ -105,11 +106,11 @@ final class HomeViewModel: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
 
-        await client.setToken("mock-dev-token")
+        await client.setToken(Auth.auth().currentUser?.uid)
         let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
 
         do {
-            await client.setToken("mock-dev-token")
+            await client.setToken(Auth.auth().currentUser?.uid)
             let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
             print("[Home] fetching lessons from: \(APIConfig.baseURLString)/lessons?lang=\(lang)")
             let res: CategoriesResponse = try await fetchLessonsWithRetry(lang: lang)

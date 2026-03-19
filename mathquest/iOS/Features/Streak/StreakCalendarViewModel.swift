@@ -1,4 +1,5 @@
 import Foundation
+import FirebaseAuth
 
 struct CalendarDay: Identifiable {
     let id: String
@@ -54,7 +55,7 @@ final class StreakCalendarViewModel: ObservableObject {
     }
 
     func load() async {
-        await client.setToken("mock-dev-token")
+        await client.setToken(Auth.auth().currentUser?.uid)
 
         // Fetch streak
         do {

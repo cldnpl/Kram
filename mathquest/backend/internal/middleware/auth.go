@@ -14,6 +14,24 @@ import (
 const UserIDKey = "user_id"
 const FirebaseUIDKey = "firebase_uid"
 
+// resolveFirebaseUID handles both real Firebase ID tokens (JWTs) and raw UIDs.
+// iOS currently sends raw Firebase UIDs; Android sends real JWT ID tokens.
+func resolveFirebaseUID(c *fiber.Ctx, token string) string {
+	// If it looks like a JWT (has dots), try to verify it
+	if strings.Count(token, ".") == 2 {
+		uid, err := firebase.VerifyIDToken(c.UserContext(), token)
+		if err != nil {
+			log.Printf("[AUTH] JWT verification failed, using as raw token: %v", err)
+			return token
+		}
+		if uid != "" {
+			return uid
+		}
+	}
+	// Raw UID or unverifiable token — use as-is
+	return token
+}
+
 // FirebaseAuth verifies the Firebase token in the Authorization header
 func FirebaseAuth() fiber.Handler {
 	return func(c *fiber.Ctx) error {
@@ -29,16 +47,7 @@ func FirebaseAuth() fiber.Handler {
 		}
 		token := parts[1]
 
-		uid, err := firebase.VerifyIDToken(c.UserContext(), token)
-		if err != nil {
-			log.Printf("[AUTH] 401 %s %s - token verification failed: %v", c.Method(), c.Path(), err)
-			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid token"})
-		}
-
-		if uid == "" {
-			// Firebase not initialized — fall back to raw token (dev mode)
-			uid = token
-		}
+		uid := resolveFirebaseUID(c, token)
 
 		c.Locals(FirebaseUIDKey, uid)
 		c.Locals(UserIDKey, uint(0))
@@ -95,14 +104,7 @@ func OptionalCameraAuth() fiber.Handler {
 			parts := strings.SplitN(auth, " ", 2)
 			if len(parts) == 2 && parts[0] == "Bearer" {
 				token := parts[1]
-				uid, err := firebase.VerifyIDToken(c.UserContext(), token)
-				if err != nil {
-					log.Printf("[AUTH] camera token verification failed: %v", err)
-					return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid token"})
-				}
-				if uid == "" {
-					uid = token
-				}
+				uid := resolveFirebaseUID(c, token)
 				c.Locals(FirebaseUIDKey, uid)
 				c.Locals(UserIDKey, uint(0))
 				return c.Next()

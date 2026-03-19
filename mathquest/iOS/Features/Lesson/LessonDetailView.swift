@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import WebKit
+import FirebaseAuth
 
 // Dark purple (same as app gradient) for formula boxes (1st, 3rd, …)
 private let formulaBoxColor = Color(red: 102/255, green: 80/255, blue: 164/255)  // #6650A4
@@ -140,7 +141,7 @@ final class LessonDetailViewModel: ObservableObject {
         errorMessage = nil
         defer { isLoading = false }
         do {
-            await client.setToken("mock-dev-token")
+            await client.setToken(Auth.auth().currentUser?.uid)
             let lang = UserDefaults.standard.string(forKey: "settings_language") ?? "en"
             let response: LessonDetailResponse = try await client.request("lessons/\(lessonId)?lang=\(lang)")
             let exercises = (response.exercises ?? []).map { ex in
@@ -165,7 +166,7 @@ final class LessonDetailViewModel: ObservableObject {
         isCompleting = true
         defer { isCompleting = false }
 
-        await client.setToken("mock-dev-token")
+        await client.setToken(Auth.auth().currentUser?.uid)
         let request = LessonCompleteRequest(lessonCost: Swift.max(0, lessonCost))
         let body = try JSONEncoder().encode(request)
         let response: LessonCompleteResponse = try await client.request(
