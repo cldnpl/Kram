@@ -1,12 +1,16 @@
+import SafariServices
 import StoreKit
 import SwiftUI
 
 private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
+private let privacyPolicyURL = URL(string: "https://docs.google.com/document/d/e/2PACX-1vSyXqkX7LWZaW8dzafSVfMRwUeZ4s1KyrLZscOtYSg_jHWjKuw8fm4BF8CbQbMJTMRld7GIFVkmzEnz/pub")!
+private let standardEULAURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
 
 struct StoreView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTier: SubscriptionTier = .premium
+    @State private var presentedLegalURL: LegalURLTarget?
 
     var body: some View {
         NavigationStack {
@@ -20,14 +24,18 @@ struct StoreView: View {
                             isSelected: selectedTier == .free,
                             isCurrent: subscriptionManager.currentTier == .free,
                             price: nil
-                        ) { selectedTier = .free }
+                        ) {
+                            selectedTier = .free
+                        }
 
                         PlanCard(
                             tier: .premium,
                             isSelected: selectedTier == .premium,
                             isCurrent: subscriptionManager.currentTier == .premium,
-                            price: subscriptionManager.product(for: .premium)?.displayPrice ?? "$6.99"
-                        ) { selectedTier = .premium }
+                            price: subscriptionManager.product(for: .premium)?.displayPrice
+                        ) {
+                            selectedTier = .premium
+                        }
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 24)
@@ -38,6 +46,14 @@ struct StoreView: View {
                     subscribeButton
                         .padding(.horizontal, 20)
                         .padding(.top, 24)
+
+                    legalLinksRow
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+
+                    legalSection
+                        .padding(.horizontal, 20)
+                        .padding(.top, 12)
 
                     footer
                         .padding(.top, 16)
@@ -60,6 +76,10 @@ struct StoreView: View {
             .task {
                 await subscriptionManager.refreshProducts()
                 await subscriptionManager.syncEntitlements()
+            }
+            .sheet(item: $presentedLegalURL) { target in
+                SafariSheet(url: target.url)
+                    .ignoresSafeArea()
             }
         }
     }
@@ -96,130 +116,153 @@ struct StoreView: View {
     }
 
     private var featureComparison: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(spacing: 0) {
             Text(L10n.storeWhatsIncluded)
                 .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 20)
+                .padding(.bottom, 12)
 
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(spacing: 10) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(appPurple.opacity(0.14))
-                            .frame(width: 36, height: 36)
+            VStack(spacing: 0) {
+                FeatureHeaderRow()
 
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundStyle(appPurple)
-                    }
+                Divider().padding(.horizontal, 16)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(L10n.storePremium)
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundStyle(.primary)
-                        Text(L10n.storeSummaryPremium)
-                            .font(.system(size: 12))
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-
-                    Spacer(minLength: 8)
-
-                    Text(L10n.storeValueUnlimited)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(appPurple)
-                        .padding(.horizontal, 9)
-                        .padding(.vertical, 6)
-                        .background(appPurple.opacity(0.12))
-                        .clipShape(Capsule())
-                }
-
-                Divider()
-
-                IncludedFeatureRow(
-                    icon: "camera.viewfinder",
-                    label: L10n.storeFeatureCameraScans,
-                    value: L10n.storeValueUnlimited,
-                    tint: appPurple
+                FeatureRow(
+                    feature: L10n.storeFeatureCameraScans,
+                    freeValue: L10n.storeValue3Day,
+                    premiumValue: L10n.storeValueUnlimited
                 )
 
-                HStack(spacing: 8) {
-                    Image(systemName: "leaf.fill")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(.green)
-                    Text("\(L10n.storeFree): \(L10n.storeValue3Day)")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
-                }
-            }
-            .padding(16)
-            .background(Color(.systemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-            .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .stroke(appPurple.opacity(0.18), lineWidth: 1)
-            )
-        }
-        .padding(.horizontal, 20)
-    }
+                Divider().padding(.horizontal, 16)
 
-    private var productUnavailable: Bool {
-        selectedTier != .free && subscriptionManager.product(for: selectedTier) == nil
+                FeatureRow(
+                    feature: L10n.storeFeatureLessonRewards,
+                    freeValue: "100%",
+                    premiumValue: "100%"
+                )
+
+                Divider().padding(.horizontal, 16)
+
+                FeatureRow(
+                    feature: L10n.storeFeatureLessonRefunds,
+                    freeValue: L10n.storeValueFull,
+                    premiumValue: L10n.storeValueFull
+                )
+            }
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal, 20)
+        }
     }
 
     private var subscribeButton: some View {
-        VStack(spacing: 8) {
-            Button {
-                if productUnavailable {
-                    Task { await subscriptionManager.refreshProducts() }
+        Button {
+            Task {
+                if selectedTier == .premium && subscriptionManager.product(for: .premium) == nil {
+                    await subscriptionManager.refreshProducts()
+                }
+                await subscriptionManager.purchase(selectedTier)
+            }
+        } label: {
+            Group {
+                if subscriptionManager.isPurchasing {
+                    ProgressView()
+                        .tint(.white)
+                } else if selectedTier == .premium &&
+                            subscriptionManager.isLoadingProducts &&
+                            subscriptionManager.product(for: .premium) == nil {
+                    Text("Loading subscription...")
+                } else if selectedTier == subscriptionManager.currentTier {
+                    Text(L10n.storeCurrentPlan)
+                } else if selectedTier == .free {
+                    Text(L10n.storeSwitchFree)
+                } else if subscriptionManager.product(for: .premium) == nil {
+                    Text("Try subscription again")
                 } else {
-                    Task { await subscriptionManager.purchase(selectedTier) }
+                    Text(L10n.storeSubscribeTo(L10n.storePremium))
                 }
-            } label: {
-                Group {
-                    if subscriptionManager.isLoadingProducts {
-                        ProgressView()
-                            .tint(.white)
-                    } else if subscriptionManager.isPurchasing {
-                        ProgressView()
-                            .tint(.white)
-                    } else if productUnavailable {
-                        Label("Retry Loading", systemImage: "arrow.clockwise")
-                    } else if selectedTier == subscriptionManager.currentTier {
-                        Text(L10n.storeCurrentPlan)
-                    } else if selectedTier == .free {
-                        Text(L10n.storeSwitchFree)
-                    } else {
-                        Text(L10n.storeSubscribeTo(selectedTier.displayName))
-                    }
-                }
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 54)
-                .background(
-                    selectedTier == subscriptionManager.currentTier
-                        ? Color.gray
-                        : productUnavailable
-                            ? Color.orange
-                            : appPurple
-                )
-                .clipShape(RoundedRectangle(cornerRadius: 14))
             }
-            .disabled(
-                selectedTier == subscriptionManager.currentTier ||
-                subscriptionManager.isPurchasing ||
-                subscriptionManager.isLoadingProducts
+            .font(.system(size: 17, weight: .semibold))
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity)
+            .frame(height: 54)
+            .background(
+                selectedTier == subscriptionManager.currentTier ? Color.gray : appPurple
             )
-
-            if productUnavailable && !subscriptionManager.isLoadingProducts {
-                Text("Subscription is temporarily unavailable. Tap to retry.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.orange)
-                    .multilineTextAlignment(.center)
-            }
+            .clipShape(RoundedRectangle(cornerRadius: 14))
         }
+        .disabled(
+            selectedTier == subscriptionManager.currentTier ||
+            subscriptionManager.isPurchasing
+        )
+    }
+
+    private var legalSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Subscription details")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 37)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text(legalSummaryTitle)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(.primary)
+
+                Text("Length: 1 month")
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+
+                Text(legalSummaryPrice)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(14)
+            .padding(.horizontal, 18)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            
+        }
+    }
+
+    private var legalLinksRow: some View {
+        HStack(spacing: 8) {
+            Button("Privacy Policy") {
+                presentedLegalURL = LegalURLTarget(url: privacyPolicyURL)
+            }
+            .buttonStyle(.plain)
+
+            Text("|")
+                .foregroundStyle(.tertiary)
+
+            Button("Terms of Use") {
+                presentedLegalURL = LegalURLTarget(url: standardEULAURL)
+            }
+            .buttonStyle(.plain)
+        }
+        .font(.system(size: 12, weight: .medium))
+        .foregroundStyle(appPurple)
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 18)
+
+    }
+
+    private var legalSummaryTitle: String {
+        switch selectedTier {
+        case .free:
+            return "\(L10n.storePremium) subscription"
+        case .premium:
+            return "\(L10n.storePremium) subscription"
+        }
+    }
+
+    private var legalSummaryPrice: String {
+        if let price = subscriptionManager.product(for: .premium)?.displayPrice {
+            return "Price: \(price) per month"
+        }
+        return "Price: Loading..."
     }
 
     private var footer: some View {
@@ -256,20 +299,39 @@ private struct PlanCard: View {
     let onTap: () -> Void
 
     private var borderColor: Color {
-        isSelected ? appPurple : Color(.separator)
+        guard isSelected else { return Color(.separator) }
+        switch tier {
+        case .free:
+            return .green
+        case .premium:
+            return appPurple
+        }
     }
 
     private var tierIcon: String {
         switch tier {
-        case .free: return "leaf.fill"
-        case .premium: return "crown.fill"
+        case .free:
+            return "leaf.fill"
+        case .premium:
+            return "crown.fill"
         }
     }
 
     private var tierColor: Color {
         switch tier {
-        case .free: return .green
-        case .premium: return appPurple
+        case .free:
+            return .green
+        case .premium:
+            return appPurple
+        }
+    }
+
+    private var summary: String {
+        switch tier {
+        case .free:
+            return L10n.storeSummaryFree
+        case .premium:
+            return L10n.storeSummaryPremium
         }
     }
 
@@ -303,7 +365,7 @@ private struct PlanCard: View {
                         }
                     }
 
-                    Text(tier.featureSummary)
+                    Text(summary)
                         .font(.system(size: 13))
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
@@ -312,7 +374,7 @@ private struct PlanCard: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
-                    if let price {
+                    if tier == .premium, let price {
                         Text(price)
                             .font(.system(size: 17, weight: .bold))
                             .foregroundStyle(.primary)
@@ -338,34 +400,81 @@ private struct PlanCard: View {
     }
 }
 
-private struct IncludedFeatureRow: View {
-    let icon: String
-    let label: String
-    let value: String
-    let tint: Color
+private struct FeatureHeaderRow: View {
+    var body: some View {
+        HStack {
+            Text("")
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Text(L10n.storeFree)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(.secondary)
+                .frame(width: 84)
+
+            Text(L10n.storePremium)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundStyle(appPurple)
+                .frame(width: 100)
+        }
+        .padding(.horizontal, 16)
+        .padding(.top, 14)
+        .padding(.bottom, 10)
+    }
+}
+
+private struct FeatureRow: View {
+    let feature: String
+    let freeValue: String?
+    let premiumValue: String?
 
     var body: some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(tint)
-                .frame(width: 16)
-
-            Text(label)
-                .font(.system(size: 14, weight: .medium))
+        HStack {
+            Text(feature)
+                .font(.system(size: 14))
                 .foregroundStyle(.primary)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            Spacer(minLength: 8)
+            tierValue(freeValue, color: .primary)
+                .frame(width: 84)
 
+            tierValue(premiumValue, color: appPurple)
+                .frame(width: 100)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+
+    @ViewBuilder
+    private func tierValue(_ value: String?, color: Color) -> some View {
+        if let value {
             Text(value)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(tint)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(tint.opacity(0.12))
-                .clipShape(Capsule())
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(color)
+                .multilineTextAlignment(.center)
+        } else {
+            Image(systemName: "minus")
+                .font(.system(size: 12))
+                .foregroundStyle(.quaternary)
         }
     }
+}
+
+private struct LegalURLTarget: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+private struct SafariSheet: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let controller = SFSafariViewController(url: url)
+        controller.preferredControlTintColor = UIColor(appPurple)
+        controller.dismissButtonStyle = .close
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }
 
 #Preview {

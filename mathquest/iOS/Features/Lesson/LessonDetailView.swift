@@ -45,7 +45,14 @@ struct LessonDetailView: View {
                                         if isFormulaLine(line) {
                                             LessonFormulaLineView(text: line, accentColor: accentColor)
                                         } else {
-                                            LessonParagraphView(text: line)
+                                            LessonPracticeContentView(
+                                                text: line,
+                                                textStyle: .body,
+                                                textSize: 17,
+                                                textWeight: .regular,
+                                                textColor: .primary,
+                                                centered: true
+                                            )
                                         }
                                     }
                                 }
@@ -254,10 +261,35 @@ private struct LessonFormulaLineView: View {
     let accentColor: Color
 
     private var split: (label: String?, formula: String?, note: String?) {
-        splitLessonFormulaLine(text)
+        splitLessonFormulaLineWithEquationFallback(text)
     }
 
     var body: some View {
+        if split.formula == nil, split.label == nil, let note = split.note {
+            if isLessonFormulaHeading(note), let attributed = attributedLessonText(from: note) {
+                Text(attributed)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(lessonAccentColor)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            } else if practiceContentNeedsMathRendering(note) {
+                LessonMixedMathView(
+                    html: lessonMixedMathHTML(
+                        content: note,
+                        centered: true,
+                        fontSize: 16,
+                        fontWeight: 500
+                    )
+                )
+                .frame(minHeight: 40, maxHeight: 96)
+            } else if let attributed = attributedLessonText(from: note) {
+                Text(attributed)
+                    .font(.caption)
+                    .foregroundStyle(exampleBoxColor)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            }
+        } else {
         VStack(alignment: .center, spacing: 6) {
             if let label = split.label, let attributed = attributedLessonText(from: label) {
                 Text(attributed)
@@ -274,13 +306,14 @@ private struct LessonFormulaLineView: View {
 
             if let note = split.note, let attributed = attributedLessonText(from: note) {
                 Text(attributed)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                    .font(.caption)
+                    .foregroundStyle(exampleBoxColor)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
             }
         }
         .foregroundStyle(accentColor)
+        }
     }
 }
 
@@ -826,11 +859,13 @@ private func lessonSuperscript(_ text: String) -> String {
 private func looksLikeInlineMath(_ text: String) -> Bool {
     let candidate = text.trimmingCharacters(in: .whitespacesAndNewlines)
     if candidate.isEmpty { return false }
-    if candidate.range(of: #"[=+\-*/^(){}\[\]≤≥≠±√∫π∞]"#, options: .regularExpression) != nil {
+    if candidate.range(of: #"[=+\-*/^(){}\[\]≤≥≠±√∫π∞\\]"#, options: .regularExpression) != nil {
         return true
     }
     let lower = candidate.lowercased()
-    return lower.contains("lim") || lower.contains("sin") || lower.contains("cos")
+    return lower.contains("lim") || lower.contains("int_") || lower.contains(#"\int"#)
+        || lower.contains("frac") || lower.contains("left") || lower.contains("right")
+        || lower.contains("sin") || lower.contains("cos")
         || lower.contains("tan") || lower.contains("ln") || lower.contains("log")
 }
 
@@ -859,6 +894,41 @@ private func splitLessonFormulaLine(_ line: String) -> (label: String?, formula:
     }
 
     return (left + ":", right, splitSource.note)
+}
+
+private func splitLessonFormulaLineWithEquationFallback(_ line: String) -> (label: String?, formula: String?, note: String?) {
+    let base = splitLessonFormulaLine(line)
+    if base.label != nil || base.formula != nil {
+        return base
+    }
+
+    let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let eqIndex = trimmed.firstIndex(of: "="), eqIndex > trimmed.startIndex else {
+        return base
+    }
+
+    let next = trimmed.index(after: eqIndex)
+    guard next < trimmed.endIndex else {
+        return base
+    }
+
+    let left = String(trimmed[..<eqIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+    let right = String(trimmed[next...]).trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !left.isEmpty, !right.isEmpty else {
+        return base
+    }
+
+    if containsProseWords(left) && looksLikeInlineMath(right) {
+        return (left, right, nil)
+    }
+
+    return base
+}
+
+private func isLessonFormulaHeading(_ text: String) -> Bool {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty, trimmed.hasSuffix(":") else { return false }
+    return trimmed.count <= 48
 }
 
 private func sanitizeLessonFormulaContent(_ text: String) -> (formula: String, note: String?) {
@@ -896,7 +966,8 @@ private func containsProseWords(_ text: String) -> Bool {
         return String(lower[matchRange])
     }
     let allowed: Set<String> = [
-        "sin", "cos", "tan", "log", "lim", "mod", "gcd", "lcm"
+        "sin", "cos", "tan", "log", "lim", "mod", "gcd", "lcm",
+        "int", "frac", "left", "right"
     ]
     return matches.contains { !allowed.contains($0) }
 }
@@ -928,7 +999,7 @@ private func normalizeLessonLatex(_ raw: String) -> String {
     value = value.replacingOccurrences(of: "∫", with: "\\int")
 
     value = value.replacingOccurrences(of: #"\bpi\b"#, with: "\\pi", options: .regularExpression)
-    value = value.replacingOccurrences(of: #"(?<!\\)\bint\b"#, with: "\\int", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(?<!\\)\bint(?=_|\^|\s|$)"#, with: "\\int", options: .regularExpression)
     value = value.replacingOccurrences(of: #"(?<!\\)\bleft\s*([\[\(\{])"#, with: "\\left$1", options: .regularExpression)
     value = value.replacingOccurrences(of: #"(?<!\\)\bright\s*([\]\)\}])"#, with: "\\right$1", options: .regularExpression)
     value = value.replacingOccurrences(of: #"√\s*([A-Za-z0-9\(\)\+\-]+)"#, with: "\\sqrt{$1}", options: .regularExpression)
@@ -944,6 +1015,7 @@ private func normalizeLessonLatex(_ raw: String) -> String {
     value = value.replacingOccurrences(of: #"\\tan(?=[A-Za-z0-9])"#, with: "\\tan ", options: .regularExpression)
     value = value.replacingOccurrences(of: #"\\ln(?=[A-Za-z0-9])"#, with: "\\ln ", options: .regularExpression)
     value = value.replacingOccurrences(of: #"\\log(?=[A-Za-z0-9])"#, with: "\\log ", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(\\[A-Za-z]+)(?=\\[A-Za-z])"#, with: "$1 ", options: .regularExpression)
     value = value.replacingOccurrences(of: #"\s{2,}"#, with: " ", options: .regularExpression)
     value = value.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -1084,11 +1156,11 @@ private func isFormulaLine(_ line: String) -> Bool {
 
     if s.contains("=") { return true }
     if s.contains("→") || s.contains("±") { return true }
-    if s.contains("√") || s.contains("∫") || s.contains("Δ") { return true }
+    if s.contains("√") || s.contains("∫") || s.contains(#"\int"#) || s.contains(#"\frac"#) || s.contains(#"\left"#) || s.contains(#"\right"#) || s.contains("Δ") { return true }
     if s.contains("^") { return true }
 
     let lower = s.lowercased()
-    if lower.contains("lim") { return true }
+    if lower.contains("lim") || lower.contains("int_") || lower.contains("int ") || lower.contains("frac") || lower.contains("left") || lower.contains("right") { return true }
     if lower.contains("sin") || lower.contains("cos") || lower.contains("tan") { return true }
     if lower.contains("ln") || lower.contains("log") || lower.contains("e^") { return true }
 
@@ -1897,7 +1969,7 @@ private func practiceSegmentsForLine(_ line: String) -> [PracticeRichSegment] {
         return [.math(line, display: true)]
     }
 
-    let pattern = #"(∫[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)"#
+    let pattern = #"((?:∫|\\int|int(?=[_\^\s]|$))[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\\\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)"#
     guard let regex = try? NSRegularExpression(pattern: pattern) else {
         return [.text(line)]
     }
@@ -1933,7 +2005,7 @@ private func practiceLineContainsRenderableMath(_ line: String) -> Bool {
     if let split = practiceSplitTextConnector(line) {
         return practiceLineContainsRenderableMath(split.before) || practiceLineContainsRenderableMath(split.after)
     }
-    guard let regex = try? NSRegularExpression(pattern: #"(∫[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)"#) else {
+    guard let regex = try? NSRegularExpression(pattern: #"((?:∫|\\int|int(?=[_\^\s]|$))[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\\\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)"#) else {
         return false
     }
     let range = NSRange(line.startIndex..<line.endIndex, in: line)
