@@ -19,14 +19,6 @@
 
 ---
 
-## 📸 App Preview
-
-| Home Screen | Lesson List | Premium Plan |
-| :--- | :--- | :--- |
-| ![Home](https://via.placeholder.com/200x400?text=Home+Screen) | ![Lessons](https://via.placeholder.com/200x400?text=Lessons+List) | ![Premium](https://via.placeholder.com/200x400?text=Premium+Plan) |
-
----
-
 ## 🚀 Subscription Plans
 
 Kram offers a flexible model to suit every student's needs:
