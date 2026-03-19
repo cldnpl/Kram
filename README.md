@@ -9,11 +9,13 @@
 * **Adaptive Learning:** Tailored paths for **Beginner**, **Intermediate**, and **Advanced** levels.
 * **Camera Scanner:** Point your camera at a math problem to get instant step-by-step explanations.
 * **Comprehensive Study Modules:**
+* 
     * Number Systems & Arithmetic
     * Algebra (Linear, Quadratic, etc.)
     * Geometry & Trigonometry
     * Pre-Calculus & Analysis
     * Differential & Integral Calculus
+    * 
 * **Theory & Practice:** Each section includes formal definitions, mathematical properties, and guided exercises.
 * **Gamification:** Track your progress with daily streaks and earn rewards for completing lessons.
 
