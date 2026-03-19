@@ -5,6 +5,8 @@ import (
 	"log"
 	"strings"
 
+	"mathquest/backend/pkg/firebase"
+
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
@@ -26,10 +28,20 @@ func FirebaseAuth() fiber.Handler {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid authorization format"})
 		}
 		token := parts[1]
-		// TODO: verify token with Firebase Admin SDK and extract UID
-		// Placeholder for now; integrate pkg/firebase
-		c.Locals(FirebaseUIDKey, token)
-		c.Locals(UserIDKey, uint(0)) // will be replaced with ID from DB after lookup
+
+		uid, err := firebase.VerifyIDToken(c.UserContext(), token)
+		if err != nil {
+			log.Printf("[AUTH] 401 %s %s - token verification failed: %v", c.Method(), c.Path(), err)
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid token"})
+		}
+
+		if uid == "" {
+			// Firebase not initialized — fall back to raw token (dev mode)
+			uid = token
+		}
+
+		c.Locals(FirebaseUIDKey, uid)
+		c.Locals(UserIDKey, uint(0))
 		return c.Next()
 	}
 }
@@ -60,14 +72,22 @@ func ResolveUserID(db *gorm.DB) fiber.Handler {
 }
 
 // OptionalCameraAuth accepts either Bearer token (Firebase) or X-Username header (login con username).
-// Usato per le route camera così funzionano con Apple, Google o username/password.
 func OptionalCameraAuth() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		auth := c.Get("Authorization")
 		if auth != "" {
 			parts := strings.SplitN(auth, " ", 2)
 			if len(parts) == 2 && parts[0] == "Bearer" {
-				c.Locals(FirebaseUIDKey, parts[1])
+				token := parts[1]
+				uid, err := firebase.VerifyIDToken(c.UserContext(), token)
+				if err != nil {
+					log.Printf("[AUTH] camera token verification failed: %v", err)
+					return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid token"})
+				}
+				if uid == "" {
+					uid = token
+				}
+				c.Locals(FirebaseUIDKey, uid)
 				c.Locals(UserIDKey, uint(0))
 				return c.Next()
 			}

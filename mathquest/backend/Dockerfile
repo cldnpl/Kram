@@ -9,6 +9,6 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /app
 COPY --from=builder /app/server .
-COPY AuthKey_F8JCZ4JD6Y.p8 AuthKey_764G76LB8V.p8 ./
+COPY AuthKey_F8JCZ4JD6Y.p8 AuthKey_764G76LB8V.p8 the-big-5-15035-firebase-adminsdk-fbsvc-862e5db47e.json ./
 EXPOSE 8080
 CMD ["./server"]

@@ -21,6 +21,7 @@ services:
       APNS_BUNDLE_ID: com.kram.math
       APNS_PRIVATE_KEY_PATH: /app/AuthKey_764G76LB8V.p8
       APNS_ENV: development
+      FIREBASE_CREDENTIALS_PATH: /app/the-big-5-15035-firebase-adminsdk-fbsvc-862e5db47e.json
     depends_on:
       - db
       - redis

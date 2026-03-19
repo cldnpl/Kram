@@ -7,6 +7,7 @@ import (
 	"mathquest/backend/internal/middleware"
 	"mathquest/backend/internal/router"
 	"mathquest/backend/pkg/database"
+	"mathquest/backend/pkg/firebase"
 	redispkg "mathquest/backend/pkg/redis"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +23,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("config load: %v", err)
 	}
+
+	// Initialize Firebase Auth
+	firebase.Init(cfg.FirebaseCred)
 
 	// Initialize database (optional: only if DATABASE_URL is set)
 	var db *gorm.DB
