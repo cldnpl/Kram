@@ -44,7 +44,7 @@ Kram offers a flexible model to suit every student's needs:
 
 ## 📄 Privacy Policy
 
-User privacy is our priority. You can view our full policy here: [Privacy Policy]([https://docs.google.com/document/d/1t8Z92pDk8A7_e7m8I-K1L8L7IuL6H8I/edit](https://docs.google.com/document/d/e/2PACX-1vSyXqkX7LWZaW8dzafSVfMRwUeZ4s1KyrLZscOtYSg_jHWjKuw8fm4BF8CbQbMJTMRld7GIFVkmzEnz/pub))
+User privacy is our priority. You can view our full policy here: [Privacy Policy](https://docs.google.com/document/d/e/2PACX-1vSyXqkX7LWZaW8dzafSVfMRwUeZ4s1KyrLZscOtYSg_jHWjKuw8fm4BF8CbQbMJTMRld7GIFVkmzEnz/pub)
 
 ---
 
