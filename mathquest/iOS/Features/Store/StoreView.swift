@@ -164,40 +164,62 @@ struct StoreView: View {
         .padding(.horizontal, 20)
     }
 
+    private var productUnavailable: Bool {
+        selectedTier != .free && subscriptionManager.product(for: selectedTier) == nil
+    }
+
     private var subscribeButton: some View {
-        Button {
-            Task {
-                await subscriptionManager.purchase(selectedTier)
-            }
-        } label: {
-            Group {
-                if subscriptionManager.isPurchasing {
-                    ProgressView()
-                        .tint(.white)
-                } else if selectedTier == subscriptionManager.currentTier {
-                    Text(L10n.storeCurrentPlan)
-                } else if selectedTier == .free {
-                    Text(L10n.storeSwitchFree)
+        VStack(spacing: 8) {
+            Button {
+                if productUnavailable {
+                    Task { await subscriptionManager.refreshProducts() }
                 } else {
-                    Text(L10n.storeSubscribeTo(selectedTier.displayName))
+                    Task { await subscriptionManager.purchase(selectedTier) }
                 }
+            } label: {
+                Group {
+                    if subscriptionManager.isLoadingProducts {
+                        ProgressView()
+                            .tint(.white)
+                    } else if subscriptionManager.isPurchasing {
+                        ProgressView()
+                            .tint(.white)
+                    } else if productUnavailable {
+                        Label("Retry Loading", systemImage: "arrow.clockwise")
+                    } else if selectedTier == subscriptionManager.currentTier {
+                        Text(L10n.storeCurrentPlan)
+                    } else if selectedTier == .free {
+                        Text(L10n.storeSwitchFree)
+                    } else {
+                        Text(L10n.storeSubscribeTo(selectedTier.displayName))
+                    }
+                }
+                .font(.system(size: 17, weight: .semibold))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .frame(height: 54)
+                .background(
+                    selectedTier == subscriptionManager.currentTier
+                        ? Color.gray
+                        : productUnavailable
+                            ? Color.orange
+                            : appPurple
+                )
+                .clipShape(RoundedRectangle(cornerRadius: 14))
             }
-            .font(.system(size: 17, weight: .semibold))
-            .foregroundStyle(.white)
-            .frame(maxWidth: .infinity)
-            .frame(height: 54)
-            .background(
-                selectedTier == subscriptionManager.currentTier
-                    ? Color.gray
-                    : appPurple
+            .disabled(
+                selectedTier == subscriptionManager.currentTier ||
+                subscriptionManager.isPurchasing ||
+                subscriptionManager.isLoadingProducts
             )
-            .clipShape(RoundedRectangle(cornerRadius: 14))
+
+            if productUnavailable && !subscriptionManager.isLoadingProducts {
+                Text("Subscription is temporarily unavailable. Tap to retry.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.orange)
+                    .multilineTextAlignment(.center)
+            }
         }
-        .disabled(
-            selectedTier == subscriptionManager.currentTier ||
-            subscriptionManager.isPurchasing ||
-            (selectedTier != .free && subscriptionManager.product(for: selectedTier) == nil)
-        )
     }
 
     private var footer: some View {

@@ -24,7 +24,6 @@
     "_developerTeamID" : "H4M7KJL5DT",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 794276840.19914103,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",
@@ -39,56 +38,8 @@
       "localizations" : [
 
       ],
-      "name" : "subcsriptions",
+      "name" : "Premium",
       "subscriptions" : [
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "8.99",
-          "familyShareable" : false,
-          "groupNumber" : 2,
-          "internalID" : "6759991652",
-          "introductoryOffer" : null,
-          "localizations" : [
-
-          ],
-          "productID" : "com.kram.mathquest.subscription.max.monthly",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Max",
-          "subscriptionGroupID" : "21959505",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
-        },
-        {
-          "adHocOffers" : [
-
-          ],
-          "codeOffers" : [
-
-          ],
-          "displayPrice" : "3.99",
-          "familyShareable" : false,
-          "groupNumber" : 1,
-          "internalID" : "6759991691",
-          "introductoryOffer" : null,
-          "localizations" : [
-
-          ],
-          "productID" : "com.kram.mathquest.subscription.pro.monthly",
-          "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Pro",
-          "subscriptionGroupID" : "21959505",
-          "type" : "RecurringSubscription",
-          "winbackOffers" : [
-
-          ]
-        },
         {
           "adHocOffers" : [
 
@@ -98,15 +49,15 @@
           ],
           "displayPrice" : "6.99",
           "familyShareable" : false,
-          "groupNumber" : 3,
+          "groupNumber" : 1,
           "internalID" : "6759991720",
           "introductoryOffer" : null,
           "localizations" : [
 
           ],
-          "productID" : "com.kram.mathquest.subscription.premium.monthly",
+          "productID" : "com.kram.premium.monthly",
           "recurringSubscriptionPeriod" : "P1M",
-          "referenceName" : "Premium",
+          "referenceName" : "Premium Monthly",
           "subscriptionGroupID" : "21959505",
           "type" : "RecurringSubscription",
           "winbackOffers" : [

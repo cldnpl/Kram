@@ -13,9 +13,7 @@ import (
 )
 
 const (
-	premiumProductID   = "com.kram.mathquest.subscription.premium.monthly"
-	legacyProProductID = "com.kram.mathquest.subscription.pro.monthly"
-	legacyMaxProductID = "com.kram.mathquest.subscription.max.monthly"
+	premiumProductID = "com.kram.premium.monthly"
 )
 
 type Handler struct {
@@ -211,23 +209,15 @@ func normalizeStoredTier(raw string) string {
 }
 
 func normalizeProductID(raw string) string {
-	productID := strings.TrimSpace(raw)
-	switch productID {
-	case premiumProductID, legacyProProductID, legacyMaxProductID:
-		return productID
-	default:
-		return productID
-	}
+	return strings.TrimSpace(raw)
 }
 
 func tierFromProductID(productID string, active bool) string {
 	if !active {
 		return "free"
 	}
-	switch normalizeProductID(productID) {
-	case premiumProductID, legacyProProductID, legacyMaxProductID:
+	if normalizeProductID(productID) == premiumProductID {
 		return "premium"
-	default:
-		return "free"
 	}
+	return "free"
 }

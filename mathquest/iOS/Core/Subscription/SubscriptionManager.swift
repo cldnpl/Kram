@@ -57,22 +57,10 @@ final class SubscriptionManager: ObservableObject {
             let missingRequiredIDs = Set([SubscriptionTier.premiumProductID]).subtracting(fetchedIDs)
             missingProductIDs = Array(missingRequiredIDs).sorted()
 
-            var premiumProduct: Product?
             for product in products {
-                switch product.id {
-                case SubscriptionTier.premiumProductID:
-                    premiumProduct = product
-                case SubscriptionTier.legacyProProductID, SubscriptionTier.legacyMaxProductID:
-                    // Legacy products still unlock Premium for existing subscribers.
-                    if premiumProduct == nil {
-                        premiumProduct = product
-                    }
-                default:
-                    break
+                if product.id == SubscriptionTier.premiumProductID {
+                    mapped[.premium] = product
                 }
-            }
-            if let premiumProduct {
-                mapped[.premium] = premiumProduct
             }
 
             productsByTier = mapped
@@ -154,13 +142,8 @@ final class SubscriptionManager: ObservableObject {
                 continue
             }
 
-            switch transaction.productID {
-            case SubscriptionTier.premiumProductID,
-                 SubscriptionTier.legacyProProductID,
-                 SubscriptionTier.legacyMaxProductID:
+            if transaction.productID == SubscriptionTier.premiumProductID {
                 resolvedTier = .premium
-            default:
-                break
             }
         }
 

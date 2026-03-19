@@ -7,18 +7,14 @@ enum SubscriptionTier: String, CaseIterable, Codable {
 
     static let userDefaultsKey = "subscription_tier"
 
-    static let premiumProductID = "com.kram.mathquest.subscription.premium.monthly"
-
-    // Legacy product IDs kept for migration of existing subscribers.
-    static let legacyProProductID = "com.kram.mathquest.subscription.pro.monthly"
-    static let legacyMaxProductID = "com.kram.mathquest.subscription.max.monthly"
+    static let premiumProductID = "com.kram.premium.monthly"
 
     private static let developerAppleEmails: Set<String> = [
         "napolitano.claudia@icloud.com",
     ]
 
     static var paidProductIDs: [String] {
-        [premiumProductID, legacyProProductID, legacyMaxProductID]
+        [premiumProductID]
     }
 
     static var current: SubscriptionTier {
