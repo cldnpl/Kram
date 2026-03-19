@@ -265,6 +265,73 @@ func (n *liveActivityNotifier) SendStart(pushToStartToken string, streakDays int
 	}
 }
 
+// SendAlert sends a regular push notification (not a Live Activity) to a device.
+func (n *liveActivityNotifier) SendAlert(pushToken string, title, body string) error {
+	if n == nil {
+		return errors.New("live activity notifier is not configured")
+	}
+	if title == "" {
+		return nil
+	}
+
+	now := time.Now().UTC()
+	token, err := n.authToken(now)
+	if err != nil {
+		return err
+	}
+
+	payload := map[string]any{
+		"aps": map[string]any{
+			"alert": map[string]any{
+				"title": title,
+				"body":  body,
+			},
+			"sound": "default",
+		},
+	}
+
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(
+		http.MethodPost,
+		n.host()+"/3/device/"+pushToken,
+		strings.NewReader(string(payloadBytes)),
+	)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("authorization", "bearer "+token)
+	req.Header.Set("apns-push-type", "alert")
+	req.Header.Set("apns-priority", "10")
+	req.Header.Set("apns-topic", n.bundleID)
+	req.Header.Set("content-type", "application/json")
+
+	res, err := n.client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	resBody, _ := io.ReadAll(res.Body)
+	if res.StatusCode >= 200 && res.StatusCode < 300 {
+		return nil
+	}
+
+	var parsed struct {
+		Reason string `json:"reason"`
+	}
+	_ = json.Unmarshal(resBody, &parsed)
+	return &apnsFailure{
+		StatusCode: res.StatusCode,
+		Reason:     parsed.Reason,
+		Body:       string(resBody),
+	}
+}
+
 func (h *Handler) startWarningLoop() {
 	if h.db == nil || h.notifier == nil {
 		return

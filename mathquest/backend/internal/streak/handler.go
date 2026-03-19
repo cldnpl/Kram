@@ -3,6 +3,7 @@ package streak
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -127,6 +128,11 @@ func (h *Handler) RecordActivity(userID uint) {
 	})
 
 	h.markRecordedInRedis(ctx, userID, today)
+
+	// Send congratulations notification for streak milestones
+	if h.notifier != nil && user.StreakDays >= 1 {
+		go h.sendStreakCongrats(userID, user.StreakDays)
+	}
 }
 
 func (h *Handler) markRecordedInRedis(ctx context.Context, userID uint, date string) {
@@ -135,6 +141,42 @@ func (h *Handler) markRecordedInRedis(ctx context.Context, userID uint, date str
 	}
 	key := fmt.Sprintf("streak_recorded:%d:%s", userID, date)
 	h.redis.Set(ctx, key, "1", 48*time.Hour)
+}
+
+func (h *Handler) sendStreakCongrats(userID uint, streakDays int) {
+	if h.db == nil || h.notifier == nil {
+		return
+	}
+
+	var devices []IOSLiveActivityDevice
+	h.db.Where("user_id = ? AND enabled = ? AND push_to_start_token <> ''", userID, true).Find(&devices)
+
+	for _, device := range devices {
+		title, body := streakCongratsMessage(streakDays)
+		if err := h.notifier.SendAlert(device.PushToStartToken, title, body); err != nil {
+			log.Printf("[StreakCongrats] send failed user=%d device=%s: %v", userID, device.DeviceID, err)
+		}
+	}
+}
+
+func streakCongratsMessage(days int) (string, string) {
+	switch days {
+	case 1:
+		return "First streak day!", "Congratulations on your first streak day! Keep it up!"
+	case 3:
+		return "3-day streak!", "You're on fire! 3 days in a row. Keep going!"
+	case 7:
+		return "1 week streak!", "Amazing! A full week of learning. You're unstoppable!"
+	case 14:
+		return "2 week streak!", "Two weeks straight! Your dedication is paying off!"
+	case 30:
+		return "30-day streak!", "One month of daily learning! You're a math champion!"
+	default:
+		if days > 0 && days%10 == 0 {
+			return fmt.Sprintf("%d-day streak!", days), fmt.Sprintf("Incredible! %d days of consistent learning!", days)
+		}
+		return "", ""
+	}
 }
 
 // GetStreak handles GET /api/streak

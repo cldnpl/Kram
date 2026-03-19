@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'api_config.dart';
 
 class DioClient {
@@ -9,8 +10,14 @@ class DioClient {
       receiveTimeout: const Duration(seconds: 10),
     ));
     _dio.interceptors.add(InterceptorsWrapper(
-      onRequest: (opts, handler) {
-        // TODO: add Authorization: Bearer <token>
+      onRequest: (opts, handler) async {
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          final token = await user.getIdToken();
+          if (token != null) {
+            opts.headers['Authorization'] = 'Bearer $token';
+          }
+        }
         handler.next(opts);
       },
       onError: (err, handler) async {

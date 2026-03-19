@@ -47,6 +47,7 @@ func FirebaseAuth() fiber.Handler {
 }
 
 // ResolveUserID looks up the user's DB ID from firebase_uid and stores it in locals.
+// If the user doesn't exist yet, it auto-creates the record.
 func ResolveUserID(db *gorm.DB) fiber.Handler {
 	type userRow struct {
 		ID uint `gorm:"column:id"`
@@ -61,7 +62,22 @@ func ResolveUserID(db *gorm.DB) fiber.Handler {
 		}
 		var u userRow
 		err := db.Table("users").Select("id").Where("firebase_uid = ?", firebaseUID).First(&u).Error
-		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+			// Auto-create user on first authenticated request
+			createErr := db.Table("users").Create(map[string]any{
+				"firebase_uid": firebaseUID,
+				"name":         "",
+			}).Error
+			if createErr != nil {
+				// Might be a race condition; try lookup again
+				_ = db.Table("users").Select("id").Where("firebase_uid = ?", firebaseUID).First(&u).Error
+			} else {
+				_ = db.Table("users").Select("id").Where("firebase_uid = ?", firebaseUID).First(&u).Error
+			}
+			if u.ID > 0 {
+				log.Printf("[AUTH] auto-created user %d for firebase_uid=%s", u.ID, firebaseUID)
+			}
+		} else if err != nil {
 			log.Printf("[AUTH] failed to resolve user ID: %v", err)
 		}
 		if u.ID > 0 {
