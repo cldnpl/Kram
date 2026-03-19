@@ -48,7 +48,10 @@ final class SubscriptionManager: ObservableObject {
         defer { isLoadingProducts = false }
 
         do {
-            let products = try await Product.products(for: SubscriptionTier.paidProductIDs)
+            let requestedIDs = SubscriptionTier.paidProductIDs
+            print("[StoreKit] Requesting products: \(requestedIDs)")
+            let products = try await Product.products(for: requestedIDs)
+            print("[StoreKit] Received \(products.count) products: \(products.map { "\($0.id) (\($0.displayPrice))" })")
             var mapped: [SubscriptionTier: Product] = [:]
             let fetchedIDs = Set(products.map(\.id))
             let missingRequiredIDs = Set([SubscriptionTier.premiumProductID]).subtracting(fetchedIDs)
@@ -82,6 +85,7 @@ final class SubscriptionManager: ObservableObject {
                 statusMessage = nil
             }
         } catch {
+            print("[StoreKit] ERROR loading products: \(error)")
             missingProductIDs = SubscriptionTier.paidProductIDs
             statusMessage = "Failed to load subscriptions: \(error.localizedDescription)"
         }
