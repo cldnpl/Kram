@@ -4,11 +4,12 @@ import SwiftUI
 
 private let appPurple = Color(red: 0.4, green: 0.3, blue: 0.9)
 private let privacyPolicyURL = URL(string: "https://docs.google.com/document/d/e/2PACX-1vSyXqkX7LWZaW8dzafSVfMRwUeZ4s1KyrLZscOtYSg_jHWjKuw8fm4BF8CbQbMJTMRld7GIFVkmzEnz/pub")!
-private let standardEULAURL = URL(string: "https://www.apple.com/legal/internet-services/itunes/dev/stdeula/")!
+private let standardEULAURL = URL(string: "https://docs.google.com/document/d/e/2PACX-1vRsFzCfMDLQS98kBAHaEtfS3ml_WfkaEuCtQOeNHcy5oYm99TDoA4tdoXkUxF2Fb_8Sdiigfi4xf-b7/pub")!
 
 struct StoreView: View {
     @EnvironmentObject private var subscriptionManager: SubscriptionManager
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var selectedTier: SubscriptionTier = .premium
     @State private var presentedLegalURL: LegalURLTarget?
 
@@ -59,6 +60,8 @@ struct StoreView: View {
                         .padding(.top, 16)
                         .padding(.bottom, 40)
                 }
+                .frame(maxWidth: horizontalSizeClass == .regular ? 500 : .infinity)
+                .frame(maxWidth: .infinity)
             }
             .background(Color(.systemGroupedBackground))
             .navigationBarTitleDisplayMode(.inline)
@@ -204,7 +207,7 @@ struct StoreView: View {
             Text("Subscription details")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.secondary)
-                .padding(.horizontal, 37)
+                .padding(.horizontal, 18)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(legalSummaryTitle)
