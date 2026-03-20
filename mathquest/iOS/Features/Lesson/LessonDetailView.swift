@@ -20,7 +20,7 @@ struct LessonDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let detail = viewModel.lessonDetail {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .center, spacing: 16) {
                         let normalizedIntro = normalizeLegacyDiagramReplacements(
                             intro: detail.intro,
                             lessonId: lesson.id
@@ -40,9 +40,15 @@ struct LessonDetailView: View {
                                 let isFormulaBox = boxStyleIsFormula(content: content, fallbackIndex: boxIdx)
                                 let accentColor = isFormulaBox ? formulaBoxColor : exampleBoxColor
 
-                                VStack(alignment: .leading, spacing: 8) {
+                                VStack(alignment: .center, spacing: 8) {
                                     ForEach(boxLines(from: content), id: \.self) { line in
-                                        if isFormulaLine(line) {
+                                        if let heading = boxHeadingTitle(line) {
+                                            Text(heading)
+                                                .font(.headline.bold())
+                                                .foregroundStyle(formulaBoxColor)
+                                                .multilineTextAlignment(.center)
+                                                .frame(maxWidth: .infinity)
+                                        } else if isFormulaLine(line) {
                                             LessonFormulaLineView(text: line, accentColor: accentColor)
                                         } else {
                                             LessonPracticeContentView(
@@ -56,7 +62,7 @@ struct LessonDetailView: View {
                                         }
                                     }
                                 }
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .frame(maxWidth: 600, alignment: .center)
                                 .padding(14)
                                 .background(accentColor.opacity(0.15))
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -64,12 +70,15 @@ struct LessonDetailView: View {
                                     RoundedRectangle(cornerRadius: 12)
                                         .stroke(accentColor.opacity(0.5), lineWidth: 1.2)
                                 )
+                                .frame(maxWidth: .infinity)
                                 .padding(.vertical, 4)
                             case .diagram(let diagramID):
                                 LessonDiagramView(diagramID: diagramID)
+                                    .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
                             case .image(let imageName):
                                 LessonImageView(imageName: imageName)
+                                    .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
                             }
                         }
@@ -281,7 +290,7 @@ private struct LessonFormulaLineView: View {
                         fontWeight: 500
                     )
                 )
-                .frame(minHeight: 40, maxHeight: 96)
+                .frame(minHeight: 48, maxHeight: 140)
             } else if let attributed = attributedLessonText(from: note) {
                 Text(attributed)
                     .font(.caption)
@@ -301,7 +310,7 @@ private struct LessonFormulaLineView: View {
 
             if let formula = split.formula {
                 LessonMathView(latex: normalizeLessonLatex(formula), displayMode: true)
-                    .frame(minHeight: 64, maxHeight: 168)
+                    .frame(minHeight: 80, maxHeight: 260)
             }
 
             if let note = split.note, let attributed = attributedLessonText(from: note) {
@@ -1150,6 +1159,18 @@ private func renderInlineBold(_ text: String) -> Text {
     return out
 }
 
+/// Detects box heading lines like "**Idea**", "**Example**", "**Formulas:**".
+/// Returns the clean title text (without asterisks) or nil if not a heading.
+private func boxHeadingTitle(_ line: String) -> String? {
+    let s = line.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard s.hasPrefix("**") && s.contains("**") else { return nil }
+    // Strip all ** markers
+    let stripped = s.replacingOccurrences(of: "**", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+    // Headings are short labels, not math
+    guard !stripped.isEmpty, stripped.count <= 60, !isFormulaLine(stripped) else { return nil }
+    return stripped
+}
+
 private func isFormulaLine(_ line: String) -> Bool {
     let s = line.trimmingCharacters(in: .whitespacesAndNewlines)
     if s.isEmpty { return false }
@@ -1277,11 +1298,11 @@ struct LessonDiagramView: View {
             if loadFailed {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.red.opacity(0.5), lineWidth: 1)
-                    .frame(minHeight: 80, maxHeight: 120)
+                    .frame(maxWidth: .infinity, minHeight: 80, maxHeight: 120)
                     .overlay(Text(L10n.diagramNotAvailable).font(.caption).foregroundColor(.secondary))
             } else if let data = svgData {
                 DiagramWebView(svgData: data)
-                    .frame(minHeight: 120, maxHeight: 280)
+                    .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
@@ -1290,7 +1311,7 @@ struct LessonDiagramView: View {
             } else {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
-                    .frame(minHeight: 120, maxHeight: 280)
+                    .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
                     .overlay(ProgressView())
             }
         }
@@ -1365,7 +1386,7 @@ struct LessonImageView: View {
                     mediaFailureView
                 } else if let data = imageData {
                     DiagramWebView(svgData: data)
-                        .frame(minHeight: 120, maxHeight: 280)
+                        .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
@@ -1376,7 +1397,7 @@ struct LessonImageView: View {
                 }
             } else if usesWebView, let data = imageData {
                 BinaryImageWebView(data: data, mimeType: mimeType)
-                    .frame(minHeight: 120, maxHeight: 280)
+                    .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
@@ -1387,7 +1408,7 @@ struct LessonImageView: View {
             } else if let data = imageData, let uiImage = UIImage(data: data) {
                 Image(uiImage: uiImage)
                     .resizable()
-                    .scaledToFit()
+                    .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity)
                     .padding(12)
                     .background(
@@ -1396,7 +1417,7 @@ struct LessonImageView: View {
                     )
             } else if let data = imageData {
                 BinaryImageWebView(data: data, mimeType: mimeType)
-                    .frame(minHeight: 120, maxHeight: 280)
+                    .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
@@ -1432,7 +1453,7 @@ struct LessonImageView: View {
     private var mediaLoadingView: some View {
         RoundedRectangle(cornerRadius: 12)
             .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
-            .frame(minHeight: 120, maxHeight: 280)
+            .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
             .overlay(ProgressView())
     }
 
@@ -1688,7 +1709,7 @@ private struct LessonPracticeView: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 28)
-                .frame(maxWidth: 300)
+                .frame(maxWidth: 420)
                 .background(Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
                 .shadow(color: .black.opacity(0.08), radius: 24, y: 10)
