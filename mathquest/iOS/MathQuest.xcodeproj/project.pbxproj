@@ -61,7 +61,7 @@
 		E38C4FF02F5BB31700A302DA /* StreakCalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38C4FEB2F5BB31700A302DA /* StreakCalendarView.swift */; };
 		E38C4FF12F5BB31700A302DA /* StreakCalendarViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38C4FEC2F5BB31700A302DA /* StreakCalendarViewModel.swift */; };
 		E38C4FF22F5BB32100A302DA /* StreakActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38C4FE82F5BB31700A302DA /* StreakActivityAttributes.swift */; };
-		E3A7A0F52F6B9D0F008FEE91 /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3A7A0F42F6B9D0F008FEE91 /* StoreKit.framework */; };
+		E3E00AC42F6BC99100316B5D /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E3A7A0F42F6B9D0F008FEE91 /* StoreKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -164,7 +164,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E3A7A0F52F6B9D0F008FEE91 /* StoreKit.framework in Frameworks */,
+				E3E00AC42F6BC99100316B5D /* StoreKit.framework in Frameworks */,
 				B20000000000000000000001 /* FirebaseAuth in Frameworks */,
 				B20000000000000000000002 /* GoogleSignIn in Frameworks */,
 			);

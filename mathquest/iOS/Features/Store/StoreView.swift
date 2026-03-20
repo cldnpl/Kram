@@ -39,6 +39,13 @@ struct StoreView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 24)
 
+                    legalLinks
+                        .padding(.top, 12)
+
+                    subscriptionDetails
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+
                     footer
                         .padding(.top, 16)
                         .padding(.bottom, 40)
@@ -171,27 +178,29 @@ struct StoreView: View {
     private var subscribeButton: some View {
         VStack(spacing: 8) {
             Button {
-                if productUnavailable {
-                    Task { await subscriptionManager.refreshProducts() }
-                } else {
-                    Task { await subscriptionManager.purchase(selectedTier) }
+                Task {
+                    if productUnavailable {
+                        await subscriptionManager.refreshProducts()
+                        // After refresh, attempt purchase if product is now available
+                        if subscriptionManager.product(for: selectedTier) != nil {
+                            await subscriptionManager.purchase(selectedTier)
+                        }
+                    } else {
+                        await subscriptionManager.purchase(selectedTier)
+                    }
                 }
             } label: {
                 Group {
-                    if subscriptionManager.isLoadingProducts {
+                    if subscriptionManager.isPurchasing || subscriptionManager.isLoadingProducts {
                         ProgressView()
                             .tint(.white)
-                    } else if subscriptionManager.isPurchasing {
-                        ProgressView()
-                            .tint(.white)
-                    } else if productUnavailable {
-                        Label("Retry Loading", systemImage: "arrow.clockwise")
                     } else if selectedTier == subscriptionManager.currentTier {
                         Text(L10n.storeCurrentPlan)
                     } else if selectedTier == .free {
                         Text(L10n.storeSwitchFree)
                     } else {
-                        Text(L10n.storeSubscribeTo(selectedTier.displayName))
+                        let priceText = subscriptionManager.product(for: .premium)?.displayPrice ?? "$6.99"
+                        Text("\(L10n.storeSubscribeTo(selectedTier.displayName)) — \(priceText)\(L10n.storePerMonth)")
                     }
                 }
                 .font(.system(size: 17, weight: .semibold))
@@ -201,9 +210,7 @@ struct StoreView: View {
                 .background(
                     selectedTier == subscriptionManager.currentTier
                         ? Color.gray
-                        : productUnavailable
-                            ? Color.orange
-                            : appPurple
+                        : appPurple
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 14))
             }
@@ -214,11 +221,56 @@ struct StoreView: View {
             )
 
             if productUnavailable && !subscriptionManager.isLoadingProducts {
-                Text("Subscription is temporarily unavailable. Tap to retry.")
+                Text("Loading subscription details...")
                     .font(.system(size: 12))
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+                    .task {
+                        // Auto-retry loading products
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        await subscriptionManager.refreshProducts()
+                    }
             }
+        }
+    }
+
+    private var legalLinks: some View {
+        HStack(spacing: 4) {
+            Link("Privacy Policy", destination: URL(string: "https://id-preview--bb09b17a-5c81-49d8-aedc-ed2da9c3e42c.lovable.app/privacy")!)
+                .font(.system(size: 13))
+                .foregroundStyle(appPurple)
+            Text("|")
+                .font(.system(size: 13))
+                .foregroundStyle(.tertiary)
+            Link("Terms of Use", destination: URL(string: "https://id-preview--bb09b17a-5c81-49d8-aedc-ed2da9c3e42c.lovable.app/terms")!)
+                .font(.system(size: 13))
+                .foregroundStyle(appPurple)
+        }
+    }
+
+    private var subscriptionDetails: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Subscription details")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundStyle(.secondary)
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Premium subscription")
+                    .font(.system(size: 15, weight: .semibold))
+
+                let priceText = subscriptionManager.product(for: .premium)?.displayPrice ?? "$6.99"
+                Text("\(priceText) per month")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.secondary)
+
+                Text("1-month auto-renewable subscription. Payment is charged to your Apple ID account at confirmation of purchase. The subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. Your account is charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(.tertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(14)
+            .background(Color(.systemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
         }
     }
 
@@ -314,10 +366,10 @@ private struct PlanCard: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     if let price {
                         Text(price)
-                            .font(.system(size: 17, weight: .bold))
+                            .font(.system(size: 22, weight: .heavy))
                             .foregroundStyle(.primary)
                         Text(L10n.storePerMonth)
-                            .font(.system(size: 11))
+                            .font(.system(size: 12))
                             .foregroundStyle(.secondary)
                     } else {
                         Text(L10n.storeFree)
