@@ -2218,27 +2218,45 @@ If **F'(x) = f(x)** on **[a,b]**, then
 	"27": {
 		Title:    "Applications",
 		Category: "Integral Calculus",
-		Intro: `**Applications** of integrals include **area** between curves, **volume** of solids of revolution (disk/washer method), arc length, work, and many physics/geometry problems. You will see **volumes** (e.g. rotation about the x-axis: V = π∫ (f(x))² dx) and **areas of plane figures** (area between y = f(x) and y = g(x) is ∫ (f − g) dx).
+		Intro: `**Applications** of integrals include **area** between curves, **volume** of solids of revolution (disk/washer method), arc length, work, and many physics/geometry problems. You will see **volumes** such as
+
+**V = \pi \int_a^b (f(x))^2\,dx**
+
+and **areas of plane figures** such as
+
+**A = \int_a^b (f(x) - g(x))\,dx**.
 
 `,
 	},
 	"27-0": {
 		Title:    "Calculation of volumes",
 		Category: "Integral Calculus",
-		Intro: `**Disk method** (solid of revolution): Rotate the region under **y = f(x)** (with f(x) ≥ 0) from x = a to x = b about the **x-axis**. Each vertical slice becomes a **disk** of radius f(x) and thickness dx; the volume is **V = π ∫_a^b (f(x))² dx**. **Washer method:** If the region is between **y = f(x)** and **y = g(x)** (with f ≥ g ≥ 0), rotation about the x-axis gives **V = π ∫_a^b [(f(x))² − (g(x))²] dx** (outer radius f, inner g).
+		Intro: `**Disk method** (solid of revolution): Rotate the region under **y = f(x)** (with f(x) ≥ 0) from x = a to x = b about the **x-axis**. Each vertical slice becomes a **disk** of radius f(x) and thickness dx; the volume is
+
+**V = \pi \int_a^b (f(x))^2\,dx**.
+
+**Washer method:** If the region is between **y = f(x)** and **y = g(x)** (with f ≥ g ≥ 0), rotation about the x-axis gives
+
+**V = \pi \int_a^b \left((f(x))^2 - (g(x))^2\right)\,dx**
+
+(outer radius f, inner g).
 
 [IMAGE:calculationOfVolumes.jpg]
 
-**Cone:** Rotating the line y = (r/h)x from 0 to h about the x-axis gives a cone of radius r and height h: V = π ∫_0^h (r²/h²)x² dx = (1/3)πr²h.
+**Cone:** Rotating the line **y = \frac{r}{h}x** from 0 to h about the x-axis gives a cone of radius r and height h:
+
+**V = \pi \int_0^h \left(\frac{r^2}{h^2}\right)x^2\,dx = \frac{1}{3}\pi r^2 h**.
 
 [BOX]
 **Disk method (about x-axis)**
-V = π ∫_a^b (f(x))² dx.  Washer: V = π ∫_a^b (f² − g²) dx
+V = \pi \int_a^b (f(x))^2\,dx
+Washer: V = \pi \int_a^b (f^2 - g^2)\,dx
 [/BOX]
 
 [BOX]
 **Example (cone)**
-y = (r/h)x on [0,h]: V = π ∫ (r²/h²)x² dx = (1/3)πr²h
+y = \frac{r}{h}x
+V = \pi \int_0^h \left(\frac{r^2}{h^2}\right)x^2\,dx = \frac{1}{3}\pi r^2 h
 [/BOX]`,
 	},
 	"27-1": {

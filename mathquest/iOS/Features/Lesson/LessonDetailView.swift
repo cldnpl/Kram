@@ -20,7 +20,7 @@ struct LessonDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let detail = viewModel.lessonDetail {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .center, spacing: 16) {
                         let normalizedIntro = normalizeLegacyDiagramReplacements(
                             intro: detail.intro,
                             lessonId: lesson.id
@@ -40,16 +40,29 @@ struct LessonDetailView: View {
                                 let isFormulaBox = boxStyleIsFormula(content: content, fallbackIndex: boxIdx)
                                 let accentColor = isFormulaBox ? formulaBoxColor : exampleBoxColor
 
-                                VStack(alignment: .leading, spacing: 8) {
+                                VStack(alignment: .center, spacing: 8) {
                                     ForEach(boxLines(from: content), id: \.self) { line in
-                                        if isFormulaLine(line) {
+                                        if let heading = boxHeadingTitle(line) {
+                                            Text(heading)
+                                                .font(.headline.bold())
+                                                .foregroundStyle(formulaBoxColor)
+                                                .multilineTextAlignment(.center)
+                                                .frame(maxWidth: .infinity)
+                                        } else if isFormulaLine(line) {
                                             LessonFormulaLineView(text: line, accentColor: accentColor)
                                         } else {
-                                            LessonParagraphView(text: line)
+                                            LessonPracticeContentView(
+                                                text: line,
+                                                textStyle: .body,
+                                                textSize: 17,
+                                                textWeight: .regular,
+                                                textColor: .primary,
+                                                centered: true
+                                            )
                                         }
                                     }
                                 }
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .frame(maxWidth: 600, alignment: .center)
                                 .padding(14)
                                 .background(accentColor.opacity(0.15))
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
@@ -57,12 +70,15 @@ struct LessonDetailView: View {
                                     RoundedRectangle(cornerRadius: 12)
                                         .stroke(accentColor.opacity(0.5), lineWidth: 1.2)
                                 )
+                                .frame(maxWidth: .infinity)
                                 .padding(.vertical, 4)
                             case .diagram(let diagramID):
                                 LessonDiagramView(diagramID: diagramID)
+                                    .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
                             case .image(let imageName):
                                 LessonImageView(imageName: imageName)
+                                    .frame(maxWidth: .infinity)
                                     .padding(.vertical, 8)
                             }
                         }
@@ -254,10 +270,35 @@ private struct LessonFormulaLineView: View {
     let accentColor: Color
 
     private var split: (label: String?, formula: String?, note: String?) {
-        splitLessonFormulaLine(text)
+        splitLessonFormulaLineWithEquationFallback(text)
     }
 
     var body: some View {
+        if split.formula == nil, split.label == nil, let note = split.note {
+            if isLessonFormulaHeading(note), let attributed = attributedLessonText(from: note) {
+                Text(attributed)
+                    .font(.title3.weight(.bold))
+                    .foregroundStyle(lessonAccentColor)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            } else if practiceContentNeedsMathRendering(note) {
+                LessonMixedMathView(
+                    html: lessonMixedMathHTML(
+                        content: note,
+                        centered: true,
+                        fontSize: 16,
+                        fontWeight: 500
+                    )
+                )
+                .frame(minHeight: 48, maxHeight: 140)
+            } else if let attributed = attributedLessonText(from: note) {
+                Text(attributed)
+                    .font(.caption)
+                    .foregroundStyle(exampleBoxColor)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: .infinity)
+            }
+        } else {
         VStack(alignment: .center, spacing: 6) {
             if let label = split.label, let attributed = attributedLessonText(from: label) {
                 Text(attributed)
@@ -269,18 +310,19 @@ private struct LessonFormulaLineView: View {
 
             if let formula = split.formula {
                 LessonMathView(latex: normalizeLessonLatex(formula), displayMode: true)
-                    .frame(minHeight: 64, maxHeight: 168)
+                    .frame(minHeight: 80, maxHeight: 260)
             }
 
             if let note = split.note, let attributed = attributedLessonText(from: note) {
                 Text(attributed)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
+                    .font(.caption)
+                    .foregroundStyle(exampleBoxColor)
                     .multilineTextAlignment(.center)
                     .frame(maxWidth: .infinity)
             }
         }
         .foregroundStyle(accentColor)
+        }
     }
 }
 
@@ -826,11 +868,13 @@ private func lessonSuperscript(_ text: String) -> String {
 private func looksLikeInlineMath(_ text: String) -> Bool {
     let candidate = text.trimmingCharacters(in: .whitespacesAndNewlines)
     if candidate.isEmpty { return false }
-    if candidate.range(of: #"[=+\-*/^(){}\[\]≤≥≠±√∫π∞]"#, options: .regularExpression) != nil {
+    if candidate.range(of: #"[=+\-*/^(){}\[\]≤≥≠±√∫π∞\\]"#, options: .regularExpression) != nil {
         return true
     }
     let lower = candidate.lowercased()
-    return lower.contains("lim") || lower.contains("sin") || lower.contains("cos")
+    return lower.contains("lim") || lower.contains("int_") || lower.contains(#"\int"#)
+        || lower.contains("frac") || lower.contains("left") || lower.contains("right")
+        || lower.contains("sin") || lower.contains("cos")
         || lower.contains("tan") || lower.contains("ln") || lower.contains("log")
 }
 
@@ -859,6 +903,41 @@ private func splitLessonFormulaLine(_ line: String) -> (label: String?, formula:
     }
 
     return (left + ":", right, splitSource.note)
+}
+
+private func splitLessonFormulaLineWithEquationFallback(_ line: String) -> (label: String?, formula: String?, note: String?) {
+    let base = splitLessonFormulaLine(line)
+    if base.label != nil || base.formula != nil {
+        return base
+    }
+
+    let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard let eqIndex = trimmed.firstIndex(of: "="), eqIndex > trimmed.startIndex else {
+        return base
+    }
+
+    let next = trimmed.index(after: eqIndex)
+    guard next < trimmed.endIndex else {
+        return base
+    }
+
+    let left = String(trimmed[..<eqIndex]).trimmingCharacters(in: .whitespacesAndNewlines)
+    let right = String(trimmed[next...]).trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !left.isEmpty, !right.isEmpty else {
+        return base
+    }
+
+    if containsProseWords(left) && looksLikeInlineMath(right) {
+        return (left, right, nil)
+    }
+
+    return base
+}
+
+private func isLessonFormulaHeading(_ text: String) -> Bool {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty, trimmed.hasSuffix(":") else { return false }
+    return trimmed.count <= 48
 }
 
 private func sanitizeLessonFormulaContent(_ text: String) -> (formula: String, note: String?) {
@@ -896,7 +975,8 @@ private func containsProseWords(_ text: String) -> Bool {
         return String(lower[matchRange])
     }
     let allowed: Set<String> = [
-        "sin", "cos", "tan", "log", "lim", "mod", "gcd", "lcm"
+        "sin", "cos", "tan", "log", "lim", "mod", "gcd", "lcm",
+        "int", "frac", "left", "right"
     ]
     return matches.contains { !allowed.contains($0) }
 }
@@ -928,7 +1008,7 @@ private func normalizeLessonLatex(_ raw: String) -> String {
     value = value.replacingOccurrences(of: "∫", with: "\\int")
 
     value = value.replacingOccurrences(of: #"\bpi\b"#, with: "\\pi", options: .regularExpression)
-    value = value.replacingOccurrences(of: #"(?<!\\)\bint\b"#, with: "\\int", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(?<!\\)\bint(?=_|\^|\s|$)"#, with: "\\int", options: .regularExpression)
     value = value.replacingOccurrences(of: #"(?<!\\)\bleft\s*([\[\(\{])"#, with: "\\left$1", options: .regularExpression)
     value = value.replacingOccurrences(of: #"(?<!\\)\bright\s*([\]\)\}])"#, with: "\\right$1", options: .regularExpression)
     value = value.replacingOccurrences(of: #"√\s*([A-Za-z0-9\(\)\+\-]+)"#, with: "\\sqrt{$1}", options: .regularExpression)
@@ -944,6 +1024,7 @@ private func normalizeLessonLatex(_ raw: String) -> String {
     value = value.replacingOccurrences(of: #"\\tan(?=[A-Za-z0-9])"#, with: "\\tan ", options: .regularExpression)
     value = value.replacingOccurrences(of: #"\\ln(?=[A-Za-z0-9])"#, with: "\\ln ", options: .regularExpression)
     value = value.replacingOccurrences(of: #"\\log(?=[A-Za-z0-9])"#, with: "\\log ", options: .regularExpression)
+    value = value.replacingOccurrences(of: #"(\\[A-Za-z]+)(?=\\[A-Za-z])"#, with: "$1 ", options: .regularExpression)
     value = value.replacingOccurrences(of: #"\s{2,}"#, with: " ", options: .regularExpression)
     value = value.trimmingCharacters(in: .whitespacesAndNewlines)
 
@@ -1078,17 +1159,29 @@ private func renderInlineBold(_ text: String) -> Text {
     return out
 }
 
+/// Detects box heading lines like "**Idea**", "**Example**", "**Formulas:**".
+/// Returns the clean title text (without asterisks) or nil if not a heading.
+private func boxHeadingTitle(_ line: String) -> String? {
+    let s = line.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard s.hasPrefix("**") && s.contains("**") else { return nil }
+    // Strip all ** markers
+    let stripped = s.replacingOccurrences(of: "**", with: "").trimmingCharacters(in: .whitespacesAndNewlines)
+    // Headings are short labels, not math
+    guard !stripped.isEmpty, stripped.count <= 60, !isFormulaLine(stripped) else { return nil }
+    return stripped
+}
+
 private func isFormulaLine(_ line: String) -> Bool {
     let s = line.trimmingCharacters(in: .whitespacesAndNewlines)
     if s.isEmpty { return false }
 
     if s.contains("=") { return true }
     if s.contains("→") || s.contains("±") { return true }
-    if s.contains("√") || s.contains("∫") || s.contains("Δ") { return true }
+    if s.contains("√") || s.contains("∫") || s.contains(#"\int"#) || s.contains(#"\frac"#) || s.contains(#"\left"#) || s.contains(#"\right"#) || s.contains("Δ") { return true }
     if s.contains("^") { return true }
 
     let lower = s.lowercased()
-    if lower.contains("lim") { return true }
+    if lower.contains("lim") || lower.contains("int_") || lower.contains("int ") || lower.contains("frac") || lower.contains("left") || lower.contains("right") { return true }
     if lower.contains("sin") || lower.contains("cos") || lower.contains("tan") { return true }
     if lower.contains("ln") || lower.contains("log") || lower.contains("e^") { return true }
 
@@ -1205,11 +1298,11 @@ struct LessonDiagramView: View {
             if loadFailed {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color.red.opacity(0.5), lineWidth: 1)
-                    .frame(minHeight: 80, maxHeight: 120)
+                    .frame(maxWidth: .infinity, minHeight: 80, maxHeight: 120)
                     .overlay(Text(L10n.diagramNotAvailable).font(.caption).foregroundColor(.secondary))
             } else if let data = svgData {
                 DiagramWebView(svgData: data)
-                    .frame(minHeight: 120, maxHeight: 280)
+                    .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
@@ -1218,7 +1311,7 @@ struct LessonDiagramView: View {
             } else {
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
-                    .frame(minHeight: 120, maxHeight: 280)
+                    .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
                     .overlay(ProgressView())
             }
         }
@@ -1293,7 +1386,7 @@ struct LessonImageView: View {
                     mediaFailureView
                 } else if let data = imageData {
                     DiagramWebView(svgData: data)
-                        .frame(minHeight: 120, maxHeight: 280)
+                        .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
@@ -1304,7 +1397,7 @@ struct LessonImageView: View {
                 }
             } else if usesWebView, let data = imageData {
                 BinaryImageWebView(data: data, mimeType: mimeType)
-                    .frame(minHeight: 120, maxHeight: 280)
+                    .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
@@ -1315,7 +1408,7 @@ struct LessonImageView: View {
             } else if let data = imageData, let uiImage = UIImage(data: data) {
                 Image(uiImage: uiImage)
                     .resizable()
-                    .scaledToFit()
+                    .aspectRatio(contentMode: .fit)
                     .frame(maxWidth: .infinity)
                     .padding(12)
                     .background(
@@ -1324,7 +1417,7 @@ struct LessonImageView: View {
                     )
             } else if let data = imageData {
                 BinaryImageWebView(data: data, mimeType: mimeType)
-                    .frame(minHeight: 120, maxHeight: 280)
+                    .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
@@ -1360,7 +1453,7 @@ struct LessonImageView: View {
     private var mediaLoadingView: some View {
         RoundedRectangle(cornerRadius: 12)
             .stroke(Color(.separator).opacity(0.5), lineWidth: 1)
-            .frame(minHeight: 120, maxHeight: 280)
+            .frame(maxWidth: .infinity, minHeight: 200, maxHeight: 500)
             .overlay(ProgressView())
     }
 
@@ -1616,7 +1709,7 @@ private struct LessonPracticeView: View {
                 }
                 .padding(.horizontal, 24)
                 .padding(.vertical, 28)
-                .frame(maxWidth: 300)
+                .frame(maxWidth: 420)
                 .background(Color.white)
                 .clipShape(RoundedRectangle(cornerRadius: 24))
                 .shadow(color: .black.opacity(0.08), radius: 24, y: 10)
@@ -1897,7 +1990,7 @@ private func practiceSegmentsForLine(_ line: String) -> [PracticeRichSegment] {
         return [.math(line, display: true)]
     }
 
-    let pattern = #"(∫[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)"#
+    let pattern = #"((?:∫|\\int|int(?=[_\^\s]|$))[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\\\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)"#
     guard let regex = try? NSRegularExpression(pattern: pattern) else {
         return [.text(line)]
     }
@@ -1933,7 +2026,7 @@ private func practiceLineContainsRenderableMath(_ line: String) -> Bool {
     if let split = practiceSplitTextConnector(line) {
         return practiceLineContainsRenderableMath(split.before) || practiceLineContainsRenderableMath(split.after)
     }
-    guard let regex = try? NSRegularExpression(pattern: #"(∫[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)"#) else {
+    guard let regex = try? NSRegularExpression(pattern: #"((?:∫|\\int|int(?=[_\^\s]|$))[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|[A-Za-z]'\([^)]+\)|[A-Za-z]\([^)]+\)|[A-Za-z0-9\\\]\)]+\s*[=≠≤≥]\s*[^,;\n]+?(?=(?:\s+(?:where|equals|is|are|so|since|then)\b|$))|d[A-Za-z]\/d[A-Za-z]|[A-Za-z0-9]+\^\(?[A-Za-z0-9+\-]+\)?)"#) else {
         return false
     }
     let range = NSRange(line.startIndex..<line.endIndex, in: line)
