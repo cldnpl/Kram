@@ -194,6 +194,8 @@ struct StoreView: View {
                     if subscriptionManager.isPurchasing || subscriptionManager.isLoadingProducts {
                         ProgressView()
                             .tint(.white)
+                    } else if productUnavailable {
+                        Text("Retry subscription")
                     } else if selectedTier == subscriptionManager.currentTier {
                         Text(L10n.storeCurrentPlan)
                     } else if selectedTier == .free {
@@ -221,7 +223,7 @@ struct StoreView: View {
             )
 
             if productUnavailable && !subscriptionManager.isLoadingProducts {
-                Text("Loading subscription details...")
+                Text("The subscription couldn’t be loaded from the App Store. Tap above to retry.")
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)

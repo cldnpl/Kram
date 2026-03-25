@@ -1,5 +1,7 @@
 import Foundation
+import FirebaseAuth
 import StoreKit
+import UIKit
 
 @MainActor
 final class SubscriptionManager: ObservableObject {
@@ -11,6 +13,7 @@ final class SubscriptionManager: ObservableObject {
     @Published var statusMessage: String?
 
     private var transactionUpdatesTask: Task<Void, Never>?
+    private let apiClient = APIClient()
 
     init() {
         currentTier = SubscriptionTier.current
@@ -44,6 +47,10 @@ final class SubscriptionManager: ObservableObject {
     }
 
     func refreshProducts() async {
+        guard !isLoadingProducts else {
+            return
+        }
+
         isLoadingProducts = true
         defer { isLoadingProducts = false }
 
@@ -66,7 +73,7 @@ final class SubscriptionManager: ObservableObject {
             productsByTier = mapped
 
             if !missingProductIDs.isEmpty {
-                statusMessage = "Products unavailable: \(missingProductIDs.joined(separator: ", "))"
+                statusMessage = "Subscription unavailable in the App Store: \(missingProductIDs.joined(separator: ", "))"
             } else if mapped.isEmpty {
                 statusMessage = "No subscription products were found."
             } else {
@@ -86,16 +93,26 @@ final class SubscriptionManager: ObservableObject {
             return
         }
 
-        guard let product = product(for: tier) else {
-            statusMessage = "Product unavailable for \(tier.displayName)."
+        guard SKPaymentQueue.canMakePayments() else {
+            statusMessage = "In-App Purchases are disabled on this device."
+            return
+        }
+
+        guard let product = await ensureProductLoaded(for: tier) else {
             return
         }
 
         isPurchasing = true
         defer { isPurchasing = false }
+        statusMessage = nil
 
         do {
-            let result = try await product.purchase()
+            let result: Product.PurchaseResult
+            if let scene = activePurchaseScene() {
+                result = try await product.purchase(confirmIn: scene)
+            } else {
+                result = try await product.purchase()
+            }
 
             switch result {
             case .success(let verification):
@@ -103,6 +120,7 @@ final class SubscriptionManager: ObservableObject {
                 case .verified(let transaction):
                     await transaction.finish()
                     await syncEntitlements()
+                    await syncSubscriptionToBackend(using: transaction)
                     statusMessage = "\(currentTier.displayName) plan is now active."
                 case .unverified:
                     statusMessage = "Purchase was not verified."
@@ -123,6 +141,7 @@ final class SubscriptionManager: ObservableObject {
         do {
             try await AppStore.sync()
             await syncEntitlements()
+            await syncCurrentEntitlementToBackend()
             statusMessage = "Purchases restored."
         } catch {
             statusMessage = "Restore failed: \(error.localizedDescription)"
@@ -154,4 +173,117 @@ final class SubscriptionManager: ObservableObject {
         currentTier = tier
         tier.persistAsCurrent()
     }
+
+    private func ensureProductLoaded(for tier: SubscriptionTier) async -> Product? {
+        if let product = product(for: tier) {
+            return product
+        }
+
+        statusMessage = "Loading subscription details..."
+        await refreshProducts()
+
+        if let product = product(for: tier) {
+            return product
+        }
+
+        if let productID = tier.storeKitProductID, missingProductIDs.contains(productID) {
+            statusMessage = "The App Store product isn’t available right now. Check the subscription configuration and try again."
+        } else {
+            statusMessage = "Couldn’t load the subscription from the App Store. Please try again."
+        }
+        return nil
+    }
+
+    private func activePurchaseScene() -> UIWindowScene? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        return scenes.first(where: { $0.activationState == .foregroundActive }) ??
+            scenes.first(where: { $0.activationState == .foregroundInactive }) ??
+            scenes.first
+    }
+
+    private func syncCurrentEntitlementToBackend() async {
+        for await entitlement in Transaction.currentEntitlements {
+            guard case .verified(let transaction) = entitlement,
+                  transaction.productID == SubscriptionTier.premiumProductID else {
+                continue
+            }
+
+            await syncSubscriptionToBackend(using: transaction)
+            return
+        }
+    }
+
+    private func syncSubscriptionToBackend(using transaction: Transaction) async {
+        let environment = transaction.environment.rawValue.lowercased()
+        guard environment != "xcode" else {
+            return
+        }
+
+        guard let token = resolvedAuthToken() else {
+            return
+        }
+
+        do {
+            await apiClient.setToken(token)
+            let body = try JSONEncoder().encode(
+                SubscriptionVerificationRequest(
+                    original_transaction_id: String(transaction.originalID),
+                    product_id: transaction.productID,
+                    environment: environment
+                )
+            )
+            let response: SubscriptionVerificationResponse = try await apiClient.request(
+                "subscriptions/verify",
+                method: "POST",
+                body: body
+            )
+
+            if let tier = normalizedTier(from: response.subscription_tier) {
+                updateTier(tier)
+            }
+        } catch {
+            print("[StoreKit] Failed to sync subscription to backend: \(error)")
+        }
+    }
+
+    private func resolvedAuthToken() -> String? {
+        if let uid = Auth.auth().currentUser?.uid.trimmingCharacters(in: .whitespacesAndNewlines),
+           !uid.isEmpty {
+            return uid
+        }
+
+        guard UserDefaults.standard.bool(forKey: "session_logged_in") else {
+            return nil
+        }
+
+        let username = (UserDefaults.standard.string(forKey: "profile_username") ?? "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased()
+        guard !username.isEmpty else {
+            return nil
+        }
+
+        return "username:\(username)"
+    }
+
+    private func normalizedTier(from rawValue: String?) -> SubscriptionTier? {
+        switch rawValue?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() {
+        case "premium", "pro", "max":
+            return .premium
+        case "free":
+            return .free
+        default:
+            return nil
+        }
+    }
+}
+
+private struct SubscriptionVerificationRequest: Encodable {
+    let original_transaction_id: String
+    let product_id: String
+    let environment: String
+}
+
+private struct SubscriptionVerificationResponse: Decodable {
+    let subscription_tier: String?
 }
