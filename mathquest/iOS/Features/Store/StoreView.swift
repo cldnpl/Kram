@@ -201,8 +201,7 @@ struct StoreView: View {
                     } else if selectedTier == .free {
                         Text(L10n.storeSwitchFree)
                     } else {
-                        let priceText = subscriptionManager.product(for: .premium)?.displayPrice ?? "$6.99"
-                        Text("\(L10n.storeSubscribeTo(selectedTier.displayName)) — \(priceText)\(L10n.storePerMonth)")
+                        Text("Try Free for 3 Days — then $2.99/mo")
                     }
                 }
                 .font(.system(size: 17, weight: .semibold))
@@ -260,12 +259,11 @@ struct StoreView: View {
                 Text("Premium subscription")
                     .font(.system(size: 15, weight: .semibold))
 
-                let priceText = subscriptionManager.product(for: .premium)?.displayPrice ?? "$6.99"
-                Text("\(priceText) per month")
+                Text("$2.99 per month (after free trial)")
                     .font(.system(size: 14))
                     .foregroundStyle(.secondary)
 
-                Text("1-month auto-renewable subscription. Payment is charged to your Apple ID account at confirmation of purchase. The subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. Your account is charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.")
+                Text("3-day free trial, then $2.99/month. 1-month auto-renewable subscription. Payment is charged to your Apple ID account at confirmation of purchase. The subscription automatically renews unless it is canceled at least 24 hours before the end of the current period. Your account is charged for renewal within 24 hours prior to the end of the current period. You can manage and cancel your subscriptions in your App Store account settings.")
                     .font(.system(size: 11))
                     .foregroundStyle(.tertiary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -368,11 +366,22 @@ private struct PlanCard: View {
                 VStack(alignment: .trailing, spacing: 2) {
                     if let price {
                         Text(price)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .strikethrough(true, color: .secondary)
+                        Text("$2.99")
                             .font(.system(size: 22, weight: .heavy))
                             .foregroundStyle(.primary)
                         Text(L10n.storePerMonth)
                             .font(.system(size: 12))
                             .foregroundStyle(.secondary)
+                        Text("3-day free trial")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 3)
+                            .background(Color.orange)
+                            .clipShape(Capsule())
                     } else {
                         Text(L10n.storeFree)
                             .font(.system(size: 17, weight: .bold))

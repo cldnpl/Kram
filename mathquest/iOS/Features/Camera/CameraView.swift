@@ -209,19 +209,6 @@ struct CameraView: View {
         .toolbarColorScheme(.dark, for: .tabBar)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    isFlashOn.toggle()
-                    viewModel.cameraService.toggleTorch(isFlashOn)
-                } label: {
-                    Image(systemName: isFlashOn ? "bolt.fill" : "bolt.slash.fill")
-                        .font(.headline)
-                        .foregroundColor(isFlashOn ? .yellow : .white)
-                        .padding(8)
-                        .background(Color.black.opacity(0.5))
-                        .clipShape(Circle())
-                }
-            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     viewModel.showHistory = true
@@ -393,7 +380,7 @@ struct CameraView: View {
         VStack(spacing: 16) {
             // Capture button
             if viewModel.state == .idle {
-                HStack(spacing: 24) {
+                HStack(spacing: 16) {
                     PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
                         VStack(spacing: 6) {
                             Image(systemName: "photo.on.rectangle.angled")
@@ -405,6 +392,18 @@ struct CameraView: View {
                         .frame(width: 56, height: 56)
                         .background(Color.black.opacity(0.55))
                         .clipShape(Circle())
+                    }
+
+                    Button {
+                        isFlashOn.toggle()
+                        viewModel.cameraService.toggleTorch(isFlashOn)
+                    } label: {
+                        Image(systemName: isFlashOn ? "bolt.fill" : "bolt.slash.fill")
+                            .font(.title2)
+                            .foregroundColor(isFlashOn ? .yellow : .white)
+                            .frame(width: 56, height: 56)
+                            .background(Color.black.opacity(0.55))
+                            .clipShape(Circle())
                     }
 
                     Button {
