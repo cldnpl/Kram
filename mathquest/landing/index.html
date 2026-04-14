@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Kram | Learn math with guided scans, lessons, and streaks</title>
+    <meta name="description" content="Kram helps students scan math problems, follow structured lessons, and build daily progress with streaks and rewards.">
+    <link rel="icon" href="assets/app/app-icon.png">
+    <link rel="stylesheet" href="styles.css?v=4">
+  </head>
+  <body data-page="home">
+    <div class="cursor-glow" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="#home" aria-label="Kram home">
+        <img src="assets/app/app-icon.png" alt="">
+        <span>Kram</span>
+      </a>
+      <label class="language-switcher" aria-label="Change language">
+        <span data-i18n="languageLabel">Language</span>
+        <select id="language-select">
+          <option value="en">EN</option>
+          <option value="it">IT</option>
+          <option value="sp">ESP</option>
+          <option value="fr">FR</option>
+          <option value="uz">UZ</option>
+          <option value="ru">RU</option>
+        </select>
+      </label>
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span data-i18n="menu">Menu</span>
+      </button>
+      <nav class="site-nav" id="site-nav" aria-label="Main navigation">
+        <a href="#features" data-i18n="navFeatures">Features</a>
+        <a href="#progress" data-i18n="navProgress">Progress</a>
+        <a href="#screens" data-i18n="navScreens">Screens</a>
+        <a href="privacy.html" data-i18n="navPrivacy">Privacy</a>
+        <a href="terms.html" data-i18n="navTerms">Terms</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero" id="home">
+        <div class="hero-media" aria-hidden="true">
+          <div class="hero-orbit hero-orbit-one"></div>
+          <div class="hero-orbit hero-orbit-two"></div>
+          <div class="screen-stack">
+            <figure class="phone-shot phone-shot-primary">
+              <img src="assets/screenshots/home.png" alt="">
+            </figure>
+            <figure class="phone-shot phone-shot-secondary">
+              <img src="assets/screenshots/onboarding.png" alt="">
+            </figure>
+            <figure class="phone-shot phone-shot-tertiary artwork-shot">
+              <img src="assets/app/unit-circle.webp" alt="">
+            </figure>
+          </div>
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+          <p class="eyebrow" data-i18n="heroEyebrow">Math practice that keeps moving</p>
+          <h1 data-i18n="heroTitle">Scan the problem. Follow the lesson. Keep the streak.</h1>
+          <p class="hero-copy" data-i18n="heroCopy">
+            Kram turns math study into a daily rhythm with camera solving, structured lessons, rewards, and progress you can see.
+          </p>
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="app-store-button" href="https://apps.apple.com/it/app/kram/id6759972594" target="_blank" rel="noopener noreferrer" aria-label="Download Kram on the App Store">
+              <img class="app-store-badge" data-app-store-badge src="assets/app/app-store-en.svg" alt="Download on the App Store">
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="feature-band" id="features">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="featuresEyebrow">Why students use it</p>
+          <h2 data-i18n="featuresTitle">Fast help for today, steady practice for tomorrow.</h2>
+        </div>
+        <div class="feature-grid">
+          <article class="feature-card accent-purple">
+            <span class="feature-icon">01</span>
+            <h3 data-i18n="feature1Title">Scan math in seconds</h3>
+            <p data-i18n="feature1Copy">Capture handwritten or printed problems and open guided solutions when you need a push.</p>
+          </article>
+          <article class="feature-card accent-coral">
+            <span class="feature-icon">02</span>
+            <h3 data-i18n="feature2Title">Learn with lessons</h3>
+            <p data-i18n="feature2Copy">Move from beginner concepts to advanced topics through short, structured lesson paths.</p>
+          </article>
+          <article class="feature-card accent-gold">
+            <span class="feature-icon">03</span>
+            <h3 data-i18n="feature3Title">Stay motivated</h3>
+            <p data-i18n="feature3Copy">Track streaks, complete lessons, collect coins, and keep your daily study habit visible.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="showcase-band" id="progress">
+        <div class="showcase-copy">
+          <p class="eyebrow" data-i18n="progressEyebrow">Progress that feels clear</p>
+          <h2 data-i18n="progressTitle">Lessons, camera help, and rewards stay in one place.</h2>
+          <p data-i18n="progressCopy">
+            Open a topic, check your lesson count, review your streak, and return to camera solving when a problem slows you down.
+          </p>
+          <ul class="check-list">
+            <li data-i18n="progressItem1">Free daily camera scans with an account</li>
+            <li data-i18n="progressItem2">Lessons are always available</li>
+            <li data-i18n="progressItem3">Profile stats keep consistency visible</li>
+          </ul>
+        </div>
+        <div class="lesson-panel">
+          <img src="assets/app/unit-circle.webp" alt="Unit circle lesson artwork">
+          <div class="lesson-summary">
+            <p data-i18n="today">Today</p>
+            <h3 data-i18n="lessonSummaryTitle">Trigonometry practice</h3>
+            <span data-i18n="lessonSummaryMeta">Guided lesson + streak progress</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="screens-band" id="screens">
+        <div class="section-heading">
+          <p class="eyebrow" data-i18n="screensEyebrow">Screens and study flow</p>
+          <h2 data-i18n="screensTitle">Built around the student workflow.</h2>
+        </div>
+        <div class="screens-grid">
+          <article class="screen-card">
+            <figure class="device-frame">
+              <img src="assets/screenshots/home.png" alt="Kram lessons home screen">
+            </figure>
+            <h3 data-i18n="screen1Title">Lesson dashboard</h3>
+            <p data-i18n="screen1Copy">Choose a math topic and keep track of completion.</p>
+          </article>
+          <article class="screen-card">
+            <figure class="device-frame">
+              <img src="assets/screenshots/onboarding.png" alt="Kram onboarding screen">
+            </figure>
+            <h3 data-i18n="screen2Title">Guided start</h3>
+            <p data-i18n="screen2Copy">Begin with camera solving, lessons, and streaks as the core loop.</p>
+          </article>
+          <article class="screen-card lesson-art-card">
+            <figure class="device-frame">
+              <img src="assets/app/unit-circle.webp" alt="Unit circle lesson artwork">
+            </figure>
+            <h3 data-i18n="screen3Title">Lesson topics</h3>
+            <p data-i18n="screen3Copy">Use visual topic material while moving from basics to advanced math.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="download-band" id="apps">
+        <div>
+          <p class="eyebrow" data-i18n="downloadEyebrow">Start with one problem</p>
+          <h2 data-i18n="downloadTitle">Open Kram when homework needs a clearer next step.</h2>
+        </div>
+        <div class="download-actions">
+          <a class="app-store-button" href="https://apps.apple.com/it/app/kram/id6759972594" target="_blank" rel="noopener noreferrer" aria-label="Download Kram on the App Store">
+            <img class="app-store-badge" data-app-store-badge src="assets/app/app-store-en.svg" alt="Download on the App Store">
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <a class="brand" href="#home" aria-label="Kram home">
+        <img src="assets/app/app-icon.png" alt="">
+        <span>Kram</span>
+      </a>
+      <nav aria-label="Legal navigation">
+        <a href="privacy.html" data-i18n="privacyPolicy">Privacy Policy</a>
+        <a href="terms.html" data-i18n="termsOfUse">Terms of Use</a>
+      </nav>
+      <p>© 2026 Kram.</p>
+    </footer>
+
+    <div class="study-toast" role="status" aria-live="polite">
+      <span class="toast-dot"></span>
+      <p data-i18n="toast">500 students are practicing Trigonometry right now 📚</p>
+    </div>
+
+    <script src="script.js?v=4"></script>
+  </body>
+</html>
